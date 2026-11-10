@@ -3,6 +3,17 @@ import Foundation
 @testable import SwiftProjectLintEngine
 import Testing
 
+/// Returns the same file list, in the given order, for every discovery call.
+struct FixedFileDiscovery: FileDiscoveryProtocol {
+    let files: [String]
+
+    func findSwiftFiles(
+        in _: String, excludedPaths _: [String], excludedFilenames _: [String], includeNestedPackages _: Bool
+    ) -> [String] {
+        files
+    }
+}
+
 /// What the package-purity wiring suites share: the `Item` fixture pair, the subjects, and a lint
 /// through `ProjectLinter` over a scratch project.
 ///
@@ -141,16 +152,5 @@ enum PackagePurityFixtures {
         let url = URL(fileURLWithPath: root).appendingPathComponent(link)
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         try FileManager.default.createSymbolicLink(atPath: url.path, withDestinationPath: destination)
-    }
-}
-
-/// Returns the same file list, in the given order, for every discovery call.
-struct FixedFileDiscovery: FileDiscoveryProtocol {
-    let files: [String]
-
-    func findSwiftFiles(
-        in _: String, excludedPaths _: [String], excludedFilenames _: [String], includeNestedPackages _: Bool
-    ) -> [String] {
-        files
     }
 }

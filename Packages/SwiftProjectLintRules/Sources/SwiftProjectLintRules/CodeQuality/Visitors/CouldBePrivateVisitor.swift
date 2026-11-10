@@ -2,6 +2,25 @@ import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
+/// Finds whether a type declaration contains any property-test candidate.
+private final class CandidateFunctionCollector: SyntaxVisitor {
+    private let knownEquatableTypes: Set<String>
+
+    var foundCandidate = false
+
+    init(knownEquatableTypes: Set<String>, viewMode: SyntaxTreeViewMode) {
+        self.knownEquatableTypes = knownEquatableTypes
+        super.init(viewMode: viewMode)
+    }
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        if PropertyTestCandidacy.shape(of: node, knownEquatableTypes: knownEquatableTypes) != nil {
+            foundCandidate = true
+        }
+        return .visitChildren
+    }
+}
+
 /// A cross-file visitor that detects top-level types with internal (default) access
 /// that are only referenced in their declaring file and could be narrowed to `private`.
 ///
@@ -323,24 +342,5 @@ final class CouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
               let greatGrandparent = grandparent.parent,
               greatGrandparent.is(SourceFileSyntax.self) else { return false }
         return true
-    }
-}
-
-/// Finds whether a type declaration contains any property-test candidate.
-private final class CandidateFunctionCollector: SyntaxVisitor {
-    private let knownEquatableTypes: Set<String>
-
-    var foundCandidate = false
-
-    init(knownEquatableTypes: Set<String>, viewMode: SyntaxTreeViewMode) {
-        self.knownEquatableTypes = knownEquatableTypes
-        super.init(viewMode: viewMode)
-    }
-
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        if PropertyTestCandidacy.shape(of: node, knownEquatableTypes: knownEquatableTypes) != nil {
-            foundCandidate = true
-        }
-        return .visitChildren
     }
 }

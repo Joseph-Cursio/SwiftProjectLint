@@ -1,24 +1,5 @@
 import SwiftSyntax
 
-/// The views a test file declares, whose layouts the test owns, and the finder helpers it
-/// declares in `extension InspectableView`.
-struct DeclaredViews {
-    /// Types adopting `View` — or `Shape`, or a `…Representable` wrapper — or a modifier or style
-    /// protocol, at any depth.
-    let names: Set<String>
-    /// Declared views whose bodies build only SwiftUI views and other such declared views. A state
-    /// host wrapping an app view is declared but not self-contained.
-    let selfContained: Set<String>
-    /// The test's own finder helpers, by name, with each overload's parameters.
-    let finderHelpers: [String: [FinderHelper]]
-
-    /// Whose layout a view of this type is: the app's, unless the file declares it.
-    func ownership(of typeName: String?) -> LayoutOwnership {
-        guard let typeName, names.contains(typeName) else { return .app }
-        return selfContained.contains(typeName) ? .owned : .ownedHost
-    }
-}
-
 /// One finder helper's parameters, to tell a call of the helper from a call of ViewInspector's
 /// method of the same name: `find(_ id: A11y)` is not `find(ViewType.HStack.self)`.
 struct FinderHelper {
@@ -196,5 +177,24 @@ final class DeclaredViewsCollector: SyntaxVisitor {
             return false
         }
         return names.contains(built) || declaredTypes.contains(built) == false
+    }
+}
+
+/// The views a test file declares, whose layouts the test owns, and the finder helpers it
+/// declares in `extension InspectableView`.
+struct DeclaredViews {
+    /// Types adopting `View` — or `Shape`, or a `…Representable` wrapper — or a modifier or style
+    /// protocol, at any depth.
+    let names: Set<String>
+    /// Declared views whose bodies build only SwiftUI views and other such declared views. A state
+    /// host wrapping an app view is declared but not self-contained.
+    let selfContained: Set<String>
+    /// The test's own finder helpers, by name, with each overload's parameters.
+    let finderHelpers: [String: [FinderHelper]]
+
+    /// Whose layout a view of this type is: the app's, unless the file declares it.
+    func ownership(of typeName: String?) -> LayoutOwnership {
+        guard let typeName, names.contains(typeName) else { return .app }
+        return selfContained.contains(typeName) ? .owned : .ownedHost
     }
 }

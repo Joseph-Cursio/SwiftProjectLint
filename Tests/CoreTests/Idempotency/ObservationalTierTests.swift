@@ -6,45 +6,6 @@ import SwiftProjectLintModels
 import SwiftSyntax
 import Testing
 
-/// Phase-2+ fixtures for the `observational` lattice position (OI-5 resolution).
-///
-/// The tier classifies calls INTO observation infrastructure (logging, metrics,
-/// tracing). It does not mandate that such calls appear — no rule of the form
-/// "replayable context must log."
-@Suite
-struct ObservationalTierTests {
-
-    @Test
-    func parsesObservationalEffect() {
-        let source = """
-        /// @lint.effect observational
-        func log() {}
-        """
-        let sourceFile = Parser.parse(source: source)
-        let table = EffectSymbolTable.build(from: sourceFile)
-        #expect(table.effect(for: FunctionSignature(name: "log", argumentLabels: [])) == .observational)
-    }
-
-    @Test
-    func parsesObservationalAlongsideOtherTiers() {
-        let source = """
-        /// @lint.effect observational
-        func log() {}
-
-        /// @lint.effect idempotent
-        func upsert() {}
-
-        /// @lint.effect non_idempotent
-        func insert() {}
-        """
-        let sourceFile = Parser.parse(source: source)
-        let table = EffectSymbolTable.build(from: sourceFile)
-        #expect(table.effect(for: FunctionSignature(name: "log", argumentLabels: [])) == .observational)
-        #expect(table.effect(for: FunctionSignature(name: "upsert", argumentLabels: [])) == .idempotent)
-        #expect(table.effect(for: FunctionSignature(name: "insert", argumentLabels: [])) == .nonIdempotent)
-    }
-}
-
 @Suite
 struct ObservationalVisitorTests {
 
@@ -189,5 +150,44 @@ struct ObservationalVisitorTests {
         }
         """
         #expect(runContext(source: source).detectedIssues.isEmpty)
+    }
+}
+
+/// Phase-2+ fixtures for the `observational` lattice position (OI-5 resolution).
+///
+/// The tier classifies calls INTO observation infrastructure (logging, metrics,
+/// tracing). It does not mandate that such calls appear — no rule of the form
+/// "replayable context must log."
+@Suite
+struct ObservationalTierTests {
+
+    @Test
+    func parsesObservationalEffect() {
+        let source = """
+        /// @lint.effect observational
+        func log() {}
+        """
+        let sourceFile = Parser.parse(source: source)
+        let table = EffectSymbolTable.build(from: sourceFile)
+        #expect(table.effect(for: FunctionSignature(name: "log", argumentLabels: [])) == .observational)
+    }
+
+    @Test
+    func parsesObservationalAlongsideOtherTiers() {
+        let source = """
+        /// @lint.effect observational
+        func log() {}
+
+        /// @lint.effect idempotent
+        func upsert() {}
+
+        /// @lint.effect non_idempotent
+        func insert() {}
+        """
+        let sourceFile = Parser.parse(source: source)
+        let table = EffectSymbolTable.build(from: sourceFile)
+        #expect(table.effect(for: FunctionSignature(name: "log", argumentLabels: [])) == .observational)
+        #expect(table.effect(for: FunctionSignature(name: "upsert", argumentLabels: [])) == .idempotent)
+        #expect(table.effect(for: FunctionSignature(name: "insert", argumentLabels: [])) == .nonIdempotent)
     }
 }

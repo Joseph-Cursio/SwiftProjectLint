@@ -17,10 +17,10 @@ index cb764e6e..f1fa6184 100644
          // Test/fixture files aren't property-test subjects — a global `var` in a
          // test is not what this rule is about. Exempt them, as the sibling
 diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy.swift
-index cae06d94..5ab85a9f 100644
+index 756a453e..a59e77a7 100644
 --- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy.swift
 +++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy.swift
-@@ -441,6 +441,12 @@ public enum PropertyTestCandidacy {
+@@ -499,4 +499,10 @@ public enum PropertyTestCandidacy {
              storedProperties: collector.properties
          )
      }
@@ -31,5 +31,3 @@ index cae06d94..5ab85a9f 100644
 +        return oracle.isPure(node)
 +    }
  }
- 
- /// Gathers the stored properties a named type declares anywhere in one file — in its primary

@@ -3,6 +3,182 @@ import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
+/// What a type's members store of one domain type, merged across every member that decomposes it.
+struct Decomposition {
+    var slots: [RoundTripSlot: Set<String>] = [:]
+    var members: [DeclSyntax] = []
+
+    /// Every field stored anywhere.
+    var storedFields: Set<String> { slots.values.reduce(into: []) { $0.formUnion($1) } }
+
+    mutating func absorb(_ newSlots: [RoundTripSlot: Set<String>], from member: DeclSyntax) {
+        slots.merge(newSlots) { $0.union($1) }
+        members.append(member)
+    }
+}
+
+/// One rebuild that hard-codes empty values for fields of a round-tripped type.
+struct LossyRebuild {
+
+    /// A field the rebuild sets to an empty literal, and whether the decomposing member had stored it.
+    struct DroppedField {
+        let label: String
+        let literal: String
+        let wasStored: Bool
+
+        var name: String { "`\(label)`" }
+        var rendered: String { "`\(label): \(literal)`" }
+    }
+
+    let call: FunctionCallExprSyntax
+    let type: String
+    let readerName: String
+    let writerNames: [String]
+    let dropped: [DroppedField]
+
+    /// `nil` unless the call hard-codes at least one empty value **and** reads something — a
+    /// construction made only of literals is a fresh value or a fallback, not a rebuild.
+    init?(call: FunctionCallExprSyntax, type: String, reader: DeclSyntax, decomposition: Decomposition) {
+        var droppedFields: [DroppedField] = []
+        var readsSomething = false
+        for argument in call.arguments {
+            if let literal = EmptyLiteral.text(of: argument.expression) {
+                guard let label = argument.label?.text else { continue }
+                droppedFields.append(DroppedField(
+                    label: label, literal: literal, wasStored: decomposition.storedFields.contains(label)
+                ))
+            } else if EmptyLiteral.isConstant(argument.expression) == false {
+                readsSomething = true
+            }
+        }
+        guard droppedFields.isEmpty == false, readsSomething else { return nil }
+        self.call = call
+        self.type = type
+        self.readerName = LossyRoundTripVisitor.displayName(of: reader)
+        self.writerNames = decomposition.members.map(LossyRoundTripVisitor.displayName(of:))
+        self.dropped = droppedFields
+    }
+
+    /// Names the halves of the round trip, and splits the fields by how they are lost — never
+    /// stored, or stored and then thrown away on the way back, which is the stronger claim.
+    var message: String {
+        let writers = writerNames.map { "`\($0)`" }.joined(separator: " / ")
+        let neverStored = dropped.filter { $0.wasStored == false }
+        let discarded = dropped.filter(\.wasStored)
+        var clauses: [String] = []
+        if neverStored.isEmpty == false {
+            clauses.append("\(writers) never stores \(Self.list(neverStored.map(\.name), conjunction: "or")), "
+                + "and `\(readerName)` rebuilds it with \(neverStored.map(\.rendered).joined(separator: ", "))")
+        }
+        if discarded.isEmpty == false {
+            clauses.append("\(writers) stores \(Self.list(discarded.map(\.name), conjunction: "and")), but "
+                + "`\(readerName)` throws \(discarded.count == 1 ? "it" : "them") away: "
+                + discarded.map(\.rendered).joined(separator: ", "))
+        }
+        let fields = dropped.count == 1 ? "that field" : "those fields"
+        return "`\(type)` does not survive its round trip: " + clauses.joined(separator: "; ")
+            + ". Every value comes back without \(fields), silently."
+    }
+
+    private static func list(_ items: [String], conjunction: String) -> String {
+        guard let last = items.last else { return "" }
+        return items.count == 1 ? last : items.dropLast().joined(separator: ", ") + " \(conjunction) " + last
+    }
+}
+
+/// The literal empties a rebuild can hard-code for a field it did not read back.
+enum EmptyLiteral {
+
+    /// `[]`, `[:]`, `nil`, `""`, `0`, `0.0` — rendered as written; `nil` for anything else.
+    static func text(of expression: ExprSyntax) -> String? {
+        if let array = expression.as(ArrayExprSyntax.self), array.elements.isEmpty { return "[]" }
+        if let dictionary = expression.as(DictionaryExprSyntax.self), dictionary.content.is(TokenSyntax.self) {
+            return "[:]"
+        }
+        if expression.is(NilLiteralExprSyntax.self) { return "nil" }
+        if let string = expression.as(StringLiteralExprSyntax.self),
+           string.segments.allSatisfy({ $0.as(StringSegmentSyntax.self)?.content.text.isEmpty ?? false }) {
+            return "\"\""
+        }
+        if let integer = expression.as(IntegerLiteralExprSyntax.self), integer.literal.text == "0" { return "0" }
+        if let float = expression.as(FloatLiteralExprSyntax.self), Double(float.literal.text) == 0 {
+            return float.literal.text
+        }
+        return nil
+    }
+
+    /// A value fixed in the source — a literal, a negated literal, or a bare `.enumCase` — which reads
+    /// nothing back from storage.
+    static func isConstant(_ expression: ExprSyntax) -> Bool {
+        if expression.is(ArrayExprSyntax.self) || expression.is(DictionaryExprSyntax.self)
+            || expression.is(NilLiteralExprSyntax.self) || expression.is(StringLiteralExprSyntax.self)
+            || expression.is(IntegerLiteralExprSyntax.self) || expression.is(FloatLiteralExprSyntax.self)
+            || expression.is(BooleanLiteralExprSyntax.self) {
+            return true
+        }
+        if let prefix = expression.as(PrefixOperatorExprSyntax.self) {
+            return isConstant(prefix.expression)
+        }
+        if let member = expression.as(MemberAccessExprSyntax.self) {
+            return member.base == nil
+        }
+        return false
+    }
+}
+
+/// Each type's functions, initialisers and computed properties, with its same-file extensions merged
+/// in, in the order the types first appear.
+final class MemberGrouping: SyntaxVisitor {
+
+    struct Owner {
+        let name: String
+        var members: [DeclSyntax]
+    }
+
+    private(set) var owners: [Owner] = []
+    private var index: [String: Int] = [:]
+
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        add(node.name.text, node.memberBlock)
+        return .visitChildren
+    }
+
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        add(node.name.text, node.memberBlock)
+        return .visitChildren
+    }
+
+    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
+        add(node.name.text, node.memberBlock)
+        return .visitChildren
+    }
+
+    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
+        add(node.name.text, node.memberBlock)
+        return .visitChildren
+    }
+
+    override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
+        add(node.extendedType.trimmedDescription, node.memberBlock)
+        return .visitChildren
+    }
+
+    private func add(_ name: String, _ block: MemberBlockSyntax) {
+        let members = block.members.map(\.decl).filter(Self.isAnalysable)
+        if let position = index[name] {
+            owners[position].members.append(contentsOf: members)
+        } else {
+            index[name] = owners.count
+            owners.append(Owner(name: name, members: members))
+        }
+    }
+
+    private static func isAnalysable(_ decl: DeclSyntax) -> Bool {
+        if decl.is(FunctionDeclSyntax.self) || decl.is(InitializerDeclSyntax.self) { return true }
+        return decl.as(VariableDeclSyntax.self)?.bindings.first?.accessorBlock != nil
+    }
+}
+
 /// A type that takes a value apart into storage and puts it back together — and hard-codes an
 /// **empty** value for a field on the way back, so that field never survives the round trip.
 ///
@@ -212,181 +388,5 @@ final class LossyRoundTripVisitor: BasePatternVisitor {
         if member.is(InitializerDeclSyntax.self) { return "init(\(labels))" }
         let binding = member.as(VariableDeclSyntax.self)?.bindings.first
         return binding?.pattern.trimmedDescription ?? "this member"
-    }
-}
-
-/// What a type's members store of one domain type, merged across every member that decomposes it.
-struct Decomposition {
-    var slots: [RoundTripSlot: Set<String>] = [:]
-    var members: [DeclSyntax] = []
-
-    /// Every field stored anywhere.
-    var storedFields: Set<String> { slots.values.reduce(into: []) { $0.formUnion($1) } }
-
-    mutating func absorb(_ newSlots: [RoundTripSlot: Set<String>], from member: DeclSyntax) {
-        slots.merge(newSlots) { $0.union($1) }
-        members.append(member)
-    }
-}
-
-/// One rebuild that hard-codes empty values for fields of a round-tripped type.
-struct LossyRebuild {
-
-    /// A field the rebuild sets to an empty literal, and whether the decomposing member had stored it.
-    struct DroppedField {
-        let label: String
-        let literal: String
-        let wasStored: Bool
-
-        var name: String { "`\(label)`" }
-        var rendered: String { "`\(label): \(literal)`" }
-    }
-
-    let call: FunctionCallExprSyntax
-    let type: String
-    let readerName: String
-    let writerNames: [String]
-    let dropped: [DroppedField]
-
-    /// `nil` unless the call hard-codes at least one empty value **and** reads something — a
-    /// construction made only of literals is a fresh value or a fallback, not a rebuild.
-    init?(call: FunctionCallExprSyntax, type: String, reader: DeclSyntax, decomposition: Decomposition) {
-        var droppedFields: [DroppedField] = []
-        var readsSomething = false
-        for argument in call.arguments {
-            if let literal = EmptyLiteral.text(of: argument.expression) {
-                guard let label = argument.label?.text else { continue }
-                droppedFields.append(DroppedField(
-                    label: label, literal: literal, wasStored: decomposition.storedFields.contains(label)
-                ))
-            } else if EmptyLiteral.isConstant(argument.expression) == false {
-                readsSomething = true
-            }
-        }
-        guard droppedFields.isEmpty == false, readsSomething else { return nil }
-        self.call = call
-        self.type = type
-        self.readerName = LossyRoundTripVisitor.displayName(of: reader)
-        self.writerNames = decomposition.members.map(LossyRoundTripVisitor.displayName(of:))
-        self.dropped = droppedFields
-    }
-
-    /// Names the halves of the round trip, and splits the fields by how they are lost — never
-    /// stored, or stored and then thrown away on the way back, which is the stronger claim.
-    var message: String {
-        let writers = writerNames.map { "`\($0)`" }.joined(separator: " / ")
-        let neverStored = dropped.filter { $0.wasStored == false }
-        let discarded = dropped.filter(\.wasStored)
-        var clauses: [String] = []
-        if neverStored.isEmpty == false {
-            clauses.append("\(writers) never stores \(Self.list(neverStored.map(\.name), conjunction: "or")), "
-                + "and `\(readerName)` rebuilds it with \(neverStored.map(\.rendered).joined(separator: ", "))")
-        }
-        if discarded.isEmpty == false {
-            clauses.append("\(writers) stores \(Self.list(discarded.map(\.name), conjunction: "and")), but "
-                + "`\(readerName)` throws \(discarded.count == 1 ? "it" : "them") away: "
-                + discarded.map(\.rendered).joined(separator: ", "))
-        }
-        let fields = dropped.count == 1 ? "that field" : "those fields"
-        return "`\(type)` does not survive its round trip: " + clauses.joined(separator: "; ")
-            + ". Every value comes back without \(fields), silently."
-    }
-
-    private static func list(_ items: [String], conjunction: String) -> String {
-        guard let last = items.last else { return "" }
-        return items.count == 1 ? last : items.dropLast().joined(separator: ", ") + " \(conjunction) " + last
-    }
-}
-
-/// The literal empties a rebuild can hard-code for a field it did not read back.
-enum EmptyLiteral {
-
-    /// `[]`, `[:]`, `nil`, `""`, `0`, `0.0` — rendered as written; `nil` for anything else.
-    static func text(of expression: ExprSyntax) -> String? {
-        if let array = expression.as(ArrayExprSyntax.self), array.elements.isEmpty { return "[]" }
-        if let dictionary = expression.as(DictionaryExprSyntax.self), dictionary.content.is(TokenSyntax.self) {
-            return "[:]"
-        }
-        if expression.is(NilLiteralExprSyntax.self) { return "nil" }
-        if let string = expression.as(StringLiteralExprSyntax.self),
-           string.segments.allSatisfy({ $0.as(StringSegmentSyntax.self)?.content.text.isEmpty ?? false }) {
-            return "\"\""
-        }
-        if let integer = expression.as(IntegerLiteralExprSyntax.self), integer.literal.text == "0" { return "0" }
-        if let float = expression.as(FloatLiteralExprSyntax.self), Double(float.literal.text) == 0 {
-            return float.literal.text
-        }
-        return nil
-    }
-
-    /// A value fixed in the source — a literal, a negated literal, or a bare `.enumCase` — which reads
-    /// nothing back from storage.
-    static func isConstant(_ expression: ExprSyntax) -> Bool {
-        if expression.is(ArrayExprSyntax.self) || expression.is(DictionaryExprSyntax.self)
-            || expression.is(NilLiteralExprSyntax.self) || expression.is(StringLiteralExprSyntax.self)
-            || expression.is(IntegerLiteralExprSyntax.self) || expression.is(FloatLiteralExprSyntax.self)
-            || expression.is(BooleanLiteralExprSyntax.self) {
-            return true
-        }
-        if let prefix = expression.as(PrefixOperatorExprSyntax.self) {
-            return isConstant(prefix.expression)
-        }
-        if let member = expression.as(MemberAccessExprSyntax.self) {
-            return member.base == nil
-        }
-        return false
-    }
-}
-
-/// Each type's functions, initialisers and computed properties, with its same-file extensions merged
-/// in, in the order the types first appear.
-final class MemberGrouping: SyntaxVisitor {
-
-    struct Owner {
-        let name: String
-        var members: [DeclSyntax]
-    }
-
-    private(set) var owners: [Owner] = []
-    private var index: [String: Int] = [:]
-
-    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        add(node.name.text, node.memberBlock)
-        return .visitChildren
-    }
-
-    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
-        add(node.name.text, node.memberBlock)
-        return .visitChildren
-    }
-
-    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
-        add(node.name.text, node.memberBlock)
-        return .visitChildren
-    }
-
-    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
-        add(node.name.text, node.memberBlock)
-        return .visitChildren
-    }
-
-    override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
-        add(node.extendedType.trimmedDescription, node.memberBlock)
-        return .visitChildren
-    }
-
-    private func add(_ name: String, _ block: MemberBlockSyntax) {
-        let members = block.members.map(\.decl).filter(Self.isAnalysable)
-        if let position = index[name] {
-            owners[position].members.append(contentsOf: members)
-        } else {
-            index[name] = owners.count
-            owners.append(Owner(name: name, members: members))
-        }
-    }
-
-    private static func isAnalysable(_ decl: DeclSyntax) -> Bool {
-        if decl.is(FunctionDeclSyntax.self) || decl.is(InitializerDeclSyntax.self) { return true }
-        return decl.as(VariableDeclSyntax.self)?.bindings.first?.accessorBlock != nil
     }
 }

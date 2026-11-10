@@ -6,6 +6,87 @@ import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
+/// The types that declare `static func withheld(by:)`.
+private final class WithheldFactoryFinder: SyntaxVisitor {
+    private(set) var types: [String] = []
+
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        let declares = node.memberBlock.members.contains { member in
+            guard let function = member.decl.as(FunctionDeclSyntax.self) else { return false }
+            return function.name.text == "withheld"
+                && function.modifiers.contains { $0.name.tokenKind == .keyword(.static) }
+                && function.signature.parameterClause.parameters.first?.firstName.text == "by"
+        }
+        if declares { types.append(node.name.text) }
+        return .visitChildren
+    }
+}
+
+/// The labelled arguments of the `Self(...)` call `CollectedTypes.collect` returns, with each
+/// argument's identifier tokens.
+private final class CollectArgumentFinder: SyntaxVisitor {
+    private(set) var arguments: [(label: String, identifiers: [String])] = []
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        node.name.text == "collect" ? .visitChildren : .skipChildren
+    }
+
+    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        guard node.calledExpression.trimmedDescription == "Self" else { return .visitChildren }
+        for argument in node.arguments {
+            let identifiers = argument.expression.tokens(viewMode: .sourceAccurate).compactMap { token -> String? in
+                switch token.tokenKind {
+                case .identifier, .keyword: token.text
+                default: nil
+                }
+            }
+            arguments.append((argument.label?.text ?? "_", identifiers))
+        }
+        return .skipChildren
+    }
+}
+
+/// Every class a file declares, and every type it extends, by name.
+private final class ClassNameFinder: SyntaxVisitor {
+    private(set) var names: Set<String> = []
+
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        names.insert(node.name.text)
+        return .visitChildren
+    }
+
+    override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
+        names.insert(PurityOracleEntryTests.typeName(of: node.extendedType))
+        return .visitChildren
+    }
+}
+
+/// The stored instance properties of one struct, by declared type.
+private final class StoredInstancePropertyFinder: SyntaxVisitor {
+
+    private(set) var storedTypes: [String] = []
+    private(set) var found = false
+    private let type: String
+
+    init(type: String) {
+        self.type = type
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        guard node.name.text == type else { return .skipChildren }
+        found = true
+        for member in node.memberBlock.members {
+            guard let variable = member.decl.as(VariableDeclSyntax.self),
+                  !variable.modifiers.contains(where: { $0.name.tokenKind == .keyword(.static) }) else { continue }
+            for binding in variable.bindings where binding.accessorBlock == nil {
+                storedTypes.append(binding.typeAnnotation?.type.trimmedDescription ?? "<inferred>")
+            }
+        }
+        return .skipChildren
+    }
+}
+
 /// The purity gate's structural half: what keeps it sound whatever a test corpus happens to reach.
 ///
 /// A run that plans no rule reading package purity withholds the table and the two pre-scan
@@ -235,86 +316,5 @@ extension PurityOracleEntryTests {
             "Packages/SwiftProjectLintRegistry/Sources/SwiftProjectLintRegistry/SourcePatternDetectorProtocol.swift",
             Self.engineSources + "ProjectLinter+FileAnalysis.swift",
         ], "found \(files.sorted())")
-    }
-}
-
-/// The types that declare `static func withheld(by:)`.
-private final class WithheldFactoryFinder: SyntaxVisitor {
-    private(set) var types: [String] = []
-
-    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        let declares = node.memberBlock.members.contains { member in
-            guard let function = member.decl.as(FunctionDeclSyntax.self) else { return false }
-            return function.name.text == "withheld"
-                && function.modifiers.contains { $0.name.tokenKind == .keyword(.static) }
-                && function.signature.parameterClause.parameters.first?.firstName.text == "by"
-        }
-        if declares { types.append(node.name.text) }
-        return .visitChildren
-    }
-}
-
-/// The labelled arguments of the `Self(...)` call `CollectedTypes.collect` returns, with each
-/// argument's identifier tokens.
-private final class CollectArgumentFinder: SyntaxVisitor {
-    private(set) var arguments: [(label: String, identifiers: [String])] = []
-
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        node.name.text == "collect" ? .visitChildren : .skipChildren
-    }
-
-    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard node.calledExpression.trimmedDescription == "Self" else { return .visitChildren }
-        for argument in node.arguments {
-            let identifiers = argument.expression.tokens(viewMode: .sourceAccurate).compactMap { token -> String? in
-                switch token.tokenKind {
-                case .identifier, .keyword: token.text
-                default: nil
-                }
-            }
-            arguments.append((argument.label?.text ?? "_", identifiers))
-        }
-        return .skipChildren
-    }
-}
-
-/// The stored instance properties of one struct, by declared type.
-private final class StoredInstancePropertyFinder: SyntaxVisitor {
-
-    private(set) var storedTypes: [String] = []
-    private(set) var found = false
-    private let type: String
-
-    init(type: String) {
-        self.type = type
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard node.name.text == type else { return .skipChildren }
-        found = true
-        for member in node.memberBlock.members {
-            guard let variable = member.decl.as(VariableDeclSyntax.self),
-                  !variable.modifiers.contains(where: { $0.name.tokenKind == .keyword(.static) }) else { continue }
-            for binding in variable.bindings where binding.accessorBlock == nil {
-                storedTypes.append(binding.typeAnnotation?.type.trimmedDescription ?? "<inferred>")
-            }
-        }
-        return .skipChildren
-    }
-}
-
-/// Every class a file declares, and every type it extends, by name.
-private final class ClassNameFinder: SyntaxVisitor {
-    private(set) var names: Set<String> = []
-
-    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
-        names.insert(node.name.text)
-        return .visitChildren
-    }
-
-    override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
-        names.insert(PurityOracleEntryTests.typeName(of: node.extendedType))
-        return .visitChildren
     }
 }

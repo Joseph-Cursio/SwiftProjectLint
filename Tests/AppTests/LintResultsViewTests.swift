@@ -4,129 +4,6 @@ import SwiftUI
 import Testing
 import ViewInspector
 
-struct LintResultsViewTests {
-
-    @Test func testLintResultsViewInitialization() async throws {
-        try await MainActor.run {
-            let sampleIssues = [
-                LintIssue(
-                    severity: .warning,
-                    message: "Test issue",
-                    filePath: "/test/file.swift",
-                    lineNumber: 10,
-                    suggestion: "Test suggestion",
-                    ruleName: .relatedDuplicateStateVariable
-                ),
-            ]
-
-            let view = LintResultsView(issues: sampleIssues)
-            let inspected = try view.inspect()
-            let texts = inspected.findAll(ViewType.Text.self)
-            #expect(texts.isEmpty == false)
-        }
-    }
-
-    @Test func testEmptyIssuesList() async throws {
-        try await MainActor.run {
-            let view = LintResultsView(issues: [])
-            let inspected = try view.inspect()
-            let texts = inspected.findAll(ViewType.Text.self)
-            #expect(texts.isEmpty == false)
-        }
-    }
-
-    @Test func testIssueSeverityFiltering() async {
-        await MainActor.run {
-            let issues = mixedSeverityIssues()
-            _ = LintResultsView(issues: issues)
-
-            let errorIssues = issues.filter { $0.severity == .error }
-            let warningIssues = issues.filter { $0.severity == .warning }
-            let infoIssues = issues.filter { $0.severity == .info }
-
-            #expect(errorIssues.count == 1)
-            #expect(warningIssues.count == 1)
-            #expect(infoIssues.count == 1)
-        }
-    }
-
-    private func mixedSeverityIssues() -> [LintIssue] {
-        [
-            LintIssue(
-                severity: .error,
-                message: "Error issue",
-                filePath: "/test/file.swift",
-                lineNumber: 1,
-                suggestion: "Fix this",
-                ruleName: .relatedDuplicateStateVariable
-            ),
-            LintIssue(
-                severity: .warning,
-                message: "Warning issue",
-                filePath: "/test/file2.swift",
-                lineNumber: 5,
-                suggestion: "Consider this",
-                ruleName: .missingStateObject
-            ),
-            LintIssue(
-                severity: .info,
-                message: "Info issue",
-                filePath: "/test/file3.swift",
-                lineNumber: 10,
-                suggestion: "Note this",
-                ruleName: .uninitializedStateVariable
-            ),
-        ]
-    }
-
-    @Test func testIssueRuleNameMapping() async throws {
-        try await MainActor.run {
-            let issues = [
-                LintIssue(
-                    severity: .warning,
-                    message: "Test issue",
-                    filePath: "/test/file.swift",
-                    lineNumber: 1,
-                    suggestion: "Test suggestion",
-                    ruleName: .relatedDuplicateStateVariable
-                ),
-            ]
-
-            _ = LintResultsView(issues: issues)
-            let firstIssue = try #require(issues.first)
-            #expect(firstIssue.ruleName == .relatedDuplicateStateVariable)
-        }
-    }
-
-    @Test func testIssueFileAndLineNumber() {
-        let issue = LintIssue(
-            severity: .warning,
-            message: "Test issue",
-            filePath: "/test/file.swift",
-            lineNumber: 42,
-            suggestion: "Test suggestion",
-            ruleName: .relatedDuplicateStateVariable
-        )
-
-        #expect(issue.filePath == "/test/file.swift")
-        #expect(issue.lineNumber == 42)
-    }
-
-    @Test func testIssueMessageAndSuggestion() {
-        let issue = LintIssue(
-            severity: .warning,
-            message: "Duplicate state variable found",
-            filePath: "/test/file.swift",
-            lineNumber: 1,
-            suggestion: "Use @StateObject instead",
-            ruleName: .relatedDuplicateStateVariable
-        )
-
-        #expect(issue.message.contains("Duplicate state variable"))
-        #expect(issue.suggestion?.contains("@StateObject") == true)
-    }
-}
-
 struct LintResultsViewCharacterizationTests {
     @Test
     @MainActor
@@ -268,5 +145,128 @@ struct LintResultsViewCharacterizationTests {
         let issuesSection = try inspected.issueListSection()
         let dividers = issuesSection.findAll(ViewType.Divider.self)
         #expect(dividers.isEmpty)
+    }
+}
+
+struct LintResultsViewTests {
+
+    @Test func testLintResultsViewInitialization() async throws {
+        try await MainActor.run {
+            let sampleIssues = [
+                LintIssue(
+                    severity: .warning,
+                    message: "Test issue",
+                    filePath: "/test/file.swift",
+                    lineNumber: 10,
+                    suggestion: "Test suggestion",
+                    ruleName: .relatedDuplicateStateVariable
+                ),
+            ]
+
+            let view = LintResultsView(issues: sampleIssues)
+            let inspected = try view.inspect()
+            let texts = inspected.findAll(ViewType.Text.self)
+            #expect(texts.isEmpty == false)
+        }
+    }
+
+    @Test func testEmptyIssuesList() async throws {
+        try await MainActor.run {
+            let view = LintResultsView(issues: [])
+            let inspected = try view.inspect()
+            let texts = inspected.findAll(ViewType.Text.self)
+            #expect(texts.isEmpty == false)
+        }
+    }
+
+    @Test func testIssueSeverityFiltering() async {
+        await MainActor.run {
+            let issues = mixedSeverityIssues()
+            _ = LintResultsView(issues: issues)
+
+            let errorIssues = issues.filter { $0.severity == .error }
+            let warningIssues = issues.filter { $0.severity == .warning }
+            let infoIssues = issues.filter { $0.severity == .info }
+
+            #expect(errorIssues.count == 1)
+            #expect(warningIssues.count == 1)
+            #expect(infoIssues.count == 1)
+        }
+    }
+
+    private func mixedSeverityIssues() -> [LintIssue] {
+        [
+            LintIssue(
+                severity: .error,
+                message: "Error issue",
+                filePath: "/test/file.swift",
+                lineNumber: 1,
+                suggestion: "Fix this",
+                ruleName: .relatedDuplicateStateVariable
+            ),
+            LintIssue(
+                severity: .warning,
+                message: "Warning issue",
+                filePath: "/test/file2.swift",
+                lineNumber: 5,
+                suggestion: "Consider this",
+                ruleName: .missingStateObject
+            ),
+            LintIssue(
+                severity: .info,
+                message: "Info issue",
+                filePath: "/test/file3.swift",
+                lineNumber: 10,
+                suggestion: "Note this",
+                ruleName: .uninitializedStateVariable
+            ),
+        ]
+    }
+
+    @Test func testIssueRuleNameMapping() async throws {
+        try await MainActor.run {
+            let issues = [
+                LintIssue(
+                    severity: .warning,
+                    message: "Test issue",
+                    filePath: "/test/file.swift",
+                    lineNumber: 1,
+                    suggestion: "Test suggestion",
+                    ruleName: .relatedDuplicateStateVariable
+                ),
+            ]
+
+            _ = LintResultsView(issues: issues)
+            let firstIssue = try #require(issues.first)
+            #expect(firstIssue.ruleName == .relatedDuplicateStateVariable)
+        }
+    }
+
+    @Test func testIssueFileAndLineNumber() {
+        let issue = LintIssue(
+            severity: .warning,
+            message: "Test issue",
+            filePath: "/test/file.swift",
+            lineNumber: 42,
+            suggestion: "Test suggestion",
+            ruleName: .relatedDuplicateStateVariable
+        )
+
+        #expect(issue.filePath == "/test/file.swift")
+        #expect(issue.lineNumber == 42)
+    }
+
+    @Test func testIssueMessageAndSuggestion() {
+        let issue = LintIssue(
+            severity: .warning,
+            message: "Duplicate state variable found",
+            filePath: "/test/file.swift",
+            lineNumber: 1,
+            suggestion: "Use @StateObject instead",
+            ruleName: .relatedDuplicateStateVariable
+        )
+
+        #expect(issue.message.contains("Duplicate state variable"))
+        #expect(issue.suggestion?.contains("@StateObject") == true)
     }
 }

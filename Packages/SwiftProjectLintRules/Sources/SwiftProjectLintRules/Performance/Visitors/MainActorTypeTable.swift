@@ -13,6 +13,39 @@ enum TypeIsolation: Equatable {
     case elsewhere
 }
 
+/// Every class, struct, enum, actor and protocol in a file, nested ones included.
+private final class DeclarationCollector: SyntaxVisitor {
+    private(set) var declarations: [(String, any DeclGroupSyntax)] = []
+
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        declarations.append((node.name.text, node))
+        return .visitChildren
+    }
+
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        declarations.append((node.name.text, node))
+        return .visitChildren
+    }
+
+    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
+        declarations.append((node.name.text, node))
+        return .visitChildren
+    }
+
+    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
+        declarations.append((node.name.text, node))
+        return .visitChildren
+    }
+
+    override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
+        declarations.append((node.name.text, node))
+        return .skipChildren
+    }
+
+    // Function bodies can't declare types this table needs.
+    override func visit(_: FunctionDeclSyntax) -> SyntaxVisitorContinueKind { .skipChildren }
+}
+
 /// Every type the project declares, with what its declaration says about isolation.
 ///
 /// Built from all files before any is scanned, so that `extension ContentView` in one file can
@@ -212,37 +245,4 @@ struct MainActorTypeTable {
         }
         return decl.as(ExtensionDeclSyntax.self).map { simpleName($0.extendedType) } ?? ""
     }
-}
-
-/// Every class, struct, enum, actor and protocol in a file, nested ones included.
-private final class DeclarationCollector: SyntaxVisitor {
-    private(set) var declarations: [(String, any DeclGroupSyntax)] = []
-
-    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
-        declarations.append((node.name.text, node))
-        return .visitChildren
-    }
-
-    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        declarations.append((node.name.text, node))
-        return .visitChildren
-    }
-
-    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
-        declarations.append((node.name.text, node))
-        return .visitChildren
-    }
-
-    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
-        declarations.append((node.name.text, node))
-        return .visitChildren
-    }
-
-    override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
-        declarations.append((node.name.text, node))
-        return .skipChildren
-    }
-
-    // Function bodies can't declare types this table needs.
-    override func visit(_: FunctionDeclSyntax) -> SyntaxVisitorContinueKind { .skipChildren }
 }

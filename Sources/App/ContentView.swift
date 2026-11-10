@@ -9,6 +9,27 @@ import Core
 import SwiftUI
 import UniformTypeIdentifiers
 
+// All @State usage must occur inside a proper View hierarchy to prevent State warnings in previews/tests.
+// The ContentViewPreviewHost struct below correctly hosts ContentView inside a View with @State,
+// ensuring no runtime warnings occur due to improper @State usage.
+//
+// Direct use of @State outside of a View or without a proper hierarchy will trigger runtime warnings.
+
+// Always use ContentViewPreviewHost() for previews and tests to avoid @State
+// access warnings. Never use ContentView() directly.
+struct ContentViewPreviewHost: View {
+    // SystemComponents uses ObservableObject intentionally — ViewInspector requires
+    // @EnvironmentObject injection and does not support @Environment(Type.self) for
+    // @Observable types. Migration is blocked until ViewInspector adds that support.
+    // swiftprojectlint:disable:next legacy-observableobject ios-17-observation-migration
+    @StateObject private var systemComponents = SystemComponents()
+    var body: some View {
+        ContentView()
+            .environmentObject(systemComponents)
+            .task { await systemComponents.initialize() }
+    }
+}
+
 /// The main content view for the SwiftProjectLint application.
 ///
 /// `ContentView` provides the primary user interface for the SwiftUI project linter,
@@ -159,27 +180,6 @@ struct ContentView: View {
     /// Always use ContentViewPreviewHost to avoid @State access warnings.
     static func testHostView() -> some View {
         ContentViewPreviewHost()
-    }
-}
-
-// All @State usage must occur inside a proper View hierarchy to prevent State warnings in previews/tests.
-// The ContentViewPreviewHost struct below correctly hosts ContentView inside a View with @State,
-// ensuring no runtime warnings occur due to improper @State usage.
-//
-// Direct use of @State outside of a View or without a proper hierarchy will trigger runtime warnings.
-
-// Always use ContentViewPreviewHost() for previews and tests to avoid @State
-// access warnings. Never use ContentView() directly.
-struct ContentViewPreviewHost: View {
-    // SystemComponents uses ObservableObject intentionally — ViewInspector requires
-    // @EnvironmentObject injection and does not support @Environment(Type.self) for
-    // @Observable types. Migration is blocked until ViewInspector adds that support.
-    // swiftprojectlint:disable:next legacy-observableobject ios-17-observation-migration
-    @StateObject private var systemComponents = SystemComponents()
-    var body: some View {
-        ContentView()
-            .environmentObject(systemComponents)
-            .task { await systemComponents.initialize() }
     }
 }
 

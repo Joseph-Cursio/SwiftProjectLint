@@ -6,6 +6,22 @@ import SwiftProjectLintModels
 import SwiftSyntax
 import Testing
 
+/// The first function declaration named `name`, wherever it is nested.
+private final class NamedFunctionFinder: SyntaxVisitor {
+    let name: String
+    var found: FunctionDeclSyntax?
+
+    init(name: String, viewMode: SyntaxTreeViewMode) {
+        self.name = name
+        super.init(viewMode: viewMode)
+    }
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        if found == nil, node.name.text == name { found = node }
+        return .visitChildren
+    }
+}
+
 /// **A function that returns nothing and changes one value is a property-test candidate, and seeds
 /// as a `pure-mutator` naming what it changes.**
 ///
@@ -189,21 +205,5 @@ struct PureMutatorCandidateTests {
     func pureMutatorIsAnalysable() {
         #expect(PBTSeedKind.pureMutator.isAnalysable)
         #expect(PBTSeedKind(rawValue: "pure-mutator") == .pureMutator)
-    }
-}
-
-/// The first function declaration named `name`, wherever it is nested.
-private final class NamedFunctionFinder: SyntaxVisitor {
-    let name: String
-    var found: FunctionDeclSyntax?
-
-    init(name: String, viewMode: SyntaxTreeViewMode) {
-        self.name = name
-        super.init(viewMode: viewMode)
-    }
-
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        if found == nil, node.name.text == name { found = node }
-        return .visitChildren
     }
 }

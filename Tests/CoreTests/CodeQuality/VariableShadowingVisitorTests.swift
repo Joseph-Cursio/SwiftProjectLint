@@ -15,146 +15,6 @@ private func runVisitor(_ visitor: VariableShadowingVisitor, source: String) {
     visitor.walk(sourceFile)
 }
 
-// MARK: - Detection Tests
-
-@Suite("Variable Shadowing Detection")
-struct VariableShadowingVisitorTests {
-
-    @Test("Detects shadowing inside closure with capture list")
-    func closureShadowing() throws {
-        let source = """
-        func example() {
-            let count = 5
-            let closure = { [count] in
-                let count = 10
-                print(count)
-            }
-        }
-        """
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.message.contains("count"))
-    }
-
-    @Test("Still flags a switch case shadowing an outer function variable")
-    func switchCaseShadowsOuterVariable() throws {
-        let source = """
-        func example(_ kind: String) {
-            let text = "outer"
-            switch kind {
-            case "a":
-                let text = "inner"
-                print(text)
-            default:
-                break
-            }
-            print(text)
-        }
-        """
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.message.contains("text"))
-    }
-
-    @Test("Still flags genuine shadowing nested within a switch case")
-    func nestedShadowWithinSwitchCase() throws {
-        let source = """
-        func example(_ kind: String) {
-            switch kind {
-            case "a":
-                let value = 1
-                if value > 0 {
-                    let value = 2
-                    print(value)
-                }
-            default:
-                break
-            }
-        }
-        """
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.message.contains("value"))
-    }
-
-    @Test("Detects type-changing shadow")
-    func typeChangingShadow() throws {
-        let source = """
-        func example() {
-            let result = 42
-            if true {
-                let result = "hello"
-                print(result)
-            }
-        }
-        """
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.message.contains("result"))
-    }
-
-    @Test("Detects multiple shadows in same function")
-    func multipleShadows() {
-        let source = """
-        func example() {
-            let alpha = 1
-            let beta = 2
-            if true {
-                let alpha = 10
-                let beta = 20
-            }
-        }
-        """
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-        #expect(visitor.detectedIssues.count == 2)
-    }
-
-    @Test("Detects deeply nested shadowing")
-    func deeplyNested() throws {
-        let source = """
-        func example() {
-            let value = 1
-            if true {
-                if true {
-                    if true {
-                        let value = 2
-                    }
-                }
-            }
-        }
-        """
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.ruleName == .variableShadowing)
-    }
-
-    @Test("Issue has correct properties")
-    func issueProperties() throws {
-        let source = """
-        func example() {
-            let data = 1
-            if true {
-                let data = 2
-            }
-        }
-        """
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: source)
-
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.ruleName == .variableShadowing)
-        #expect(issue.severity == .error)
-        #expect(issue.message.contains("data"))
-        #expect(issue.suggestion?.contains("data") == true)
-    }
-}
-
 // MARK: - Exclusion Tests
 
 struct ExclusionCase: Sendable, CustomTestStringConvertible {
@@ -375,5 +235,145 @@ struct VariableShadowingExclusionTests {
         let visitor = makeVisitor()
         runVisitor(visitor, source: testCase.source)
         #expect(visitor.detectedIssues.isEmpty)
+    }
+}
+
+// MARK: - Detection Tests
+
+@Suite("Variable Shadowing Detection")
+struct VariableShadowingVisitorTests {
+
+    @Test("Detects shadowing inside closure with capture list")
+    func closureShadowing() throws {
+        let source = """
+        func example() {
+            let count = 5
+            let closure = { [count] in
+                let count = 10
+                print(count)
+            }
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("count"))
+    }
+
+    @Test("Still flags a switch case shadowing an outer function variable")
+    func switchCaseShadowsOuterVariable() throws {
+        let source = """
+        func example(_ kind: String) {
+            let text = "outer"
+            switch kind {
+            case "a":
+                let text = "inner"
+                print(text)
+            default:
+                break
+            }
+            print(text)
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("text"))
+    }
+
+    @Test("Still flags genuine shadowing nested within a switch case")
+    func nestedShadowWithinSwitchCase() throws {
+        let source = """
+        func example(_ kind: String) {
+            switch kind {
+            case "a":
+                let value = 1
+                if value > 0 {
+                    let value = 2
+                    print(value)
+                }
+            default:
+                break
+            }
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("value"))
+    }
+
+    @Test("Detects type-changing shadow")
+    func typeChangingShadow() throws {
+        let source = """
+        func example() {
+            let result = 42
+            if true {
+                let result = "hello"
+                print(result)
+            }
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.message.contains("result"))
+    }
+
+    @Test("Detects multiple shadows in same function")
+    func multipleShadows() {
+        let source = """
+        func example() {
+            let alpha = 1
+            let beta = 2
+            if true {
+                let alpha = 10
+                let beta = 20
+            }
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        #expect(visitor.detectedIssues.count == 2)
+    }
+
+    @Test("Detects deeply nested shadowing")
+    func deeplyNested() throws {
+        let source = """
+        func example() {
+            let value = 1
+            if true {
+                if true {
+                    if true {
+                        let value = 2
+                    }
+                }
+            }
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .variableShadowing)
+    }
+
+    @Test("Issue has correct properties")
+    func issueProperties() throws {
+        let source = """
+        func example() {
+            let data = 1
+            if true {
+                let data = 2
+            }
+        }
+        """
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: source)
+
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.ruleName == .variableShadowing)
+        #expect(issue.severity == .error)
+        #expect(issue.message.contains("data"))
+        #expect(issue.suggestion?.contains("data") == true)
     }
 }

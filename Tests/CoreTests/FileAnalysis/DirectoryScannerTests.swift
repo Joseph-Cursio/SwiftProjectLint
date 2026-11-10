@@ -31,172 +31,6 @@ private func makeTempProject(
     return (rootPath, cleanup)
 }
 
-// MARK: - Basic Scanning & Structure
-
-@Suite("DirectoryScanner Basic Tests")
-struct DirectoryScannerTests {
-
-    @Test("scanSync returns root node with correct name")
-    func scanSyncRootName() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: ["Sources"])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let expectedName = PathString.lastComponent(of: path)
-        #expect(root.name == expectedName)
-        #expect(root.id.isEmpty)
-        #expect(root.depth == 0)
-        #expect(root.checkState == .checked)
-    }
-
-    @Test("scanSync discovers nested directories")
-    func scanSyncNestedDirs() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Sources",
-            "Sources/App",
-            "Sources/Core",
-            "Tests",
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let allNodes = root.allNodes()
-        let names = allNodes.map(\.name)
-
-        #expect(names.contains("Sources"))
-        #expect(names.contains("App"))
-        #expect(names.contains("Core"))
-        #expect(names.contains("Tests"))
-    }
-
-    @Test("scanSync sets parent-child relationships correctly")
-    func scanSyncParentChild() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Sources",
-            "Sources/App",
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let sourcesNode = root.children.first { $0.name == "Sources" }
-        #expect(sourcesNode != nil)
-        #expect(sourcesNode?.parent === root)
-
-        let appNode = sourcesNode?.children.first { $0.name == "App" }
-        #expect(appNode != nil)
-        #expect(appNode?.parent === sourcesNode)
-    }
-
-    @Test("scanSync sorts children alphabetically")
-    func scanSyncSortedChildren() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Zebra",
-            "Alpha",
-            "Mango",
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let childNames = root.children.map(\.name)
-        #expect(childNames == ["Alpha", "Mango", "Zebra"])
-    }
-
-    @Test("scanSync sorts nested children alphabetically")
-    func scanSyncSortedNestedChildren() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Parent",
-            "Parent/Charlie",
-            "Parent/Alice",
-            "Parent/Bob",
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let parentNode = root.children.first { $0.name == "Parent" }
-        let childNames = parentNode?.children.map(\.name)
-        #expect(childNames == ["Alice", "Bob", "Charlie"])
-    }
-
-    @Test("scanSync assigns correct depth values to nodes")
-    func scanSyncDepthValues() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Sources",
-            "Sources/App",
-            "Sources/App/Views",
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        #expect(root.depth == 0)
-
-        let sourcesNode = root.children.first { $0.name == "Sources" }
-        #expect(sourcesNode?.depth == 1)
-
-        let appNode = sourcesNode?.children.first { $0.name == "App" }
-        #expect(appNode?.depth == 2)
-
-        let viewsNode = appNode?.children.first { $0.name == "Views" }
-        #expect(viewsNode?.depth == 3)
-    }
-
-    @Test("scanSync creates all nodes with checked state")
-    func scanSyncAllChecked() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Sources",
-            "Sources/App",
-            "Tests",
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let allNodes = root.allNodes()
-        #expect(allNodes.allSatisfy { $0.checkState == .checked })
-    }
-
-    @Test("scanSync on empty directory returns root with no children")
-    func scanSyncEmptyDir() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        #expect(root.children.isEmpty)
-        #expect(root.depth == 0)
-    }
-
-    @Test("scanSync assigns correct relative paths as identifiers")
-    func scanSyncRelativePaths() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Sources",
-            "Sources/App",
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let sourcesNode = root.children.first { $0.name == "Sources" }
-        #expect(sourcesNode?.id == "Sources")
-
-        let appNode = sourcesNode?.children.first { $0.name == "App" }
-        #expect(appNode?.id == "Sources/App")
-    }
-
-    @Test("async scan returns same result as scanSync")
-    func asyncScan() async throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Sources",
-            "Sources/App",
-            "Tests",
-        ])
-        defer { cleanup() }
-
-        let syncRoot = DirectoryScanner.scanSync(rootPath: path)
-        let asyncRoot = await DirectoryScanner.scan(rootPath: path)
-
-        let syncNames = syncRoot.allNodes().map(\.name).sorted()
-        let asyncNames = asyncRoot.allNodes().map(\.name).sorted()
-        #expect(syncNames == asyncNames)
-    }
-}
-
 // MARK: - Filtering & Skipping
 
 @Suite("DirectoryScanner Filtering Tests")
@@ -390,5 +224,171 @@ struct DirectoryScannerFilteringTests {
         #expect(allNames.contains("Sources"))
         #expect(allNames.contains("Tests"))
         #expect(allNames.contains("App") == false)
+    }
+}
+
+// MARK: - Basic Scanning & Structure
+
+@Suite("DirectoryScanner Basic Tests")
+struct DirectoryScannerTests {
+
+    @Test("scanSync returns root node with correct name")
+    func scanSyncRootName() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: ["Sources"])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let expectedName = PathString.lastComponent(of: path)
+        #expect(root.name == expectedName)
+        #expect(root.id.isEmpty)
+        #expect(root.depth == 0)
+        #expect(root.checkState == .checked)
+    }
+
+    @Test("scanSync discovers nested directories")
+    func scanSyncNestedDirs() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Sources",
+            "Sources/App",
+            "Sources/Core",
+            "Tests",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let allNodes = root.allNodes()
+        let names = allNodes.map(\.name)
+
+        #expect(names.contains("Sources"))
+        #expect(names.contains("App"))
+        #expect(names.contains("Core"))
+        #expect(names.contains("Tests"))
+    }
+
+    @Test("scanSync sets parent-child relationships correctly")
+    func scanSyncParentChild() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Sources",
+            "Sources/App",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let sourcesNode = root.children.first { $0.name == "Sources" }
+        #expect(sourcesNode != nil)
+        #expect(sourcesNode?.parent === root)
+
+        let appNode = sourcesNode?.children.first { $0.name == "App" }
+        #expect(appNode != nil)
+        #expect(appNode?.parent === sourcesNode)
+    }
+
+    @Test("scanSync sorts children alphabetically")
+    func scanSyncSortedChildren() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Zebra",
+            "Alpha",
+            "Mango",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let childNames = root.children.map(\.name)
+        #expect(childNames == ["Alpha", "Mango", "Zebra"])
+    }
+
+    @Test("scanSync sorts nested children alphabetically")
+    func scanSyncSortedNestedChildren() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Parent",
+            "Parent/Charlie",
+            "Parent/Alice",
+            "Parent/Bob",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let parentNode = root.children.first { $0.name == "Parent" }
+        let childNames = parentNode?.children.map(\.name)
+        #expect(childNames == ["Alice", "Bob", "Charlie"])
+    }
+
+    @Test("scanSync assigns correct depth values to nodes")
+    func scanSyncDepthValues() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Sources",
+            "Sources/App",
+            "Sources/App/Views",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        #expect(root.depth == 0)
+
+        let sourcesNode = root.children.first { $0.name == "Sources" }
+        #expect(sourcesNode?.depth == 1)
+
+        let appNode = sourcesNode?.children.first { $0.name == "App" }
+        #expect(appNode?.depth == 2)
+
+        let viewsNode = appNode?.children.first { $0.name == "Views" }
+        #expect(viewsNode?.depth == 3)
+    }
+
+    @Test("scanSync creates all nodes with checked state")
+    func scanSyncAllChecked() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Sources",
+            "Sources/App",
+            "Tests",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let allNodes = root.allNodes()
+        #expect(allNodes.allSatisfy { $0.checkState == .checked })
+    }
+
+    @Test("scanSync on empty directory returns root with no children")
+    func scanSyncEmptyDir() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        #expect(root.children.isEmpty)
+        #expect(root.depth == 0)
+    }
+
+    @Test("scanSync assigns correct relative paths as identifiers")
+    func scanSyncRelativePaths() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Sources",
+            "Sources/App",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let sourcesNode = root.children.first { $0.name == "Sources" }
+        #expect(sourcesNode?.id == "Sources")
+
+        let appNode = sourcesNode?.children.first { $0.name == "App" }
+        #expect(appNode?.id == "Sources/App")
+    }
+
+    @Test("async scan returns same result as scanSync")
+    func asyncScan() async throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Sources",
+            "Sources/App",
+            "Tests",
+        ])
+        defer { cleanup() }
+
+        let syncRoot = DirectoryScanner.scanSync(rootPath: path)
+        let asyncRoot = await DirectoryScanner.scan(rootPath: path)
+
+        let syncNames = syncRoot.allNodes().map(\.name).sorted()
+        let asyncNames = asyncRoot.allNodes().map(\.name).sorted()
+        #expect(syncNames == asyncNames)
     }
 }

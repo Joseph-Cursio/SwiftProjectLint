@@ -2,6 +2,38 @@ import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
+// MARK: - StateMutationChecker
+
+/// A small syntax visitor that checks if a code block contains state mutations.
+private final class StateMutationChecker: SyntaxVisitor {
+    var foundMutation = false
+
+    override func visit(_ _: AssignmentExprSyntax) -> SyntaxVisitorContinueKind {
+        foundMutation = true
+        return .skipChildren
+    }
+
+    override func visit(_ node: BinaryOperatorExprSyntax) -> SyntaxVisitorContinueKind {
+        let compoundOperators: Set<String> = ["+=", "-=", "*=", "/=", "%=", "&=", "|=", "^="]
+        if compoundOperators.contains(node.operator.text) {
+            foundMutation = true
+            return .skipChildren
+        }
+        return .visitChildren
+    }
+
+    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        // Check for .toggle() calls
+        if let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self),
+           memberAccess.declName.baseName.text == "toggle",
+           node.arguments.isEmpty {
+            foundMutation = true
+            return .skipChildren
+        }
+        return .visitChildren
+    }
+}
+
 /// A SwiftSyntax visitor that detects anti-patterns related to `withAnimation` usage.
 ///
 /// Detects two patterns based on the `pattern.name` gate:
@@ -120,37 +152,5 @@ final class WithAnimationVisitor: BasePatternVisitor {
         }
 
         return nil
-    }
-}
-
-// MARK: - StateMutationChecker
-
-/// A small syntax visitor that checks if a code block contains state mutations.
-private final class StateMutationChecker: SyntaxVisitor {
-    var foundMutation = false
-
-    override func visit(_ _: AssignmentExprSyntax) -> SyntaxVisitorContinueKind {
-        foundMutation = true
-        return .skipChildren
-    }
-
-    override func visit(_ node: BinaryOperatorExprSyntax) -> SyntaxVisitorContinueKind {
-        let compoundOperators: Set<String> = ["+=", "-=", "*=", "/=", "%=", "&=", "|=", "^="]
-        if compoundOperators.contains(node.operator.text) {
-            foundMutation = true
-            return .skipChildren
-        }
-        return .visitChildren
-    }
-
-    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        // Check for .toggle() calls
-        if let memberAccess = node.calledExpression.as(MemberAccessExprSyntax.self),
-           memberAccess.declName.baseName.text == "toggle",
-           node.arguments.isEmpty {
-            foundMutation = true
-            return .skipChildren
-        }
-        return .visitChildren
     }
 }

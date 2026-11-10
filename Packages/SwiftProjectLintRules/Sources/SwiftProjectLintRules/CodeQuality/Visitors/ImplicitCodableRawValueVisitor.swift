@@ -3,6 +3,25 @@ import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
+/// What the file's extensions add to an enum by name.
+private final class ExtensionFacts: SyntaxVisitor {
+    private(set) var codable: Set<String> = []
+    private(set) var customCoding: Set<String> = []
+
+    override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
+        let name = ImplicitCodableRawValueVisitor.lastComponent(node.extendedType)
+        let inherited = (node.inheritanceClause?.inheritedTypes ?? [])
+            .map { ImplicitCodableRawValueVisitor.lastComponent($0.type) }
+        if inherited.contains(where: ["Codable", "Encodable", "Decodable"].contains) {
+            codable.insert(name)
+        }
+        if ImplicitCodableRawValueVisitor.declaresCustomCoding(node.memberBlock) {
+            customCoding.insert(name)
+        }
+        return .skipChildren
+    }
+}
+
 /// Detects String-backed Codable enums whose cases rely on implicit raw values.
 ///
 /// A String-backed enum's synthesized `Codable` conformance encodes each case as its raw value,
@@ -127,24 +146,5 @@ final class ImplicitCodableRawValueVisitor: BasePatternVisitor {
             return member.name.text
         }
         return type.trimmedDescription
-    }
-}
-
-/// What the file's extensions add to an enum by name.
-private final class ExtensionFacts: SyntaxVisitor {
-    private(set) var codable: Set<String> = []
-    private(set) var customCoding: Set<String> = []
-
-    override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
-        let name = ImplicitCodableRawValueVisitor.lastComponent(node.extendedType)
-        let inherited = (node.inheritanceClause?.inheritedTypes ?? [])
-            .map { ImplicitCodableRawValueVisitor.lastComponent($0.type) }
-        if inherited.contains(where: ["Codable", "Encodable", "Decodable"].contains) {
-            codable.insert(name)
-        }
-        if ImplicitCodableRawValueVisitor.declaresCustomCoding(node.memberBlock) {
-            customCoding.insert(name)
-        }
-        return .skipChildren
     }
 }

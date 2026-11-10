@@ -1,5 +1,19 @@
 import SwiftSyntax
 
+private final class ImportVisitor: SyntaxVisitor {
+    var modules: Set<String> = []
+
+    override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
+        // `node.path` is an `ImportPathComponentListSyntax` — a dotted
+        // chain like `Foundation.NSJSONSerialization`. Take the first
+        // component as the base module name.
+        if let first = node.path.first?.name.text, !first.isEmpty {
+            modules.insert(first)
+        }
+        return .skipChildren
+    }
+}
+
 /// Collects the set of top-level module imports declared in a source file.
 ///
 /// Used by `HeuristicEffectInferrer` to gate framework-specific allowlists
@@ -35,19 +49,5 @@ public enum ImportCollector {
         let visitor = ImportVisitor(viewMode: .sourceAccurate)
         visitor.walk(source)
         return visitor.modules
-    }
-}
-
-private final class ImportVisitor: SyntaxVisitor {
-    var modules: Set<String> = []
-
-    override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
-        // `node.path` is an `ImportPathComponentListSyntax` — a dotted
-        // chain like `Foundation.NSJSONSerialization`. Take the first
-        // component as the base module name.
-        if let first = node.path.first?.name.text, !first.isEmpty {
-            modules.insert(first)
-        }
-        return .skipChildren
     }
 }

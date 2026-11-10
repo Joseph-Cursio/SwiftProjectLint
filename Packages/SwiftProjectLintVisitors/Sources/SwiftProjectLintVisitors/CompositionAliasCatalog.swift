@@ -1,5 +1,86 @@
 import SwiftSyntax
 
+/// Walks the sources for ``CompositionAliasCatalog``: every alias definition it could
+/// catalogue, and every name declared some other way that would make an alias name ambiguous.
+final class CompositionAliasCollector: SyntaxVisitor {
+
+    private(set) var definitions: [String: [CompositionAliasCatalog.Definition]] = [:]
+    private(set) var otherDeclaredNames: Set<String> = []
+
+    override func visit(_ node: TypeAliasDeclSyntax) -> SyntaxVisitorContinueKind {
+        // A generic alias is a type constructor; a conformance cannot name it bare.
+        guard node.genericParameterClause == nil else {
+            otherDeclaredNames.insert(node.name.text)
+            return .visitChildren
+        }
+        guard let definition = Self.definition(of: node.initializer.value) else {
+            // Declared, but not as anything this catalog can expand. It still shares the name.
+            otherDeclaredNames.insert(node.name.text)
+            return .visitChildren
+        }
+        definitions[node.name.text, default: []].append(definition)
+        return .visitChildren
+    }
+
+    override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
+        otherDeclaredNames.insert(node.name.text)
+        return .visitChildren
+    }
+
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        otherDeclaredNames.insert(node.name.text)
+        return .visitChildren
+    }
+
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        otherDeclaredNames.insert(node.name.text)
+        return .visitChildren
+    }
+
+    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
+        otherDeclaredNames.insert(node.name.text)
+        return .visitChildren
+    }
+
+    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
+        otherDeclaredNames.insert(node.name.text)
+        return .visitChildren
+    }
+
+    override func visit(_ node: AssociatedTypeDeclSyntax) -> SyntaxVisitorContinueKind {
+        otherDeclaredNames.insert(node.name.text)
+        return .visitChildren
+    }
+
+    override func visit(_ node: GenericParameterSyntax) -> SyntaxVisitorContinueKind {
+        otherDeclaredNames.insert(node.name.text)
+        return .visitChildren
+    }
+
+    /// The names an alias's right-hand side is built from, or `nil` when it is built from
+    /// anything else.
+    static func definition(of type: TypeSyntax) -> CompositionAliasCatalog.Definition? {
+        if let identifier = type.as(IdentifierTypeSyntax.self) {
+            guard identifier.genericArgumentClause == nil else { return nil }
+            return .init(names: [identifier.name.text], isExistential: false)
+        }
+        if let composition = type.as(CompositionTypeSyntax.self) {
+            var names: [String] = []
+            for element in composition.elements {
+                guard let part = definition(of: element.type) else { return nil }
+                names.append(contentsOf: part.names)
+            }
+            return .init(names: names, isExistential: true)
+        }
+        if let existential = type.as(SomeOrAnyTypeSyntax.self),
+           existential.someOrAnySpecifier.tokenKind == .keyword(.any),
+           let inner = definition(of: existential.constraint) {
+            return .init(names: inner.names, isExistential: true)
+        }
+        return nil
+    }
+}
+
 /// `typealias` declarations that stand for other named types and nothing else: a protocol
 /// composition (`typealias OrderStore = OrderSaving & OrderHistory`), an existential
 /// (`typealias AnyStore = any OrderSaving`), or a plain rename (`typealias Legacy = Renamed`).
@@ -156,86 +237,5 @@ public struct CompositionAliasCatalog: Sendable, Equatable {
             memo[name] = result
             return result
         }
-    }
-}
-
-/// Walks the sources for ``CompositionAliasCatalog``: every alias definition it could
-/// catalogue, and every name declared some other way that would make an alias name ambiguous.
-final class CompositionAliasCollector: SyntaxVisitor {
-
-    private(set) var definitions: [String: [CompositionAliasCatalog.Definition]] = [:]
-    private(set) var otherDeclaredNames: Set<String> = []
-
-    override func visit(_ node: TypeAliasDeclSyntax) -> SyntaxVisitorContinueKind {
-        // A generic alias is a type constructor; a conformance cannot name it bare.
-        guard node.genericParameterClause == nil else {
-            otherDeclaredNames.insert(node.name.text)
-            return .visitChildren
-        }
-        guard let definition = Self.definition(of: node.initializer.value) else {
-            // Declared, but not as anything this catalog can expand. It still shares the name.
-            otherDeclaredNames.insert(node.name.text)
-            return .visitChildren
-        }
-        definitions[node.name.text, default: []].append(definition)
-        return .visitChildren
-    }
-
-    override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
-        otherDeclaredNames.insert(node.name.text)
-        return .visitChildren
-    }
-
-    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        otherDeclaredNames.insert(node.name.text)
-        return .visitChildren
-    }
-
-    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
-        otherDeclaredNames.insert(node.name.text)
-        return .visitChildren
-    }
-
-    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
-        otherDeclaredNames.insert(node.name.text)
-        return .visitChildren
-    }
-
-    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
-        otherDeclaredNames.insert(node.name.text)
-        return .visitChildren
-    }
-
-    override func visit(_ node: AssociatedTypeDeclSyntax) -> SyntaxVisitorContinueKind {
-        otherDeclaredNames.insert(node.name.text)
-        return .visitChildren
-    }
-
-    override func visit(_ node: GenericParameterSyntax) -> SyntaxVisitorContinueKind {
-        otherDeclaredNames.insert(node.name.text)
-        return .visitChildren
-    }
-
-    /// The names an alias's right-hand side is built from, or `nil` when it is built from
-    /// anything else.
-    static func definition(of type: TypeSyntax) -> CompositionAliasCatalog.Definition? {
-        if let identifier = type.as(IdentifierTypeSyntax.self) {
-            guard identifier.genericArgumentClause == nil else { return nil }
-            return .init(names: [identifier.name.text], isExistential: false)
-        }
-        if let composition = type.as(CompositionTypeSyntax.self) {
-            var names: [String] = []
-            for element in composition.elements {
-                guard let part = definition(of: element.type) else { return nil }
-                names.append(contentsOf: part.names)
-            }
-            return .init(names: names, isExistential: true)
-        }
-        if let existential = type.as(SomeOrAnyTypeSyntax.self),
-           existential.someOrAnySpecifier.tokenKind == .keyword(.any),
-           let inner = definition(of: existential.constraint) {
-            return .init(names: inner.names, isExistential: true)
-        }
-        return nil
     }
 }

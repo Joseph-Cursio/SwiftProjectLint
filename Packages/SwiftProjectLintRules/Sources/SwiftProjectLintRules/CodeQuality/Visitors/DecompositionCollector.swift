@@ -28,6 +28,88 @@ enum RoundTripSlot: Hashable {
     }
 }
 
+/// The fields of the given values an expression reads — `order.items`, `order.discount?.value` —
+/// plus whatever fields aliases of them carry.
+private final class FieldReadFinder: SyntaxVisitor {
+
+    private(set) var fields: Set<String> = []
+    private let values: Set<String>
+    private let aliases: [String: Set<String>]
+
+    init(values: Set<String>, aliases: [String: Set<String>]) {
+        self.values = values
+        self.aliases = aliases
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
+        let name = node.baseName.text
+        if values.contains(name),
+           let member = node.parent?.as(MemberAccessExprSyntax.self),
+           member.base?.id == ExprSyntax(node).id {
+            fields.insert(member.declName.baseName.text)
+        } else if let carried = aliases[name] {
+            fields.formUnion(carried)
+        }
+        return .visitChildren
+    }
+}
+
+/// Every slot a member reads: the string-literal and constant keys it mentions, and every name it
+/// references — the properties a rebuild reads back.
+final class SlotReadCollector: SyntaxVisitor {
+
+    private(set) var slots: Set<RoundTripSlot> = []
+
+    init() {
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: StringLiteralExprSyntax) -> SyntaxVisitorContinueKind {
+        if let key = RoundTripSlot.key(of: ExprSyntax(node)) { slots.insert(.key(key)) }
+        return .visitChildren
+    }
+
+    override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
+        if let key = RoundTripSlot.key(of: ExprSyntax(node)) { slots.insert(.key(key)) }
+        slots.insert(.property(node.declName.baseName.text))
+        return .visitChildren
+    }
+
+    override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
+        slots.insert(.property(node.baseName.text))
+        return .visitChildren
+    }
+}
+
+/// Every `T(…)` or `T.init(…)` in a member, for the domain types of interest.
+final class DomainConstructionFinder: SyntaxVisitor {
+
+    private(set) var constructions: [(type: String, call: FunctionCallExprSyntax)] = []
+    private let domainTypes: Set<String>
+
+    init(domainTypes: Set<String>) {
+        self.domainTypes = domainTypes
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        if let type = Self.constructedType(of: node), domainTypes.contains(type) {
+            constructions.append((type, node))
+        }
+        return .visitChildren
+    }
+
+    private static func constructedType(of call: FunctionCallExprSyntax) -> String? {
+        if let reference = call.calledExpression.as(DeclReferenceExprSyntax.self) {
+            return reference.baseName.text
+        }
+        guard let member = call.calledExpression.as(MemberAccessExprSyntax.self),
+              member.declName.baseName.text == "init" else { return nil }
+        return member.base?.as(DeclReferenceExprSyntax.self)?.baseName.text
+    }
+}
+
 /// What one member does with its parameter of domain type `T`: which fields it stores, and where.
 ///
 ///     func save(_ order: Order) {
@@ -202,87 +284,5 @@ final class DecompositionCollector: SyntaxVisitor {
         return elements.count == 3
             && elements[1].is(AssignmentExprSyntax.self)
             && Syntax(elements[2]).id == value.id
-    }
-}
-
-/// The fields of the given values an expression reads — `order.items`, `order.discount?.value` —
-/// plus whatever fields aliases of them carry.
-private final class FieldReadFinder: SyntaxVisitor {
-
-    private(set) var fields: Set<String> = []
-    private let values: Set<String>
-    private let aliases: [String: Set<String>]
-
-    init(values: Set<String>, aliases: [String: Set<String>]) {
-        self.values = values
-        self.aliases = aliases
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
-        let name = node.baseName.text
-        if values.contains(name),
-           let member = node.parent?.as(MemberAccessExprSyntax.self),
-           member.base?.id == ExprSyntax(node).id {
-            fields.insert(member.declName.baseName.text)
-        } else if let carried = aliases[name] {
-            fields.formUnion(carried)
-        }
-        return .visitChildren
-    }
-}
-
-/// Every slot a member reads: the string-literal and constant keys it mentions, and every name it
-/// references — the properties a rebuild reads back.
-final class SlotReadCollector: SyntaxVisitor {
-
-    private(set) var slots: Set<RoundTripSlot> = []
-
-    init() {
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    override func visit(_ node: StringLiteralExprSyntax) -> SyntaxVisitorContinueKind {
-        if let key = RoundTripSlot.key(of: ExprSyntax(node)) { slots.insert(.key(key)) }
-        return .visitChildren
-    }
-
-    override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
-        if let key = RoundTripSlot.key(of: ExprSyntax(node)) { slots.insert(.key(key)) }
-        slots.insert(.property(node.declName.baseName.text))
-        return .visitChildren
-    }
-
-    override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
-        slots.insert(.property(node.baseName.text))
-        return .visitChildren
-    }
-}
-
-/// Every `T(…)` or `T.init(…)` in a member, for the domain types of interest.
-final class DomainConstructionFinder: SyntaxVisitor {
-
-    private(set) var constructions: [(type: String, call: FunctionCallExprSyntax)] = []
-    private let domainTypes: Set<String>
-
-    init(domainTypes: Set<String>) {
-        self.domainTypes = domainTypes
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        if let type = Self.constructedType(of: node), domainTypes.contains(type) {
-            constructions.append((type, node))
-        }
-        return .visitChildren
-    }
-
-    private static func constructedType(of call: FunctionCallExprSyntax) -> String? {
-        if let reference = call.calledExpression.as(DeclReferenceExprSyntax.self) {
-            return reference.baseName.text
-        }
-        guard let member = call.calledExpression.as(MemberAccessExprSyntax.self),
-              member.declName.baseName.text == "init" else { return nil }
-        return member.base?.as(DeclReferenceExprSyntax.self)?.baseName.text
     }
 }

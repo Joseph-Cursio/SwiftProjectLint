@@ -17,10 +17,10 @@ index cb764e6e..f1fa6184 100644
          // Test/fixture files aren't property-test subjects — a global `var` in a
          // test is not what this rule is about. Exempt them, as the sibling
 diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy.swift
-index cae06d94..4c232d4e 100644
+index 756a453e..483b8e12 100644
 --- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy.swift
 +++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy.swift
-@@ -441,6 +441,11 @@ public enum PropertyTestCandidacy {
+@@ -499,4 +499,9 @@ public enum PropertyTestCandidacy {
              storedProperties: collector.properties
          )
      }
@@ -30,5 +30,3 @@ index cae06d94..4c232d4e 100644
 +        PurityInferrer().isPure(node)
 +    }
  }
- 
- /// Gathers the stored properties a named type declares anywhere in one file — in its primary

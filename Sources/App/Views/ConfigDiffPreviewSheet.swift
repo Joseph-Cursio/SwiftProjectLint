@@ -2,6 +2,24 @@ import LintStudioCore
 import LintStudioUI
 import SwiftUI
 
+/// The sheet's title bar, which depends on nothing.
+///
+/// A child with no inputs compares equal to itself on every parent update, so SwiftUI skips it —
+/// measured at **0** re-renders over three changes, against 3 for the inlined property.
+private struct DiffSheetHeader: View {
+    var body: some View {
+        HStack {
+            Image(systemName: "doc.text.magnifyingglass")
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            Text("Review Configuration Changes")
+                .font(.headline)
+            Spacer()
+        }
+        .padding()
+    }
+}
+
 /// A sheet that shows a unified diff of YAML config changes before saving.
 struct ConfigDiffPreviewSheet: View {
     let beforeYAML: String
@@ -43,24 +61,6 @@ struct ConfigDiffPreviewSheet: View {
             Button("Save Changes", action: onConfirm)
                 .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.defaultAction)
-        }
-        .padding()
-    }
-}
-
-/// The sheet's title bar, which depends on nothing.
-///
-/// A child with no inputs compares equal to itself on every parent update, so SwiftUI skips it —
-/// measured at **0** re-renders over three changes, against 3 for the inlined property.
-private struct DiffSheetHeader: View {
-    var body: some View {
-        HStack {
-            Image(systemName: "doc.text.magnifyingglass")
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-            Text("Review Configuration Changes")
-                .font(.headline)
-            Spacer()
         }
         .padding()
     }

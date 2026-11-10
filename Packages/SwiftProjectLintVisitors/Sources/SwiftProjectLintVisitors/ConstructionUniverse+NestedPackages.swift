@@ -1,6 +1,43 @@
 import SwiftParser
 import SwiftSyntax
 
+/// The `path:` arguments of a manifest's `.<callee>(…)` calls, in source order.
+private final class PathArgumentCollector: SyntaxVisitor {
+
+    private let callees: Set<String>
+    private(set) var paths: [String] = []
+    /// False once such a call passes `path:` something that is not a plain literal.
+    private(set) var isReadable = true
+
+    init(callees: Set<String>) {
+        self.callees = callees
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        guard let member = node.calledExpression.as(MemberAccessExprSyntax.self),
+              callees.contains(member.declName.baseName.text),
+              let path = node.arguments.first(where: { $0.label?.text == "path" }) else {
+            return .visitChildren
+        }
+        if let literal = Self.literal(path.expression) {
+            paths.append(literal)
+        } else {
+            isReadable = false
+        }
+        return .visitChildren
+    }
+
+    /// The value of a string literal with no interpolation — escapes decoded, a raw or multi-line
+    /// literal joined, as the compiler reads it — or `nil` for anything computed or malformed.
+    ///
+    /// The value, not the source text: `"Packages/\u{55}til"` names `Packages/Util` to SwiftPM, and
+    /// read as written it named no package at all, so the one the root compiles left the table.
+    private static func literal(_ expression: ExprSyntax) -> String? {
+        expression.as(StringLiteralExprSyntax.self)?.representedLiteralValue
+    }
+}
+
 /// Which nested packages' files are in the construction universe: **those the root compiles** —
 /// the shared spec's amendments B, 3 and 3b, implemented word for word in SwiftInferProperties too.
 ///
@@ -267,42 +304,5 @@ extension ConstructionUniverse {
             }
         }
         return result
-    }
-}
-
-/// The `path:` arguments of a manifest's `.<callee>(…)` calls, in source order.
-private final class PathArgumentCollector: SyntaxVisitor {
-
-    private let callees: Set<String>
-    private(set) var paths: [String] = []
-    /// False once such a call passes `path:` something that is not a plain literal.
-    private(set) var isReadable = true
-
-    init(callees: Set<String>) {
-        self.callees = callees
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard let member = node.calledExpression.as(MemberAccessExprSyntax.self),
-              callees.contains(member.declName.baseName.text),
-              let path = node.arguments.first(where: { $0.label?.text == "path" }) else {
-            return .visitChildren
-        }
-        if let literal = Self.literal(path.expression) {
-            paths.append(literal)
-        } else {
-            isReadable = false
-        }
-        return .visitChildren
-    }
-
-    /// The value of a string literal with no interpolation — escapes decoded, a raw or multi-line
-    /// literal joined, as the compiler reads it — or `nil` for anything computed or malformed.
-    ///
-    /// The value, not the source text: `"Packages/\u{55}til"` names `Packages/Util` to SwiftPM, and
-    /// read as written it named no package at all, so the one the root compiles left the table.
-    private static func literal(_ expression: ExprSyntax) -> String? {
-        expression.as(StringLiteralExprSyntax.self)?.representedLiteralValue
     }
 }

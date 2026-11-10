@@ -2,131 +2,6 @@ import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
-// The call-site vocabulary the closure rules share.
-//
-// **Two rules read this, which is why it is no longer private to one of them.** The census
-// (`PureClosureCandidateVisitor`) reports the closures at these call sites that are pure; the
-// inventory (`ImpureClosureVisitor`) reports the ones that are not. They must agree exactly on
-// which closures are in scope, or the two numbers stop being complements and neither can be read
-// against the other.
-//
-// This project has found the same shape four times over in the architecture rules — one rule
-// privately holding the vocabulary its twin needs, and reporting something the twin already knew
-// was not a finding. Lifting it before the second consumer is written is the cheap version of that
-// fix.
-
-/// A higher-order collection operation whose closure argument is a pure function by contract.
-///
-/// Deliberately a fixed list rather than "any call taking a closure". `Task { … }`,
-/// `withAnimation { … }` and `DispatchQueue.main.async { … }` also take closures, and a closure run
-/// for its effects is not a property waiting to be named. These are the operations whose closures
-/// are *supposed* to be functions.
-struct CollectionOperation {
-
-    /// What the closure *is*, which is what decides whether naming it buys anything.
-    enum Kind: Equatable {
-        case comparator
-        case predicate
-        case transform
-        case reducer
-
-        /// The manifest's vocabulary for this classification.
-        ///
-        /// The rule has always known which of these a closure is — it picks the law sentence off
-        /// exactly this distinction. Until the manifest grew a `role` field, that knowledge reached
-        /// the reader as prose and reached the downstream tool not at all, so every finding here
-        /// arrived as an undifferentiated "extractable-kernel at line N".
-        var seedRole: PBTSeedRole {
-            switch self {
-            case .comparator:
-                return .comparator
-
-            case .predicate:
-                return .predicate
-
-            case .transform:
-                return .transform
-
-            case .reducer:
-                return .reducer
-            }
-        }
-    }
-
-    let name: String
-
-    /// The law worth stating once the closure has a name — the reason to bother extracting it.
-    let law: String
-
-    let kind: Kind
-
-    init?(call: FunctionCallExprSyntax) {
-        guard let callee = call.calledExpression.as(MemberAccessExprSyntax.self) else { return nil }
-
-        switch callee.declName.baseName.text {
-        case "sorted", "sort", "min", "max", "partition":
-            self.name = callee.declName.baseName.text
-            self.law = "A comparator must be a strict weak ordering: irreflexive, antisymmetric and "
-                + "transitive. Sorting with one that is not can crash, and no example test will "
-                + "tell you which triple broke it."
-            self.kind = .comparator
-
-        case "filter", "first", "contains", "allSatisfy", "drop", "prefix", "removeAll":
-            self.name = callee.declName.baseName.text
-            self.law = "A predicate is a total function of its inputs — generate them and state "
-                + "what it must accept and reject."
-            self.kind = .predicate
-
-        case "map", "compactMap", "flatMap":
-            self.name = callee.declName.baseName.text
-            self.law = "A transform is a function of its input — generate inputs and state what "
-                + "the result must satisfy."
-            self.kind = .transform
-
-        case "reduce":
-            self.name = "reduce"
-            self.law = "A reducer's combine step is usually associative, and often has an identity "
-                + "— both are laws a property test can check and an example cannot."
-            self.kind = .reducer
-
-        default:
-            return nil
-        }
-    }
-
-    /// Whether the closure hides a law that naming it would let you *state*.
-    ///
-    /// **Body size is the wrong axis, wherever the closure can be wrong on one line.** The comparators
-    /// proved it: `{ $0.name <= $1.name }` is reflexive and `{ $0.a > $1.a || $0.b < $1.b }` is
-    /// intransitive, each fits inside any floor, and each can crash `sorted(by:)`. Predicates have
-    /// exactly the same shape — `{ $0.path.hasPrefix(parent) && $0.path != parent }` is one line and
-    /// one off-by-one from wrong — so both ask the same question, in their own terms:
-    ///
-    /// - a **comparator** is free when its ordering is inherited whole from `Comparable`
-    ///   (`{ $0.date > $1.date }`) — see `FreeOrdering`;
-    /// - a **predicate** is free when it makes no decision at all and merely surfaces a stored `Bool`
-    ///   (`{ $0.isEnabled }`) — see `FreeDecision`.
-    ///
-    /// Neither can be got wrong, so neither has a law left to state, and firing on them is the noise
-    /// that teaches people to switch the category off. Everything else earns the finding.
-    ///
-    /// Transforms and reducers keep the size floor, and legitimately: a one-statement `map { $0.name }`
-    /// is a *projection*, and unlike a predicate or a comparator it carries no law that a single
-    /// expression could violate — there is nothing for it to be inconsistent with.
-    func hidesALawWorthStating(_ closure: ClosureExprSyntax) -> Bool {
-        switch kind {
-        case .comparator:
-            return !FreeOrdering.describes(closure)
-
-        case .predicate:
-            return !FreeDecision.describes(closure)
-
-        case .transform, .reducer:
-            return closure.statements.count >= 2
-        }
-    }
-}
-
 /// A predicate body that makes no decision — it reads a `Bool` and hands it back.
 ///
 /// `{ $0.isEnabled }`, `{ !$0.isHidden }`, `{ $0.file.isFolder }`: a plain member path off the
@@ -615,5 +490,130 @@ enum EnclosingDeclaration {
     /// syntax node — so it is what the check asks about.
     static func isMemberDeclaration(_ variable: VariableDeclSyntax) -> Bool {
         variable.parent?.is(MemberBlockItemSyntax.self) ?? false
+    }
+}
+
+// The call-site vocabulary the closure rules share.
+//
+// **Two rules read this, which is why it is no longer private to one of them.** The census
+// (`PureClosureCandidateVisitor`) reports the closures at these call sites that are pure; the
+// inventory (`ImpureClosureVisitor`) reports the ones that are not. They must agree exactly on
+// which closures are in scope, or the two numbers stop being complements and neither can be read
+// against the other.
+//
+// This project has found the same shape four times over in the architecture rules — one rule
+// privately holding the vocabulary its twin needs, and reporting something the twin already knew
+// was not a finding. Lifting it before the second consumer is written is the cheap version of that
+// fix.
+
+/// A higher-order collection operation whose closure argument is a pure function by contract.
+///
+/// Deliberately a fixed list rather than "any call taking a closure". `Task { … }`,
+/// `withAnimation { … }` and `DispatchQueue.main.async { … }` also take closures, and a closure run
+/// for its effects is not a property waiting to be named. These are the operations whose closures
+/// are *supposed* to be functions.
+struct CollectionOperation {
+
+    /// What the closure *is*, which is what decides whether naming it buys anything.
+    enum Kind: Equatable {
+        case comparator
+        case predicate
+        case transform
+        case reducer
+
+        /// The manifest's vocabulary for this classification.
+        ///
+        /// The rule has always known which of these a closure is — it picks the law sentence off
+        /// exactly this distinction. Until the manifest grew a `role` field, that knowledge reached
+        /// the reader as prose and reached the downstream tool not at all, so every finding here
+        /// arrived as an undifferentiated "extractable-kernel at line N".
+        var seedRole: PBTSeedRole {
+            switch self {
+            case .comparator:
+                return .comparator
+
+            case .predicate:
+                return .predicate
+
+            case .transform:
+                return .transform
+
+            case .reducer:
+                return .reducer
+            }
+        }
+    }
+
+    let name: String
+
+    /// The law worth stating once the closure has a name — the reason to bother extracting it.
+    let law: String
+
+    let kind: Kind
+
+    init?(call: FunctionCallExprSyntax) {
+        guard let callee = call.calledExpression.as(MemberAccessExprSyntax.self) else { return nil }
+
+        switch callee.declName.baseName.text {
+        case "sorted", "sort", "min", "max", "partition":
+            self.name = callee.declName.baseName.text
+            self.law = "A comparator must be a strict weak ordering: irreflexive, antisymmetric and "
+                + "transitive. Sorting with one that is not can crash, and no example test will "
+                + "tell you which triple broke it."
+            self.kind = .comparator
+
+        case "filter", "first", "contains", "allSatisfy", "drop", "prefix", "removeAll":
+            self.name = callee.declName.baseName.text
+            self.law = "A predicate is a total function of its inputs — generate them and state "
+                + "what it must accept and reject."
+            self.kind = .predicate
+
+        case "map", "compactMap", "flatMap":
+            self.name = callee.declName.baseName.text
+            self.law = "A transform is a function of its input — generate inputs and state what "
+                + "the result must satisfy."
+            self.kind = .transform
+
+        case "reduce":
+            self.name = "reduce"
+            self.law = "A reducer's combine step is usually associative, and often has an identity "
+                + "— both are laws a property test can check and an example cannot."
+            self.kind = .reducer
+
+        default:
+            return nil
+        }
+    }
+
+    /// Whether the closure hides a law that naming it would let you *state*.
+    ///
+    /// **Body size is the wrong axis, wherever the closure can be wrong on one line.** The comparators
+    /// proved it: `{ $0.name <= $1.name }` is reflexive and `{ $0.a > $1.a || $0.b < $1.b }` is
+    /// intransitive, each fits inside any floor, and each can crash `sorted(by:)`. Predicates have
+    /// exactly the same shape — `{ $0.path.hasPrefix(parent) && $0.path != parent }` is one line and
+    /// one off-by-one from wrong — so both ask the same question, in their own terms:
+    ///
+    /// - a **comparator** is free when its ordering is inherited whole from `Comparable`
+    ///   (`{ $0.date > $1.date }`) — see `FreeOrdering`;
+    /// - a **predicate** is free when it makes no decision at all and merely surfaces a stored `Bool`
+    ///   (`{ $0.isEnabled }`) — see `FreeDecision`.
+    ///
+    /// Neither can be got wrong, so neither has a law left to state, and firing on them is the noise
+    /// that teaches people to switch the category off. Everything else earns the finding.
+    ///
+    /// Transforms and reducers keep the size floor, and legitimately: a one-statement `map { $0.name }`
+    /// is a *projection*, and unlike a predicate or a comparator it carries no law that a single
+    /// expression could violate — there is nothing for it to be inconsistent with.
+    func hidesALawWorthStating(_ closure: ClosureExprSyntax) -> Bool {
+        switch kind {
+        case .comparator:
+            return !FreeOrdering.describes(closure)
+
+        case .predicate:
+            return !FreeDecision.describes(closure)
+
+        case .transform, .reducer:
+            return closure.statements.count >= 2
+        }
     }
 }

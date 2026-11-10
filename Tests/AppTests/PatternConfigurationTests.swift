@@ -3,6 +3,20 @@ import Core
 import SwiftSyntax
 import Testing
 
+// Dummy visitor to satisfy SyntaxPattern initializer
+private class DummyVisitor: SyntaxVisitor, PatternVisitorProtocol {
+    var detectedIssues: [LintIssue] = []
+    var pattern: SyntaxPattern
+    var patternCategory: PatternCategory { .architecture }
+
+    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+        self.pattern = pattern
+        super.init(viewMode: viewMode)
+    }
+
+    func reset() { detectedIssues.removeAll() }
+}
+
 @MainActor
 struct PatternConfigurationTests {
     class MockPatternRegistry: SourcePatternRegistryProtocol {
@@ -155,18 +169,4 @@ struct PatternConfigurationTests {
         #expect(info.patterns.isEmpty)
         #expect(info.useSwiftSyntax)
     }
-}
-
-// Dummy visitor to satisfy SyntaxPattern initializer
-private class DummyVisitor: SyntaxVisitor, PatternVisitorProtocol {
-    var detectedIssues: [LintIssue] = []
-    var pattern: SyntaxPattern
-    var patternCategory: PatternCategory { .architecture }
-
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.pattern = pattern
-        super.init(viewMode: viewMode)
-    }
-
-    func reset() { detectedIssues.removeAll() }
 }

@@ -5,6 +5,57 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
+/// End to end: the setting is read from the manifest and reaches the rule.
+@Suite
+struct BlockingIODefaultIsolationEndToEndTests {
+
+    @Test
+    func targetWithDefaultIsolationInItsManifestIsAnalysedAsMainActor() async {
+        let root = PathString.appending(
+            "BlockingIODefault-\(UUID().uuidString)",
+            to: FileManager.default.temporaryDirectory.path
+        )
+        write("""
+        // swift-tools-version:6.2
+        import PackageDescription
+
+        let uiSettings: [SwiftSetting] = [.defaultIsolation(MainActor.self)]
+
+        let package = Package(
+            name: "Demo",
+            targets: [
+                .target(name: "Core"),
+                .executableTarget(name: "App", dependencies: ["Core"], swiftSettings: uiSettings)
+            ]
+        )
+        """, to: "\(root)/Package.swift")
+        let loader = """
+        import Foundation
+
+        struct Loader {
+            func load(url: URL) -> Data? { try? Data(contentsOf: url) }
+        }
+        """
+        write(loader, to: "\(root)/Sources/App/Loader.swift")
+        write(loader, to: "\(root)/Sources/Core/Loader.swift")
+        defer { try? FileManager.default.removeItem(atPath: root) }
+
+        let system = PatternRegistryFactory.createConfiguredSystem()
+        let issues = await ProjectLinter().analyzeProject(at: root, detector: system.detector)
+        let blocking = issues.filter { $0.ruleName == .blockingIOOnMainActor }
+
+        #expect(blocking.map(\.filePath) == ["Sources/App/Loader.swift"])
+    }
+
+    private func write(_ content: String, to path: String) {
+        try? FileManager.default.createDirectory(
+            atPath: PathString.deletingLastComponent(of: path),
+            withIntermediateDirectories: true
+        )
+        try? content.write(toFile: path, atomically: true, encoding: .utf8)
+    }
+}
+
 /// A target built with default MainActor isolation runs its unannotated code on the main actor,
 /// though nothing in the file says so. The build setting reaches the rule as
 /// `defaultMainActorSourcePaths`.
@@ -107,56 +158,5 @@ struct BlockingIODefaultIsolationTests {
         let found = issues(["Sources/App/FeedModel.swift": model], defaultPaths: ["Sources/App/"])
 
         #expect(found.count == 1)
-    }
-}
-
-/// End to end: the setting is read from the manifest and reaches the rule.
-@Suite
-struct BlockingIODefaultIsolationEndToEndTests {
-
-    @Test
-    func targetWithDefaultIsolationInItsManifestIsAnalysedAsMainActor() async {
-        let root = PathString.appending(
-            "BlockingIODefault-\(UUID().uuidString)",
-            to: FileManager.default.temporaryDirectory.path
-        )
-        write("""
-        // swift-tools-version:6.2
-        import PackageDescription
-
-        let uiSettings: [SwiftSetting] = [.defaultIsolation(MainActor.self)]
-
-        let package = Package(
-            name: "Demo",
-            targets: [
-                .target(name: "Core"),
-                .executableTarget(name: "App", dependencies: ["Core"], swiftSettings: uiSettings)
-            ]
-        )
-        """, to: "\(root)/Package.swift")
-        let loader = """
-        import Foundation
-
-        struct Loader {
-            func load(url: URL) -> Data? { try? Data(contentsOf: url) }
-        }
-        """
-        write(loader, to: "\(root)/Sources/App/Loader.swift")
-        write(loader, to: "\(root)/Sources/Core/Loader.swift")
-        defer { try? FileManager.default.removeItem(atPath: root) }
-
-        let system = PatternRegistryFactory.createConfiguredSystem()
-        let issues = await ProjectLinter().analyzeProject(at: root, detector: system.detector)
-        let blocking = issues.filter { $0.ruleName == .blockingIOOnMainActor }
-
-        #expect(blocking.map(\.filePath) == ["Sources/App/Loader.swift"])
-    }
-
-    private func write(_ content: String, to path: String) {
-        try? FileManager.default.createDirectory(
-            atPath: PathString.deletingLastComponent(of: path),
-            withIntermediateDirectories: true
-        )
-        try? content.write(toFile: path, atomically: true, encoding: .utf8)
     }
 }

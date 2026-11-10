@@ -1,5 +1,107 @@
 import SwiftSyntax
 
+/// Walks the project for the shapes ``EquatableRemedyCatalog`` describes.
+final class EquatableRemedyCollector: SyntaxVisitor {
+
+    private(set) var shapes: [String: EquatableRemedyCatalog.Shape] = [:]
+    private var seen: Set<String> = []
+
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        record(node.name.text, node.genericParameterClause == nil ? structShape(node.memberBlock) : .blocked)
+        return .visitChildren
+    }
+
+    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
+        record(node.name.text, node.genericParameterClause == nil ? enumShape(node.memberBlock) : .blocked)
+        return .visitChildren
+    }
+
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        // A class never synthesizes `Equatable`. Recorded rather than ignored so that a namesake
+        // struct elsewhere is seen as ambiguous.
+        record(node.name.text, .blocked)
+        return .visitChildren
+    }
+
+    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
+        record(node.name.text, .blocked)
+        return .visitChildren
+    }
+
+    private func record(_ name: String, _ shape: EquatableRemedyCatalog.Shape) {
+        // A second declaration of the same simple name — two modules, or a nested type shadowing
+        // a top-level one — could have different members. Which one a signature means is a
+        // question for a type checker.
+        shapes[name] = seen.insert(name).inserted ? shape : .ambiguous
+    }
+
+    private func structShape(_ memberBlock: MemberBlockSyntax) -> EquatableRemedyCatalog.Shape {
+        var demanded: Set<String> = []
+        for member in memberBlock.members {
+            guard let variable = member.decl.as(VariableDeclSyntax.self),
+                  !variable.modifiers.contains(where: Self.isTypeLevel) else { continue }
+            for binding in variable.bindings where Self.isStored(binding) {
+                // A wrapper's storage is what synthesis compares, and `Published<Int>` is not
+                // `Equatable`; a macro may add storage of its own.
+                guard variable.attributes.isEmpty,
+                      let names = Self.storedDemands(binding) else { return .blocked }
+                demanded.formUnion(names)
+            }
+        }
+        return .synthesizable(demanded)
+    }
+
+    private func enumShape(_ memberBlock: MemberBlockSyntax) -> EquatableRemedyCatalog.Shape {
+        var demanded: Set<String> = []
+        for member in memberBlock.members {
+            guard let caseDecl = member.decl.as(EnumCaseDeclSyntax.self) else { continue }
+            for element in caseDecl.elements {
+                for parameter in element.parameterClause?.parameters ?? [] {
+                    guard let names = EquatableRemedyCatalog.demands(of: parameter.type) else {
+                        return .blocked
+                    }
+                    demanded.formUnion(names)
+                }
+            }
+        }
+        return .synthesizable(demanded)
+    }
+
+    private static func isTypeLevel(_ modifier: DeclModifierSyntax) -> Bool {
+        modifier.name.tokenKind == .keyword(.static) || modifier.name.tokenKind == .keyword(.class)
+    }
+
+    /// Storage, as opposed to a computed property: no accessor block, or one holding only
+    /// observers.
+    private static func isStored(_ binding: PatternBindingSyntax) -> Bool {
+        guard let accessor = binding.accessorBlock else { return true }
+        guard case .accessors(let list) = accessor.accessors else { return false }
+        return list.allSatisfy {
+            $0.accessorSpecifier.tokenKind == .keyword(.willSet)
+                || $0.accessorSpecifier.tokenKind == .keyword(.didSet)
+        }
+    }
+
+    /// What one stored property demands, from its annotation or — lacking one — an initializer
+    /// that names its type without inference: `= Foo(…)` or a literal.
+    private static func storedDemands(_ binding: PatternBindingSyntax) -> Set<String>? {
+        if let annotated = binding.typeAnnotation?.type {
+            return EquatableRemedyCatalog.demands(of: annotated)
+        }
+        guard let value = binding.initializer?.value else { return nil }
+        if value.is(StringLiteralExprSyntax.self) { return ["String"] }
+        if value.is(IntegerLiteralExprSyntax.self) { return ["Int"] }
+        if value.is(FloatLiteralExprSyntax.self) { return ["Double"] }
+        if value.is(BooleanLiteralExprSyntax.self) { return ["Bool"] }
+        if let call = value.as(FunctionCallExprSyntax.self),
+           let callee = call.calledExpression.as(DeclReferenceExprSyntax.self),
+           callee.baseName.text.first?.isUppercase == true {
+            return [callee.baseName.text]
+        }
+        return nil
+    }
+}
+
 /// For each project value type that is not `Equatable`: would a bare `: Equatable` synthesize, and
 /// what else would have to conform for it to?
 ///
@@ -211,107 +313,5 @@ public struct EquatableRemedyCatalog: Sendable, Equatable {
             collector.walk(source)
         }
         return Self(shapes: collector.shapes)
-    }
-}
-
-/// Walks the project for the shapes ``EquatableRemedyCatalog`` describes.
-final class EquatableRemedyCollector: SyntaxVisitor {
-
-    private(set) var shapes: [String: EquatableRemedyCatalog.Shape] = [:]
-    private var seen: Set<String> = []
-
-    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        record(node.name.text, node.genericParameterClause == nil ? structShape(node.memberBlock) : .blocked)
-        return .visitChildren
-    }
-
-    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
-        record(node.name.text, node.genericParameterClause == nil ? enumShape(node.memberBlock) : .blocked)
-        return .visitChildren
-    }
-
-    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
-        // A class never synthesizes `Equatable`. Recorded rather than ignored so that a namesake
-        // struct elsewhere is seen as ambiguous.
-        record(node.name.text, .blocked)
-        return .visitChildren
-    }
-
-    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
-        record(node.name.text, .blocked)
-        return .visitChildren
-    }
-
-    private func record(_ name: String, _ shape: EquatableRemedyCatalog.Shape) {
-        // A second declaration of the same simple name — two modules, or a nested type shadowing
-        // a top-level one — could have different members. Which one a signature means is a
-        // question for a type checker.
-        shapes[name] = seen.insert(name).inserted ? shape : .ambiguous
-    }
-
-    private func structShape(_ memberBlock: MemberBlockSyntax) -> EquatableRemedyCatalog.Shape {
-        var demanded: Set<String> = []
-        for member in memberBlock.members {
-            guard let variable = member.decl.as(VariableDeclSyntax.self),
-                  !variable.modifiers.contains(where: Self.isTypeLevel) else { continue }
-            for binding in variable.bindings where Self.isStored(binding) {
-                // A wrapper's storage is what synthesis compares, and `Published<Int>` is not
-                // `Equatable`; a macro may add storage of its own.
-                guard variable.attributes.isEmpty,
-                      let names = Self.storedDemands(binding) else { return .blocked }
-                demanded.formUnion(names)
-            }
-        }
-        return .synthesizable(demanded)
-    }
-
-    private func enumShape(_ memberBlock: MemberBlockSyntax) -> EquatableRemedyCatalog.Shape {
-        var demanded: Set<String> = []
-        for member in memberBlock.members {
-            guard let caseDecl = member.decl.as(EnumCaseDeclSyntax.self) else { continue }
-            for element in caseDecl.elements {
-                for parameter in element.parameterClause?.parameters ?? [] {
-                    guard let names = EquatableRemedyCatalog.demands(of: parameter.type) else {
-                        return .blocked
-                    }
-                    demanded.formUnion(names)
-                }
-            }
-        }
-        return .synthesizable(demanded)
-    }
-
-    private static func isTypeLevel(_ modifier: DeclModifierSyntax) -> Bool {
-        modifier.name.tokenKind == .keyword(.static) || modifier.name.tokenKind == .keyword(.class)
-    }
-
-    /// Storage, as opposed to a computed property: no accessor block, or one holding only
-    /// observers.
-    private static func isStored(_ binding: PatternBindingSyntax) -> Bool {
-        guard let accessor = binding.accessorBlock else { return true }
-        guard case .accessors(let list) = accessor.accessors else { return false }
-        return list.allSatisfy {
-            $0.accessorSpecifier.tokenKind == .keyword(.willSet)
-                || $0.accessorSpecifier.tokenKind == .keyword(.didSet)
-        }
-    }
-
-    /// What one stored property demands, from its annotation or — lacking one — an initializer
-    /// that names its type without inference: `= Foo(…)` or a literal.
-    private static func storedDemands(_ binding: PatternBindingSyntax) -> Set<String>? {
-        if let annotated = binding.typeAnnotation?.type {
-            return EquatableRemedyCatalog.demands(of: annotated)
-        }
-        guard let value = binding.initializer?.value else { return nil }
-        if value.is(StringLiteralExprSyntax.self) { return ["String"] }
-        if value.is(IntegerLiteralExprSyntax.self) { return ["Int"] }
-        if value.is(FloatLiteralExprSyntax.self) { return ["Double"] }
-        if value.is(BooleanLiteralExprSyntax.self) { return ["Bool"] }
-        if let call = value.as(FunctionCallExprSyntax.self),
-           let callee = call.calledExpression.as(DeclReferenceExprSyntax.self),
-           callee.baseName.text.first?.isUppercase == true {
-            return [callee.baseName.text]
-        }
-        return nil
     }
 }

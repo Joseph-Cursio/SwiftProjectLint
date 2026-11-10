@@ -1,6 +1,94 @@
 import SwiftEffectInference
 import SwiftSyntax
 
+/// Every function declaration a project-wide purity table should hold.
+///
+/// Mirrors `FunctionScannerVisitor`'s traversal rules in the two ways that matter
+/// for a name table. **Body-less declarations are skipped** — a protocol
+/// requirement has no body, so the oracle refutes it, and since a requirement also
+/// does not `throws`-gate the way an implementation does, admitting one would let
+/// `func load()` in a protocol declare every `load` in the project impure. That is
+/// a false-positive generator, not an edge case. **Nested functions are skipped**
+/// because their names are not package-visible and would collide with real ones.
+private final class PackageFunctionCollector: SyntaxVisitor {
+
+    private(set) var declarations: [FunctionDeclSyntax] = []
+    private var depth = 0
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        defer { depth += 1 }
+        guard depth == 0, node.body != nil else { return .visitChildren }
+        declarations.append(node)
+        return .visitChildren
+    }
+
+    override func visitPost(_: FunctionDeclSyntax) {
+        depth -= 1
+    }
+}
+
+/// Free-shape callee names in a body, plus the names declared locally within it.
+///
+/// Free-shape only: `base.foo(…)` is not resolvable by name in a project that
+/// declares a `FileManager`-reading `sorted(in:)` alongside every `xs.sorted()`,
+/// which is the collision that inflated a sibling census's base rate from 17 to
+/// 147. The member surface needs an index, not a name.
+private final class FreeCalleeCollector: SyntaxVisitor {
+
+    private(set) var calleeNames: Set<String> = []
+    private(set) var locallyDeclaredNames: Set<String> = []
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        locallyDeclaredNames.insert(node.name.text)
+        return .visitChildren
+    }
+
+    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        if let reference = node.calledExpression.as(DeclReferenceExprSyntax.self) {
+            calleeNames.insert(reference.baseName.text)
+        }
+        return .visitChildren
+    }
+}
+
+/// The join's settled-impure names as a run hands them to the visitors — `knownImpurePackageFunctions`.
+///
+/// A type rather than the bare `Set<String>` it wraps so the pre-scan can **withhold** it: a run
+/// none of whose visitors declares ``PackagePurityInputs/impurePackageFunctions`` does not build the
+/// join, and a read of the withheld value trips the run's ``PurityTripwire`` instead of answering
+/// with an empty set nobody can tell from a real one. Copying it — the detector handing it to each
+/// visitor — is not a read.
+public struct ImpurePackageFunctions: Sendable, Equatable, ExpressibleByArrayLiteral {
+
+    private let storage: Withholdable<Set<String>>
+
+    /// What a visitor driven directly, with no pre-scan, gets: no callee is settled impure.
+    public static let empty = Self([])
+
+    public init(_ names: Set<String>) {
+        storage = .built(names)
+    }
+
+    public init(arrayLiteral elements: String...) {
+        self.init(Set(elements))
+    }
+
+    private init(withheldBy tripwire: PurityTripwire) {
+        storage = .withheld(.impurePackageFunctions, by: tripwire, answering: [])
+    }
+
+    /// Not built; every read trips `tripwire` and answers as ``empty``.
+    public static func withheld(by tripwire: PurityTripwire) -> Self {
+        Self(withheldBy: tripwire)
+    }
+
+    /// Whether the run withheld the join. Asking is not a read.
+    public var isWithheld: Bool { storage.isWithheld }
+
+    /// The settled-impure names — ``PackagePurityJoin/settledImpureNames`` of the run's join.
+    public var settledNames: Set<String> { storage.read("knownImpurePackageFunctions") }
+}
+
 /// **The one-hop callee join: a function that calls a package function this same
 /// oracle refutes is not a purity candidate.**
 ///
@@ -206,92 +294,4 @@ public struct PackagePurityJoin: Sendable {
             .intersection(settledImpureNames)
             .min()
     }
-}
-
-/// Every function declaration a project-wide purity table should hold.
-///
-/// Mirrors `FunctionScannerVisitor`'s traversal rules in the two ways that matter
-/// for a name table. **Body-less declarations are skipped** — a protocol
-/// requirement has no body, so the oracle refutes it, and since a requirement also
-/// does not `throws`-gate the way an implementation does, admitting one would let
-/// `func load()` in a protocol declare every `load` in the project impure. That is
-/// a false-positive generator, not an edge case. **Nested functions are skipped**
-/// because their names are not package-visible and would collide with real ones.
-private final class PackageFunctionCollector: SyntaxVisitor {
-
-    private(set) var declarations: [FunctionDeclSyntax] = []
-    private var depth = 0
-
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        defer { depth += 1 }
-        guard depth == 0, node.body != nil else { return .visitChildren }
-        declarations.append(node)
-        return .visitChildren
-    }
-
-    override func visitPost(_: FunctionDeclSyntax) {
-        depth -= 1
-    }
-}
-
-/// Free-shape callee names in a body, plus the names declared locally within it.
-///
-/// Free-shape only: `base.foo(…)` is not resolvable by name in a project that
-/// declares a `FileManager`-reading `sorted(in:)` alongside every `xs.sorted()`,
-/// which is the collision that inflated a sibling census's base rate from 17 to
-/// 147. The member surface needs an index, not a name.
-private final class FreeCalleeCollector: SyntaxVisitor {
-
-    private(set) var calleeNames: Set<String> = []
-    private(set) var locallyDeclaredNames: Set<String> = []
-
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        locallyDeclaredNames.insert(node.name.text)
-        return .visitChildren
-    }
-
-    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        if let reference = node.calledExpression.as(DeclReferenceExprSyntax.self) {
-            calleeNames.insert(reference.baseName.text)
-        }
-        return .visitChildren
-    }
-}
-
-/// The join's settled-impure names as a run hands them to the visitors — `knownImpurePackageFunctions`.
-///
-/// A type rather than the bare `Set<String>` it wraps so the pre-scan can **withhold** it: a run
-/// none of whose visitors declares ``PackagePurityInputs/impurePackageFunctions`` does not build the
-/// join, and a read of the withheld value trips the run's ``PurityTripwire`` instead of answering
-/// with an empty set nobody can tell from a real one. Copying it — the detector handing it to each
-/// visitor — is not a read.
-public struct ImpurePackageFunctions: Sendable, Equatable, ExpressibleByArrayLiteral {
-
-    private let storage: Withholdable<Set<String>>
-
-    /// What a visitor driven directly, with no pre-scan, gets: no callee is settled impure.
-    public static let empty = Self([])
-
-    public init(_ names: Set<String>) {
-        storage = .built(names)
-    }
-
-    public init(arrayLiteral elements: String...) {
-        self.init(Set(elements))
-    }
-
-    private init(withheldBy tripwire: PurityTripwire) {
-        storage = .withheld(.impurePackageFunctions, by: tripwire, answering: [])
-    }
-
-    /// Not built; every read trips `tripwire` and answers as ``empty``.
-    public static func withheld(by tripwire: PurityTripwire) -> Self {
-        Self(withheldBy: tripwire)
-    }
-
-    /// Whether the run withheld the join. Asking is not a read.
-    public var isWithheld: Bool { storage.isWithheld }
-
-    /// The settled-impure names — ``PackagePurityJoin/settledImpureNames`` of the run's join.
-    public var settledNames: Set<String> { storage.read("knownImpurePackageFunctions") }
 }

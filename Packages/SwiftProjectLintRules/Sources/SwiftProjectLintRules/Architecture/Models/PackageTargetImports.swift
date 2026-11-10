@@ -1,5 +1,15 @@
 import SwiftSyntax
 
+/// Collects import declarations at any depth, including inside `#if` blocks.
+private final class ImportDeclarationCollector: SyntaxVisitor {
+    private(set) var imports: [ImportDeclSyntax] = []
+
+    override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
+        imports.append(node)
+        return .skipChildren
+    }
+}
+
 /// The imports each target of one package makes.
 ///
 /// Both halves of the manifest-versus-source comparison need the same facts about which modules a
@@ -77,15 +87,5 @@ struct PackageTargetImports {
                 node.path.first.map { Site(file: file, node: node, module: $0.name.text) }
             }
         }
-    }
-}
-
-/// Collects import declarations at any depth, including inside `#if` blocks.
-private final class ImportDeclarationCollector: SyntaxVisitor {
-    private(set) var imports: [ImportDeclSyntax] = []
-
-    override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
-        imports.append(node)
-        return .skipChildren
     }
 }

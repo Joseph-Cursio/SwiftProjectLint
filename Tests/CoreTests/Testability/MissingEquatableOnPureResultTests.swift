@@ -6,6 +6,22 @@ import SwiftProjectLintModels
 import SwiftSyntax
 import Testing
 
+/// The first function declaration named `name`, wherever it is nested.
+private final class FunctionFinder: SyntaxVisitor {
+    let name: String
+    var found: FunctionDeclSyntax?
+
+    init(name: String, viewMode: SyntaxTreeViewMode) {
+        self.name = name
+        super.init(viewMode: viewMode)
+    }
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        if found == nil, node.name.text == name { found = node }
+        return .visitChildren
+    }
+}
+
 /// **A pure function one `: Equatable` away from a property test is reported, and seeded with the
 /// conformance it is waiting on.**
 ///
@@ -293,21 +309,5 @@ struct MissingEquatableOnPureResultTests {
             ruleName: .pureFunctionCandidate, symbol: "f"
         )
         #expect(PBTSeedsFormatter().format(issues: [issue]).contains("requires") == false)
-    }
-}
-
-/// The first function declaration named `name`, wherever it is nested.
-private final class FunctionFinder: SyntaxVisitor {
-    let name: String
-    var found: FunctionDeclSyntax?
-
-    init(name: String, viewMode: SyntaxTreeViewMode) {
-        self.name = name
-        super.init(viewMode: viewMode)
-    }
-
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        if found == nil, node.name.text == name { found = node }
-        return .visitChildren
     }
 }

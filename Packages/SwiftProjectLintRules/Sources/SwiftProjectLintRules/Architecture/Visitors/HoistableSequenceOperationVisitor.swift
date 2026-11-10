@@ -3,6 +3,27 @@ import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
+/// Collects member accesses whose base is a closure parameter (`$N` or a named param).
+private final class ClosureMemberAccessCollector: SyntaxVisitor {
+    private let paramNames: Set<String>
+    private(set) var members: Set<String> = []
+
+    init(paramNames: Set<String>) {
+        self.paramNames = paramNames
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
+        if let base = node.base?.as(DeclReferenceExprSyntax.self) {
+            let text = base.baseName.text
+            if text.hasPrefix("$") || paramNames.contains(text) {
+                members.insert(node.declName.baseName.text)
+            }
+        }
+        return .visitChildren
+    }
+}
+
 /// Cross-file visitor: flags an identical closure passed to a `Sequence` higher-order
 /// method at two or more call sites, where the closure accesses *two or more* members
 /// off its element and that member set is a subset of some project protocol `P`'s
@@ -149,26 +170,5 @@ final class HoistableSequenceOperationVisitor: CrossFileVisitorBase, CrossFilePa
                 lhs.value.count == rhs.value.count ? lhs.key < rhs.key : lhs.value.count < rhs.value.count
             }?
             .key
-    }
-}
-
-/// Collects member accesses whose base is a closure parameter (`$N` or a named param).
-private final class ClosureMemberAccessCollector: SyntaxVisitor {
-    private let paramNames: Set<String>
-    private(set) var members: Set<String> = []
-
-    init(paramNames: Set<String>) {
-        self.paramNames = paramNames
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
-        if let base = node.base?.as(DeclReferenceExprSyntax.self) {
-            let text = base.baseName.text
-            if text.hasPrefix("$") || paramNames.contains(text) {
-                members.insert(node.declName.baseName.text)
-            }
-        }
-        return .visitChildren
     }
 }

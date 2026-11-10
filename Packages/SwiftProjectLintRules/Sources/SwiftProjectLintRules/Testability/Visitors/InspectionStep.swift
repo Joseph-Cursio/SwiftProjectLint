@@ -1,5 +1,61 @@
 import SwiftSyntax
 
+/// The argument shapes ViewInspector's accessors take. A SwiftUI modifier of the same name always
+/// takes a value, a view or a closure instead.
+private enum AccessorArguments {
+    case noArguments
+    case metatype
+    case index(String)
+    case metatypeAndIndex(String)
+    case other
+
+    init(_ call: FunctionCallExprSyntax, resolver: InspectionBindingResolver) {
+        let arguments = Array(call.arguments)
+        guard InspectionChainEvaluator.passesClosure(call) == false,
+              arguments.allSatisfy({ $0.label == nil }) else {
+            self = .other
+            return
+        }
+        switch arguments.count {
+        case 0:
+            self = .noArguments
+
+        case 1:
+            let only = arguments[0].expression
+            let sequenceMethod = Self.collidesWithSequence(call)
+            if Self.isMetatype(only) {
+                self = .metatype
+            } else if InspectionVocabulary.isIndexLike(
+                only, resolver: resolver, passedToSequenceMethod: sequenceMethod
+            ) {
+                self = .index(only.trimmedDescription)
+            } else {
+                self = .other
+            }
+
+        case 2:
+            let index = arguments[1].expression
+            let both = Self.isMetatype(arguments[0].expression)
+                && InspectionVocabulary.isIndexLike(index, resolver: resolver)
+            self = both ? .metatypeAndIndex(index.trimmedDescription) : .other
+
+        default:
+            self = .other
+        }
+    }
+
+    private static func isMetatype(_ expr: ExprSyntax) -> Bool {
+        expr.as(MemberAccessExprSyntax.self)?.declName.baseName.text == "self"
+    }
+
+    /// A container is a `Sequence`, so `forEach(check)` and `map(describe)` can be the sequence
+    /// methods given a function.
+    private static func collidesWithSequence(_ call: FunctionCallExprSyntax) -> Bool {
+        let name = call.calledExpression.as(MemberAccessExprSyntax.self)?.declName.baseName.text
+        return name == "forEach" || name == "map"
+    }
+}
+
 /// One call in a chain on an inspected view, and what it does to the chain's state.
 ///
 /// Whether an accessor moves depends on its receiver (see `ReceiverKind`). After
@@ -318,61 +374,5 @@ struct InspectionStep {
             return argument.label.map { "\($0.text): \(value)" } ?? value
         }
         return "\(name)(\(arguments.joined(separator: ", ")))"
-    }
-}
-
-/// The argument shapes ViewInspector's accessors take. A SwiftUI modifier of the same name always
-/// takes a value, a view or a closure instead.
-private enum AccessorArguments {
-    case noArguments
-    case metatype
-    case index(String)
-    case metatypeAndIndex(String)
-    case other
-
-    init(_ call: FunctionCallExprSyntax, resolver: InspectionBindingResolver) {
-        let arguments = Array(call.arguments)
-        guard InspectionChainEvaluator.passesClosure(call) == false,
-              arguments.allSatisfy({ $0.label == nil }) else {
-            self = .other
-            return
-        }
-        switch arguments.count {
-        case 0:
-            self = .noArguments
-
-        case 1:
-            let only = arguments[0].expression
-            let sequenceMethod = Self.collidesWithSequence(call)
-            if Self.isMetatype(only) {
-                self = .metatype
-            } else if InspectionVocabulary.isIndexLike(
-                only, resolver: resolver, passedToSequenceMethod: sequenceMethod
-            ) {
-                self = .index(only.trimmedDescription)
-            } else {
-                self = .other
-            }
-
-        case 2:
-            let index = arguments[1].expression
-            let both = Self.isMetatype(arguments[0].expression)
-                && InspectionVocabulary.isIndexLike(index, resolver: resolver)
-            self = both ? .metatypeAndIndex(index.trimmedDescription) : .other
-
-        default:
-            self = .other
-        }
-    }
-
-    private static func isMetatype(_ expr: ExprSyntax) -> Bool {
-        expr.as(MemberAccessExprSyntax.self)?.declName.baseName.text == "self"
-    }
-
-    /// A container is a `Sequence`, so `forEach(check)` and `map(describe)` can be the sequence
-    /// methods given a function.
-    private static func collidesWithSequence(_ call: FunctionCallExprSyntax) -> Bool {
-        let name = call.calledExpression.as(MemberAccessExprSyntax.self)?.declName.baseName.text
-        return name == "forEach" || name == "map"
     }
 }

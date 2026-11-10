@@ -2,6 +2,30 @@
 import Foundation
 import Testing
 
+/// macOS's `UF_HIDDEN` file flag — what `chflags hidden` sets — on a fixture file.
+enum HiddenFlag {
+
+    /// Sets the flag on `path`, and says whether it is now set.
+    static func set(on path: String) -> Bool {
+        chflags(path, UInt32(UF_HIDDEN)) == 0 && isSet(on: path)
+    }
+
+    static func isSet(on path: String) -> Bool {
+        var status = stat()
+        return stat(path, &status) == 0 && status.st_flags & UInt32(UF_HIDDEN) != 0
+    }
+
+    /// Whether the temporary directory's volume keeps the flag. APFS does; elsewhere the tests that
+    /// need it are skipped rather than passed vacuously.
+    static let isSupported: Bool = {
+        let probe = FileManager.default.temporaryDirectory
+            .appendingPathComponent("HiddenFlagProbe-\(UUID().uuidString)").path
+        guard FileManager.default.createFile(atPath: probe, contents: Data()) else { return false }
+        defer { try? FileManager.default.removeItem(atPath: probe) }
+        return set(on: probe)
+    }()
+}
+
 /// Which files the package purity is built from, and in what order — checked through
 /// `ProjectLinter`, where the reporting filters that must NOT shrink it are applied.
 ///
@@ -247,28 +271,4 @@ struct PackagePurityUniverseTests {
         #expect(messages[0].count == 1)
         #expect(messages[0] == messages[1])
     }
-}
-
-/// macOS's `UF_HIDDEN` file flag — what `chflags hidden` sets — on a fixture file.
-enum HiddenFlag {
-
-    /// Sets the flag on `path`, and says whether it is now set.
-    static func set(on path: String) -> Bool {
-        chflags(path, UInt32(UF_HIDDEN)) == 0 && isSet(on: path)
-    }
-
-    static func isSet(on path: String) -> Bool {
-        var status = stat()
-        return stat(path, &status) == 0 && status.st_flags & UInt32(UF_HIDDEN) != 0
-    }
-
-    /// Whether the temporary directory's volume keeps the flag. APFS does; elsewhere the tests that
-    /// need it are skipped rather than passed vacuously.
-    static let isSupported: Bool = {
-        let probe = FileManager.default.temporaryDirectory
-            .appendingPathComponent("HiddenFlagProbe-\(UUID().uuidString)").path
-        guard FileManager.default.createFile(atPath: probe, contents: Data()) else { return false }
-        defer { try? FileManager.default.removeItem(atPath: probe) }
-        return set(on: probe)
-    }()
 }

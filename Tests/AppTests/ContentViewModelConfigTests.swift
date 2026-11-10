@@ -4,6 +4,25 @@ import Testing
 
 @testable import App
 
+// MARK: - Mock Analyzer
+
+/// A mock `ProjectAnalyzerProtocol` that returns predetermined issues
+/// without touching the filesystem or running real analysis.
+private struct MockProjectAnalyzer: ProjectAnalyzerProtocol {
+    let issues: [LintIssue]
+
+    func analyzeProject(
+        at _: String,
+        categories _: [PatternCategory]?,
+        ruleIdentifiers _: [RuleIdentifier]?,
+        detector _: (any SourcePatternDetectorProtocol)?,
+        configuration _: LintConfiguration
+    ) async -> [LintIssue] {
+        await Task.yield()
+        return issues
+    }
+}
+
 // MARK: - Mock Analyzer & Configuration Tests
 
 @Suite("ContentViewModel Configuration Tests")
@@ -309,24 +328,5 @@ struct ContentViewModelConfigTests {
         )
         viewModel.updateDirtyState()
         #expect(viewModel.configIsDirty)
-    }
-}
-
-// MARK: - Mock Analyzer
-
-/// A mock `ProjectAnalyzerProtocol` that returns predetermined issues
-/// without touching the filesystem or running real analysis.
-private struct MockProjectAnalyzer: ProjectAnalyzerProtocol {
-    let issues: [LintIssue]
-
-    func analyzeProject(
-        at _: String,
-        categories _: [PatternCategory]?,
-        ruleIdentifiers _: [RuleIdentifier]?,
-        detector _: (any SourcePatternDetectorProtocol)?,
-        configuration _: LintConfiguration
-    ) async -> [LintIssue] {
-        await Task.yield()
-        return issues
     }
 }

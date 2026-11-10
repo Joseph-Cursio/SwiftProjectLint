@@ -1,66 +1,6 @@
 import Core
 import SwiftUI
 
-/// A collapsible directory tree checklist for globally excluding
-/// directories from lint analysis.
-struct DirectoryTreeView: View {
-    let tree: DirectoryNode
-    let projectPath: String
-    let treeVersion: Int
-    let onToggle: (DirectoryNode) -> Void
-    let onCheckAll: () -> Void
-    let onUncheckAll: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            // Project path + buttons
-            HStack {
-                Image(systemName: "folder.fill")
-                    .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
-                Text(projectPath)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                Spacer()
-                Button("Check All", action: onCheckAll)
-                    .font(.caption)
-                    .buttonStyle(.borderless)
-                Button("Uncheck All", action: onUncheckAll)
-                    .font(.caption)
-                    .buttonStyle(.borderless)
-            }
-
-            // Directory tree using List + OutlineGroup for native indentation
-            List {
-                OutlineGroup(
-                    tree.children,
-                    children: \.nonEmptyChildren
-                ) { node in
-                    DirectoryNodeRow(
-                        node: node,
-                        version: treeVersion,
-                        onToggle: onToggle
-                    )
-                }
-            }
-            .listStyle(.sidebar)
-        }
-        .padding(.horizontal, 20)
-    }
-}
-
-// MARK: - DirectoryNode children helper
-
-extension DirectoryNode {
-    /// Returns children if non-empty, nil otherwise.
-    /// `OutlineGroup` uses nil to indicate a leaf node (no disclosure arrow).
-    var nonEmptyChildren: [DirectoryNode]? {
-        children.isEmpty ? nil : children
-    }
-}
-
 // MARK: - Row View
 
 private struct DirectoryNodeRow: View {
@@ -128,5 +68,65 @@ private struct TriStateCheckbox: View {
         case .unchecked: return .secondary
         case .mixed: return .orange
         }
+    }
+}
+
+/// A collapsible directory tree checklist for globally excluding
+/// directories from lint analysis.
+struct DirectoryTreeView: View {
+    let tree: DirectoryNode
+    let projectPath: String
+    let treeVersion: Int
+    let onToggle: (DirectoryNode) -> Void
+    let onCheckAll: () -> Void
+    let onUncheckAll: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            // Project path + buttons
+            HStack {
+                Image(systemName: "folder.fill")
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+                Text(projectPath)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Spacer()
+                Button("Check All", action: onCheckAll)
+                    .font(.caption)
+                    .buttonStyle(.borderless)
+                Button("Uncheck All", action: onUncheckAll)
+                    .font(.caption)
+                    .buttonStyle(.borderless)
+            }
+
+            // Directory tree using List + OutlineGroup for native indentation
+            List {
+                OutlineGroup(
+                    tree.children,
+                    children: \.nonEmptyChildren
+                ) { node in
+                    DirectoryNodeRow(
+                        node: node,
+                        version: treeVersion,
+                        onToggle: onToggle
+                    )
+                }
+            }
+            .listStyle(.sidebar)
+        }
+        .padding(.horizontal, 20)
+    }
+}
+
+// MARK: - DirectoryNode children helper
+
+extension DirectoryNode {
+    /// Returns children if non-empty, nil otherwise.
+    /// `OutlineGroup` uses nil to indicate a leaf node (no disclosure arrow).
+    var nonEmptyChildren: [DirectoryNode]? {
+        children.isEmpty ? nil : children
     }
 }

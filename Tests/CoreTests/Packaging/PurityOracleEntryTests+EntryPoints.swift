@@ -1,111 +1,6 @@
 import SwiftSyntax
 import Testing
 
-/// Which declarations create a purity oracle, found from the source and compared with a list.
-///
-/// `purityReadersDeclareWhatTheyRead` counts a rule file as an oracle reader when it names one of
-/// ``oracleEntryPoints``. That is sound only while the list holds every declaration a rule can call
-/// that creates an oracle, directly or through other declarations in the Visitors package. A list
-/// kept by file went stale without a test failing: a new public function in a file already listed
-/// created an oracle, a rule called it, and neither scan saw it. So this finds the entry points from
-/// the source, declaration by declaration, and the list must equal what it finds.
-extension PurityOracleEntryTests {
-
-    /// A declaration a rule can call that creates an oracle, and what a call to it names.
-    struct OracleEntryPoint: Hashable, Sendable, CustomStringConvertible {
-        /// `Type.member`, one entry for all its overloads, or `Type.init(label:)`.
-        let declaration: String
-        /// The identifier tokens a call names, in order: `PropertyTestCandidacy.candidate(of:…)`
-        /// names `PropertyTestCandidacy`, `candidate`, and `PackagePurityJoin(sources:)` names
-        /// `PackagePurityJoin`, `sources`. Empty for an instance member, which a call reaches through
-        /// a value no token names.
-        let tokens: [String]
-        /// `tokens` are every token a call spells, punctuation included — `Judge`, `(` — and are
-        /// matched against `SourceFile.tokens`, so a registrar's `Judge.self` is no call.
-        var punctuated = false
-
-        var description: String { "\(declaration) \(tokens)" }
-    }
-
-    /// The public declarations that create an oracle. A rule file that names one must declare
-    /// `.oracle` on its visitor (`purityReadersDeclareWhatTheyRead`), and `oracleEntryPointsAreKnown`
-    /// fails when this list and the source disagree.
-    static let oracleEntryPoints: Set<OracleEntryPoint> = [
-        OracleEntryPoint(declaration: "PurityInferrer.init(fileID:line:)", tokens: ["PurityInferrer"]),
-        // Never called from Sources (`noExplicitContextInSources`), but an entry point all the same.
-        OracleEntryPoint(declaration: "PurityInferrer.init(context:)", tokens: ["PurityInferrer", "context"]),
-        OracleEntryPoint(
-            declaration: "PropertyTestCandidacy.candidate", tokens: ["PropertyTestCandidacy", "candidate"]
-        ),
-        OracleEntryPoint(declaration: "PropertyTestCandidacy.shape", tokens: ["PropertyTestCandidacy", "shape"]),
-        OracleEntryPoint(
-            declaration: "PropertyTestCandidacy.mutatorCandidate",
-            tokens: ["PropertyTestCandidacy", "mutatorCandidate"]
-        ),
-        OracleEntryPoint(
-            declaration: "PropertyTestCandidacy.equatableNearMiss",
-            tokens: ["PropertyTestCandidacy", "equatableNearMiss"]
-        ),
-        OracleEntryPoint(
-            declaration: "CleanInstanceMethodCatalog.build", tokens: ["CleanInstanceMethodCatalog", "build"]
-        ),
-        OracleEntryPoint(declaration: "PackagePurityJoin.init(sources:)", tokens: ["PackagePurityJoin", "sources"]),
-    ]
-
-    @Test("every public declaration in the Visitors package that creates an oracle is a listed entry point")
-    func oracleEntryPointsAreKnown() {
-        let found = Self.publicOracleEntryPoints(in: Self.sources.filter { $0.path.hasPrefix(Self.visitorsSources) })
-        let instance = found.filter(\.tokens.isEmpty).map(\.declaration).sorted()
-        let advice = "a rule reaches an instance member through a value no scan can name: create the oracle "
-            + "in a static member or an initializer"
-        #expect(instance.isEmpty, "\(instance) create an oracle — \(advice)")
-        let unlisted = found.subtracting(Self.oracleEntryPoints).map(\.description).sorted()
-        let stale = Self.oracleEntryPoints.subtracting(found).map(\.description).sorted()
-        #expect(found == Self.oracleEntryPoints, "list \(unlisted) in oracleEntryPoints; no longer found: \(stale)")
-    }
-
-    /// The declarations in `files` that create an oracle when they run and that code outside the
-    /// package can call: public, in types that are public all the way out.
-    ///
-    /// A declaration creates an oracle when its tokens hold `PurityInferrer(` or name `PurityInferrer`
-    /// beside a `.init` (`PurityInferrer.init()`, `let o: PurityInferrer = .init()`); when they hold a
-    /// call to another declaration that does — by its type's name from anywhere
-    /// (`PropertyTestCandidacy.candidate`), or by its own name from inside the same type; or, for an
-    /// initializer, when a stored property of its type is initialized with one. That is run to a
-    /// fixpoint, so a public function reaching an oracle through private and internal helpers, in any
-    /// file of the package, is found.
-    static func publicOracleEntryPoints(in files: [SourceFile]) -> Set<OracleEntryPoint> {
-        let scan = OracleReachScan(files)
-        return Set(scan.reaching.filter(scan.isCallableOutsideThePackage).map(\.entryPoint))
-    }
-
-    /// The entry points a rule file can name: the listed ones, and every static member, initializer
-    /// or file-scope function declared in a rule package that reaches an oracle — a helper in one
-    /// visitor's file creates an oracle for every visitor that calls it, in whatever file.
-    ///
-    /// An initializer a call makes without a label — `init()`, `init(_:)`, the implicit one — is
-    /// matched with its punctuation, as `Type(` or `Type.init`: by its bare name it would match a
-    /// registrar's `visitor: X.self` too, and the registry creates visitors from their metatype,
-    /// never by a call, so every registrar of a visitor that stores an oracle would be a reader.
-    static func readerEntryPoints(in files: [SourceFile]) -> Set<OracleEntryPoint> {
-        let scan = OracleReachScan(files.filter { file in
-            file.path.hasPrefix(visitorsSources) || rulePackages.contains(where: file.path.hasPrefix)
-        })
-        var entryPoints = oracleEntryPoints
-        for member in scan.reaching where rulePackages.contains(where: member.file.hasPrefix) {
-            if member.kind == .initializer, member.callLabel == nil {
-                let declaration = member.entryPoint.declaration
-                for call in [[member.type, "("], [member.type, ".", "init"]] {
-                    entryPoints.insert(.init(declaration: declaration, tokens: call, punctuated: true))
-                }
-            } else if !member.entryPoint.tokens.isEmpty {
-                entryPoints.insert(member.entryPoint)
-            }
-        }
-        return entryPoints
-    }
-}
-
 /// A declaration with a body, as the reach scan sees it.
 private struct ScannedMember {
 
@@ -411,5 +306,110 @@ private final class MemberCollector: SyntaxVisitor {
 
     private static func labels(_ parameters: FunctionParameterListSyntax) -> String {
         parameters.map { $0.firstName.text + ":" }.joined()
+    }
+}
+
+/// Which declarations create a purity oracle, found from the source and compared with a list.
+///
+/// `purityReadersDeclareWhatTheyRead` counts a rule file as an oracle reader when it names one of
+/// ``oracleEntryPoints``. That is sound only while the list holds every declaration a rule can call
+/// that creates an oracle, directly or through other declarations in the Visitors package. A list
+/// kept by file went stale without a test failing: a new public function in a file already listed
+/// created an oracle, a rule called it, and neither scan saw it. So this finds the entry points from
+/// the source, declaration by declaration, and the list must equal what it finds.
+extension PurityOracleEntryTests {
+
+    /// A declaration a rule can call that creates an oracle, and what a call to it names.
+    struct OracleEntryPoint: Hashable, Sendable, CustomStringConvertible {
+        /// `Type.member`, one entry for all its overloads, or `Type.init(label:)`.
+        let declaration: String
+        /// The identifier tokens a call names, in order: `PropertyTestCandidacy.candidate(of:…)`
+        /// names `PropertyTestCandidacy`, `candidate`, and `PackagePurityJoin(sources:)` names
+        /// `PackagePurityJoin`, `sources`. Empty for an instance member, which a call reaches through
+        /// a value no token names.
+        let tokens: [String]
+        /// `tokens` are every token a call spells, punctuation included — `Judge`, `(` — and are
+        /// matched against `SourceFile.tokens`, so a registrar's `Judge.self` is no call.
+        var punctuated = false
+
+        var description: String { "\(declaration) \(tokens)" }
+    }
+
+    /// The public declarations that create an oracle. A rule file that names one must declare
+    /// `.oracle` on its visitor (`purityReadersDeclareWhatTheyRead`), and `oracleEntryPointsAreKnown`
+    /// fails when this list and the source disagree.
+    static let oracleEntryPoints: Set<OracleEntryPoint> = [
+        OracleEntryPoint(declaration: "PurityInferrer.init(fileID:line:)", tokens: ["PurityInferrer"]),
+        // Never called from Sources (`noExplicitContextInSources`), but an entry point all the same.
+        OracleEntryPoint(declaration: "PurityInferrer.init(context:)", tokens: ["PurityInferrer", "context"]),
+        OracleEntryPoint(
+            declaration: "PropertyTestCandidacy.candidate", tokens: ["PropertyTestCandidacy", "candidate"]
+        ),
+        OracleEntryPoint(declaration: "PropertyTestCandidacy.shape", tokens: ["PropertyTestCandidacy", "shape"]),
+        OracleEntryPoint(
+            declaration: "PropertyTestCandidacy.mutatorCandidate",
+            tokens: ["PropertyTestCandidacy", "mutatorCandidate"]
+        ),
+        OracleEntryPoint(
+            declaration: "PropertyTestCandidacy.equatableNearMiss",
+            tokens: ["PropertyTestCandidacy", "equatableNearMiss"]
+        ),
+        OracleEntryPoint(
+            declaration: "CleanInstanceMethodCatalog.build", tokens: ["CleanInstanceMethodCatalog", "build"]
+        ),
+        OracleEntryPoint(declaration: "PackagePurityJoin.init(sources:)", tokens: ["PackagePurityJoin", "sources"]),
+    ]
+
+    @Test("every public declaration in the Visitors package that creates an oracle is a listed entry point")
+    func oracleEntryPointsAreKnown() {
+        let found = Self.publicOracleEntryPoints(in: Self.sources.filter { $0.path.hasPrefix(Self.visitorsSources) })
+        let instance = found.filter(\.tokens.isEmpty).map(\.declaration).sorted()
+        let advice = "a rule reaches an instance member through a value no scan can name: create the oracle "
+            + "in a static member or an initializer"
+        #expect(instance.isEmpty, "\(instance) create an oracle — \(advice)")
+        let unlisted = found.subtracting(Self.oracleEntryPoints).map(\.description).sorted()
+        let stale = Self.oracleEntryPoints.subtracting(found).map(\.description).sorted()
+        #expect(found == Self.oracleEntryPoints, "list \(unlisted) in oracleEntryPoints; no longer found: \(stale)")
+    }
+
+    /// The declarations in `files` that create an oracle when they run and that code outside the
+    /// package can call: public, in types that are public all the way out.
+    ///
+    /// A declaration creates an oracle when its tokens hold `PurityInferrer(` or name `PurityInferrer`
+    /// beside a `.init` (`PurityInferrer.init()`, `let o: PurityInferrer = .init()`); when they hold a
+    /// call to another declaration that does — by its type's name from anywhere
+    /// (`PropertyTestCandidacy.candidate`), or by its own name from inside the same type; or, for an
+    /// initializer, when a stored property of its type is initialized with one. That is run to a
+    /// fixpoint, so a public function reaching an oracle through private and internal helpers, in any
+    /// file of the package, is found.
+    static func publicOracleEntryPoints(in files: [SourceFile]) -> Set<OracleEntryPoint> {
+        let scan = OracleReachScan(files)
+        return Set(scan.reaching.filter(scan.isCallableOutsideThePackage).map(\.entryPoint))
+    }
+
+    /// The entry points a rule file can name: the listed ones, and every static member, initializer
+    /// or file-scope function declared in a rule package that reaches an oracle — a helper in one
+    /// visitor's file creates an oracle for every visitor that calls it, in whatever file.
+    ///
+    /// An initializer a call makes without a label — `init()`, `init(_:)`, the implicit one — is
+    /// matched with its punctuation, as `Type(` or `Type.init`: by its bare name it would match a
+    /// registrar's `visitor: X.self` too, and the registry creates visitors from their metatype,
+    /// never by a call, so every registrar of a visitor that stores an oracle would be a reader.
+    static func readerEntryPoints(in files: [SourceFile]) -> Set<OracleEntryPoint> {
+        let scan = OracleReachScan(files.filter { file in
+            file.path.hasPrefix(visitorsSources) || rulePackages.contains(where: file.path.hasPrefix)
+        })
+        var entryPoints = oracleEntryPoints
+        for member in scan.reaching where rulePackages.contains(where: member.file.hasPrefix) {
+            if member.kind == .initializer, member.callLabel == nil {
+                let declaration = member.entryPoint.declaration
+                for call in [[member.type, "("], [member.type, ".", "init"]] {
+                    entryPoints.insert(.init(declaration: declaration, tokens: call, punctuated: true))
+                }
+            } else if !member.entryPoint.tokens.isEmpty {
+                entryPoints.insert(member.entryPoint)
+            }
+        }
+        return entryPoints
     }
 }

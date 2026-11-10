@@ -51,6 +51,56 @@ enum LayoutOwnership {
     }
 }
 
+/// A step that picks a view by where it sits rather than by what it is.
+struct PositionalStep {
+    enum Kind {
+        /// `hStack(1)`, `view(Row.self, 2)` — the step as written.
+        case indexed(String)
+        /// A second level walked since the anchor — the step as written.
+        case descent(String)
+        case parent
+        /// `[2]`, `.last` or `skipFound: 2` on a search's matches — as written.
+        case matchIndex(String)
+        /// `[1]`, `.first` or `.last` on a container's children — as written.
+        case childIndex(String)
+    }
+
+    let kind: Kind
+    let node: Syntax
+}
+
+/// The state an expression leaves behind, and the first positional step taken inside it.
+struct ChainEvaluation {
+    var state: InspectionChainState?
+    var positionalStep: PositionalStep?
+
+    static let unrelated = Self(state: nil, positionalStep: nil)
+
+    init(state: InspectionChainState?, positionalStep: PositionalStep? = nil) {
+        self.state = state
+        self.positionalStep = positionalStep
+    }
+
+    /// The receiver's positional step comes first in source order, so it wins.
+    func then(_ outcome: Self) -> Self {
+        Self(state: outcome.state, positionalStep: positionalStep ?? outcome.positionalStep)
+    }
+
+    /// The chain ends here, keeping any positional step already taken.
+    var ended: Self {
+        Self(state: nil, positionalStep: positionalStep)
+    }
+
+    /// A positional step, unless the layout it walks belongs to the test.
+    static func reporting(
+        _ step: PositionalStep,
+        from state: InspectionChainState,
+        leaving next: InspectionChainState
+    ) -> Self {
+        Self(state: next, positionalStep: state.ownsLayout ? nil : step)
+    }
+}
+
 /// Where an inspected view stands relative to the last place the test searched for it.
 struct InspectionChainState {
     /// Levels walked since the chain's anchor — `inspect()`, a `find`, a named slot, a pick
@@ -121,55 +171,5 @@ struct InspectionChainState {
     /// `x(0)` on `inspect()` alike, through the body's first view (`implicitCustomViewChild`).
     var hasOnlyChild: Bool {
         kind == .found || kind == .root || kind == .singleChild
-    }
-}
-
-/// A step that picks a view by where it sits rather than by what it is.
-struct PositionalStep {
-    enum Kind {
-        /// `hStack(1)`, `view(Row.self, 2)` — the step as written.
-        case indexed(String)
-        /// A second level walked since the anchor — the step as written.
-        case descent(String)
-        case parent
-        /// `[2]`, `.last` or `skipFound: 2` on a search's matches — as written.
-        case matchIndex(String)
-        /// `[1]`, `.first` or `.last` on a container's children — as written.
-        case childIndex(String)
-    }
-
-    let kind: Kind
-    let node: Syntax
-}
-
-/// The state an expression leaves behind, and the first positional step taken inside it.
-struct ChainEvaluation {
-    var state: InspectionChainState?
-    var positionalStep: PositionalStep?
-
-    static let unrelated = Self(state: nil, positionalStep: nil)
-
-    init(state: InspectionChainState?, positionalStep: PositionalStep? = nil) {
-        self.state = state
-        self.positionalStep = positionalStep
-    }
-
-    /// The receiver's positional step comes first in source order, so it wins.
-    func then(_ outcome: Self) -> Self {
-        Self(state: outcome.state, positionalStep: positionalStep ?? outcome.positionalStep)
-    }
-
-    /// The chain ends here, keeping any positional step already taken.
-    var ended: Self {
-        Self(state: nil, positionalStep: positionalStep)
-    }
-
-    /// A positional step, unless the layout it walks belongs to the test.
-    static func reporting(
-        _ step: PositionalStep,
-        from state: InspectionChainState,
-        leaving next: InspectionChainState
-    ) -> Self {
-        Self(state: next, positionalStep: state.ownsLayout ? nil : step)
     }
 }

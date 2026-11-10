@@ -6,67 +6,6 @@ import ViewInspector
 
 @Suite
 @MainActor
-struct RuleDocViewTests {
-
-    // MARK: - Basic rendering
-
-    @Test func rendersWithoutCrashing() throws {
-        let view = RuleDocView(rule: .magicNumber)
-        let inspected = try view.inspect()
-        let texts = inspected.findAll(ViewType.Text.self)
-        #expect(texts.isEmpty == false)
-    }
-
-    @Test func showsFallbackWhenDocumentationMissing() throws {
-        // .unknown is unlikely to have a markdown doc file
-        let view = RuleDocView(rule: .unknown)
-        let inspected = try view.inspect()
-        let texts = inspected.findAll(ViewType.Text.self)
-        let strings = texts.compactMap { try? $0.string() }
-        // Should show the fallback message parsed from markdown italic
-        #expect(strings.isEmpty == false)
-    }
-
-    @Test func containsScrollView() throws {
-        let view = RuleDocView(rule: .fatView)
-        let inspected = try view.inspect()
-        let scrollView = try inspected.find(ViewType.ScrollView.self)
-        #expect(scrollView != nil)
-    }
-
-    @Test func containsVStack() throws {
-        let view = RuleDocView(rule: .fatView)
-        let inspected = try view.inspect()
-        let vStack = try inspected.find(ViewType.VStack.self)
-        #expect(vStack != nil)
-    }
-
-    // MARK: - Different rules render
-
-    @Test func rendersAccessibilityRule() throws {
-        let view = RuleDocView(rule: .missingAccessibilityLabel)
-        let inspected = try view.inspect()
-        let texts = inspected.findAll(ViewType.Text.self)
-        #expect(texts.isEmpty == false)
-    }
-
-    @Test func rendersPerformanceRule() throws {
-        let view = RuleDocView(rule: .expensiveOperationInViewBody)
-        let inspected = try view.inspect()
-        let texts = inspected.findAll(ViewType.Text.self)
-        #expect(texts.isEmpty == false)
-    }
-
-    @Test func rendersSecurityRule() throws {
-        let view = RuleDocView(rule: .hardcodedSecret)
-        let inspected = try view.inspect()
-        let texts = inspected.findAll(ViewType.Text.self)
-        #expect(texts.isEmpty == false)
-    }
-}
-
-@Suite
-@MainActor
 struct RuleDocumentationLoaderTests {
 
     // MARK: - documentationFileName
@@ -142,5 +81,66 @@ struct RuleDocumentationLoaderTests {
             unresolved.isEmpty,
             "Rules whose doc lookup failed:\n  \(unresolved.joined(separator: "\n  "))"
         )
+    }
+}
+
+@Suite
+@MainActor
+struct RuleDocViewTests {
+
+    // MARK: - Basic rendering
+
+    @Test func rendersWithoutCrashing() throws {
+        let view = RuleDocView(rule: .magicNumber)
+        let inspected = try view.inspect()
+        let texts = inspected.findAll(ViewType.Text.self)
+        #expect(texts.isEmpty == false)
+    }
+
+    @Test func showsFallbackWhenDocumentationMissing() throws {
+        // .unknown is unlikely to have a markdown doc file
+        let view = RuleDocView(rule: .unknown)
+        let inspected = try view.inspect()
+        let texts = inspected.findAll(ViewType.Text.self)
+        let strings = texts.compactMap { try? $0.string() }
+        // Should show the fallback message parsed from markdown italic
+        #expect(strings.isEmpty == false)
+    }
+
+    @Test func containsScrollView() throws {
+        let view = RuleDocView(rule: .fatView)
+        let inspected = try view.inspect()
+        let scrollView = try inspected.find(ViewType.ScrollView.self)
+        #expect(scrollView != nil)
+    }
+
+    @Test func containsVStack() throws {
+        let view = RuleDocView(rule: .fatView)
+        let inspected = try view.inspect()
+        let vStack = try inspected.find(ViewType.VStack.self)
+        #expect(vStack != nil)
+    }
+
+    // MARK: - Different rules render
+
+    @Test func rendersAccessibilityRule() throws {
+        let view = RuleDocView(rule: .missingAccessibilityLabel)
+        let inspected = try view.inspect()
+        let texts = inspected.findAll(ViewType.Text.self)
+        #expect(texts.isEmpty == false)
+    }
+
+    @Test func rendersPerformanceRule() throws {
+        let view = RuleDocView(rule: .expensiveOperationInViewBody)
+        let inspected = try view.inspect()
+        let texts = inspected.findAll(ViewType.Text.self)
+        #expect(texts.isEmpty == false)
+    }
+
+    @Test func rendersSecurityRule() throws {
+        let view = RuleDocView(rule: .hardcodedSecret)
+        let inspected = try view.inspect()
+        let texts = inspected.findAll(ViewType.Text.self)
+        #expect(texts.isEmpty == false)
     }
 }

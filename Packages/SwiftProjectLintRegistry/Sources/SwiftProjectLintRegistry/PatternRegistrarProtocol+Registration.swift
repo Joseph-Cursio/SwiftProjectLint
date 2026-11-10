@@ -15,11 +15,6 @@ public protocol PatternRegistrarProtocol {
     var patterns: [SyntaxPattern] { get }
 }
 
-public extension PatternRegistrarProtocol {
-    /// The registrar's single `pattern`, for registrars that provide only one.
-    var patterns: [SyntaxPattern] { [pattern] }
-}
-
 /// Protocol for pattern registration that requires access to the visitor registry.
 public protocol PatternRegistrarWithVisitorProtocol {
     /// The registry that owns this registrar.
@@ -46,4 +41,9 @@ open class BasePatternRegistrar: PatternRegistrarWithVisitorProtocol {
     }
 
     open func registerPatterns() { /* subclasses override */ }
+}
+
+public extension PatternRegistrarProtocol {
+    /// The registrar's single `pattern`, for registrars that provide only one.
+    var patterns: [SyntaxPattern] { [pattern] }
 }

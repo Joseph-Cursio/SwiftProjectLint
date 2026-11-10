@@ -1,5 +1,23 @@
 import SwiftSyntax
 
+/// Every expression statement, and every `return` value, in the syntax walked.
+private final class Statements: SyntaxVisitor {
+    private(set) var expressions: [ExprSyntax] = []
+
+    init() {
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: CodeBlockItemSyntax) -> SyntaxVisitorContinueKind {
+        if let returned = node.item.as(ReturnStmtSyntax.self)?.expression {
+            expressions.append(returned)
+        } else if let expression = node.item.as(ExprSyntax.self) {
+            expressions.append(expression)
+        }
+        return .visitChildren
+    }
+}
+
 /// The views a declared view's body builds: each statement of `body`, `makeBody`, a `@ViewBuilder`
 /// member or a member typed `some View`, that constructs a type — `AppEditor(values: $values)`,
 /// through any modifiers applied to it, and the view an `AnyView(…)`, `overlay(…)`, `background(…)`
@@ -133,23 +151,5 @@ enum BuiltViews {
     /// `onAppear`, `onTapGesture`, `onChange`: `on` followed by a capital.
     private static func isActionModifier(_ name: String) -> Bool {
         name.hasPrefix("on") && name.dropFirst(2).first?.isUppercase == true
-    }
-}
-
-/// Every expression statement, and every `return` value, in the syntax walked.
-private final class Statements: SyntaxVisitor {
-    private(set) var expressions: [ExprSyntax] = []
-
-    init() {
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    override func visit(_ node: CodeBlockItemSyntax) -> SyntaxVisitorContinueKind {
-        if let returned = node.item.as(ReturnStmtSyntax.self)?.expression {
-            expressions.append(returned)
-        } else if let expression = node.item.as(ExprSyntax.self) {
-            expressions.append(expression)
-        }
-        return .visitChildren
     }
 }

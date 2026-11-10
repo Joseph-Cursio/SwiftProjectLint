@@ -19,6 +19,19 @@ struct RuleSelectionConfig {
     let onDismiss: () -> Void
 }
 
+/// Calls the dismiss handler when the user closes the window via the red button.
+private final class WindowCloseDelegate: NSObject, NSWindowDelegate {
+    let onClose: () -> Void
+
+    init(onClose: @escaping () -> Void) {
+        self.onClose = onClose
+    }
+
+    func windowWillClose(_ _: Notification) {
+        onClose()
+    }
+}
+
 @MainActor
 final class RuleSelectionWindowController {
     static let shared = RuleSelectionWindowController()
@@ -66,18 +79,5 @@ final class RuleSelectionWindowController {
         window?.close()
         window = nil
         windowCloseHandler = nil
-    }
-}
-
-/// Calls the dismiss handler when the user closes the window via the red button.
-private final class WindowCloseDelegate: NSObject, NSWindowDelegate {
-    let onClose: () -> Void
-
-    init(onClose: @escaping () -> Void) {
-        self.onClose = onClose
-    }
-
-    func windowWillClose(_ _: Notification) {
-        onClose()
     }
 }

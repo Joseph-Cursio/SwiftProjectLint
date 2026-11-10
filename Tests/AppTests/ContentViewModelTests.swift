@@ -4,6 +4,32 @@ import Testing
 
 @testable import App
 
+// MARK: - Additional ContentViewModel Tests
+
+@Suite("ContentViewModel Pattern Tests")
+@MainActor
+struct ContentViewModelPatternTests {
+
+    // MARK: - allPatternsByCategory
+
+    @Test("allPatternsByCategory returns empty when registry is nil")
+    func allPatternsByCategoryNilRegistry() {
+        let viewModel = ContentViewModel()
+        viewModel.patternRegistry = nil
+        #expect(viewModel.allPatternsByCategory.isEmpty)
+    }
+
+    @Test("allPatternsByCategory returns categories with configured registry")
+    func allPatternsByCategoryWithRegistry() async {
+        let systemComponents = SystemComponents()
+        await systemComponents.initialize()
+        let viewModel = ContentViewModel()
+        viewModel.patternRegistry = systemComponents.patternRegistry
+        let patterns = viewModel.allPatternsByCategory
+        #expect(patterns.isEmpty == false)
+    }
+}
+
 @Suite("ContentViewModel Tests")
 @MainActor
 struct ContentViewModelTests {
@@ -320,31 +346,5 @@ struct ContentViewModelTests {
         // Without a configured detector the shared registry is empty —
         // this documents the failure mode so it stays visible.
         #expect(viewModel.lintIssues.isEmpty)
-    }
-}
-
-// MARK: - Additional ContentViewModel Tests
-
-@Suite("ContentViewModel Pattern Tests")
-@MainActor
-struct ContentViewModelPatternTests {
-
-    // MARK: - allPatternsByCategory
-
-    @Test("allPatternsByCategory returns empty when registry is nil")
-    func allPatternsByCategoryNilRegistry() {
-        let viewModel = ContentViewModel()
-        viewModel.patternRegistry = nil
-        #expect(viewModel.allPatternsByCategory.isEmpty)
-    }
-
-    @Test("allPatternsByCategory returns categories with configured registry")
-    func allPatternsByCategoryWithRegistry() async {
-        let systemComponents = SystemComponents()
-        await systemComponents.initialize()
-        let viewModel = ContentViewModel()
-        viewModel.patternRegistry = systemComponents.patternRegistry
-        let patterns = viewModel.allPatternsByCategory
-        #expect(patterns.isEmpty == false)
     }
 }

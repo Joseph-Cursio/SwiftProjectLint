@@ -5,277 +5,6 @@ import Foundation
 import SwiftSyntax
 import Testing
 
-/// **The purity gate is only as good as the declarations it is derived from.**
-///
-/// A run builds the construction universe, the table and the two pre-scan catalogs only when a
-/// visitor it executes declares that it reads them (`PackagePurityConsumer`). Everything it does
-/// not build it withholds, and a read of a withheld surface trips the run, which is then redone with
-/// everything built — so what a wrong declaration leaves unbuilt costs time, never a finding. A
-/// missing one does cost findings elsewhere: the declaration also keeps a reader off the files the
-/// table was not built from (`ProjectLinter.withinPurityScope`), and an undeclared reader judges
-/// them without their own types. These tests keep the declarations right, so neither is lost:
-///
-/// - every registered rule runs **alone** with exactly the demand its declaration derives, and must
-///   not trip — an undeclared read fails here, naming the rule;
-/// - every declared input must actually be read — a stale declaration fails here;
-/// - the gated run and the run with everything built must report the same findings, which also
-///   catches a table read that bypasses all three tripwired surfaces;
-/// - and the fallback itself is exercised with visitors that read without declaring.
-@Suite("The purity gate is derived from the visitors' declarations")
-struct PurityGateDeclarationTests {
-
-    // MARK: - The declarations
-
-    static let registered = PatternRegistryFactory.createConfiguredSystem().visitorRegistry.getAllPatterns()
-
-    static let ruleNames: [RuleIdentifier] = Set(registered.map(\.name)).sorted { $0.rawValue < $1.rawValue }
-
-    /// The reviewed list. A change here is a change to what narrow runs cost, and gets reviewed.
-    static let expectedDeclarations: [RuleIdentifier: PackagePurityInputs] = [
-        .pureFunctionCandidate: [.oracle, .cleanInstanceMethods, .impurePackageFunctions],
-        .missingEquatableOnPureResult: [.oracle, .cleanInstanceMethods, .impurePackageFunctions],
-        .pureMutatorCandidate: [.oracle, .cleanInstanceMethods, .impurePackageFunctions],
-        .pureClosureCandidate: [.oracle],
-        .impureClosureInventory: [.oracle],
-        .extractableTotalKernel: [.oracle],
-        .directInstantiation: [.cleanInstanceMethods],
-        .concreteTypeUsage: [.cleanInstanceMethods],
-        .couldBePrivate: [.oracle],
-        .couldBePrivateMember: [.oracle],
-        .unreachableEffectClosure: [.oracle],
-    ]
-
-    static let declaredRules = expectedDeclarations.keys.sorted { $0.rawValue < $1.rawValue }
-
-    static func declared(_ rule: RuleIdentifier) -> PackagePurityInputs {
-        registered.filter { $0.name == rule }.reduce(into: []) { $0.formUnion($1.packagePurityInputs) }
-    }
-
-    @Test("the declarations are the reviewed eleven")
-    func declarationInventory() {
-        var declared: [RuleIdentifier: PackagePurityInputs] = [:]
-        for rule in Self.ruleNames where !Self.declared(rule).isEmpty {
-            declared[rule] = Self.declared(rule)
-        }
-        #expect(declared == Self.expectedDeclarations)
-    }
-
-    @Test("every rule, run alone, reads nothing it does not declare", arguments: ruleNames)
-    func everyRuleAloneReadsOnlyWhatItDeclares(rule: RuleIdentifier) async throws {
-        let run = try await PurityGateCorpus.lint(rules: [rule])
-        #expect(run.demand.inputs == Self.declared(rule))
-        #expect(
-            run.trips.isEmpty,
-            "\(rule.rawValue) read \(run.trips) without declaring it: conform its visitor to PackagePurityConsumer"
-        )
-    }
-
-    @Test("every declared input is read on the corpus, so no declaration is stale", arguments: declaredRules)
-    func everyDeclaredInputIsRead(rule: RuleIdentifier) async throws {
-        let run = try await PurityGateCorpus.lint(rules: [rule], demand: .init(inputs: []))
-        let read = run.trips.reduce(into: PackagePurityInputs()) { $0.formUnion($1.input) }
-        #expect(read == Self.expectedDeclarations[rule], "read \(read)")
-    }
-
-    @Test("the gated run reports exactly what the run with everything built reports", arguments: ruleNames)
-    func gatedEqualsEverything(rule: RuleIdentifier) async throws {
-        let path = try PurityGateCorpus.makeProject()
-        defer { try? FileManager.default.removeItem(atPath: path) }
-        let gated = await PurityGateCorpus.lint(at: path, rules: [rule])
-        let everything = await PurityGateCorpus.lint(at: path, rules: [rule], demand: .everything)
-        #expect(PurityGateCorpus.rendered(gated.issues) == PurityGateCorpus.rendered(everything.issues))
-    }
-
-    @Test("every undeclared rule at once, over this repository's own visitors, reads nothing")
-    func undeclaredRulesTogetherOverRealSources() async {
-        let undeclared = Self.ruleNames.filter { Self.declared($0).isEmpty }
-        let run = await PurityGateCorpus.lint(at: PurityGateCorpus.visitorsSources, rules: undeclared)
-        #expect(run.demand.inputs.isEmpty)
-        #expect(run.trips.isEmpty, "\(run.trips)")
-        #expect(run.issues.isEmpty == false, "the run reported nothing, so its silence proves nothing")
-    }
-
-    @Test("the demand is taken per visitor: a shared visitor counts under every rule it reports")
-    func demandIsPerVisitor() {
-        func pattern(_ name: RuleIdentifier, _ visitor: PatternVisitorProtocol.Type) -> SyntaxPattern {
-            SyntaxPattern(
-                name: name, visitor: visitor, severity: .info, category: .codeQuality,
-                messageTemplate: "", suggestion: "", description: ""
-            )
-        }
-        let registry = PatternVisitorRegistry()
-        registry.register(patterns: [
-            pattern(.forceTry, DeclaredSharedReader.self),
-            pattern(.forceUnwrap, DeclaredSharedReader.self),
-            pattern(.todoComment, UndeclaredOracleReader.self),
-        ])
-        typealias Demand = ProjectLinter.PurityDemand
-        #expect(Demand(planned: [.forceUnwrap], registry: registry).inputs == [.oracle])
-        #expect(Demand(planned: [.todoComment], registry: registry).inputs.isEmpty)
-        #expect(Demand(planned: [.printStatement], registry: registry).inputs.isEmpty, "not registered, not run")
-        #expect(Demand(planned: [], registry: registry).inputs.isEmpty)
-        // `nil` runs every registered pattern, so it demands every declaration in the registry.
-        #expect(Demand(planned: nil, registry: registry).inputs == [.oracle])
-        #expect(Demand(planned: nil, registry: PatternVisitorRegistry()).inputs.isEmpty)
-    }
-
-    /// What `Docs/rules/pure-function-candidate.md` says: with any other reader on, turning Pure
-    /// Function, Pure Mutator and Missing Equatable on Pure Function Result off still builds the table
-    /// and skips the one-hop join; it skips the clean-method catalog too unless Direct Instantiation
-    /// or Concrete Type Usage is on, since the other six read only the oracle.
-    @Test("without the three candidate rules the join is skipped, and the catalog too unless its two readers run")
-    func onlyTheCandidateRulesReadTheJoin() {
-        let joinReaders: Set<RuleIdentifier> = [
-            .pureFunctionCandidate, .missingEquatableOnPureResult, .pureMutatorCandidate
-        ]
-        let others = Self.declaredRules.filter { !joinReaders.contains($0) }
-        let registry = PatternRegistryFactory.createConfiguredSystem().visitorRegistry
-        func demand(_ rules: [RuleIdentifier]) -> PackagePurityInputs {
-            ProjectLinter.PurityDemand(planned: rules, registry: registry).inputs
-        }
-        #expect(demand(others) == [.oracle, .cleanInstanceMethods])
-
-        let catalogReaders = Set(others.filter { Self.declared($0).contains(.cleanInstanceMethods) })
-        #expect(catalogReaders == [.directInstantiation, .concreteTypeUsage])
-        let oracleOnly = others.filter { !catalogReaders.contains($0) }
-        #expect(oracleOnly.count == 6)
-        #expect(demand(oracleOnly) == [.oracle])
-        for reader in oracleOnly {
-            #expect(demand([reader]) == [.oracle], "\(reader.rawValue)")
-        }
-    }
-
-    // MARK: - The fallback
-
-    @Test("an undeclared read is redone with everything built, whichever surface it reads", arguments: [
-        UndeclaredReader.oracle, .cleanInstanceMethods, .impurePackageFunctions
-    ])
-    func undeclaredReadFallsBack(reader: UndeclaredReader) async throws {
-        let path = try PurityGateCorpus.makeProject(item: reader.item)
-        defer { try? FileManager.default.removeItem(atPath: path) }
-        let detector = reader.detector()
-
-        let gated = await PurityGateCorpus.lint(at: path, rules: [.printStatement], detector: detector)
-        let everything = await PurityGateCorpus.lint(
-            at: path, rules: [.printStatement], detector: reader.detector(), demand: .everything
-        )
-
-        #expect(gated.demand.inputs.isEmpty, "the reader declares nothing")
-        #expect(gated.trips.map(\.input) .contains(reader.input))
-        // The reader reports only what the built surface tells it, so a finding is the rerun's.
-        #expect(everything.issues.isEmpty == false, "the fixture moved nothing")
-        #expect(PurityGateCorpus.rendered(gated.issues) == PurityGateCorpus.rendered(everything.issues))
-    }
-
-    @Test("a tripped run and a clean one, side by side, keep their own tripwires")
-    func tripwiresArePerRun() async throws {
-        let path = try PurityGateCorpus.makeProject()
-        defer { try? FileManager.default.removeItem(atPath: path) }
-        for _ in 0..<4 {
-            async let tripped = PurityGateCorpus.lint(
-                at: path, rules: [.printStatement], detector: UndeclaredReader.oracle.detector()
-            )
-            async let clean = PurityGateCorpus.lint(at: path, rules: [.printStatement])
-            let (one, two) = await (tripped, clean)
-            #expect(one.trips.isEmpty == false)
-            #expect(two.trips.isEmpty)
-        }
-    }
-
-    // MARK: - The run
-
-    @Test("a narrow run builds nothing: no universe walk, and the purity is withheld")
-    func narrowRunWithholds() async throws {
-        let path = try PurityGateCorpus.makeProject()
-        defer { try? FileManager.default.removeItem(atPath: path) }
-        let linter = ProjectLinter()
-        let gated = await linter.discoverFiles(at: path, configuration: .default, resolvingUniverse: false)
-        let open = await linter.discoverFiles(at: path, configuration: .default)
-        #expect(gated.constructionUniverse == nil, "not resolved, which is not the same as empty")
-        let stamp = open.constructionUniverse?.contains { $0.hasSuffix("Stamp.swift") }
-        #expect(stamp == true, "the nested package fell out")
-        #expect(gated.reportable == open.reportable)
-
-        let tripwire = PurityTripwire()
-        let parse = await ProjectLinter.sharedParse(gated, projectRoot: path, withholdingBy: tripwire)
-        #expect(parse.purity.isWithheld)
-        #expect(parse.judged == nil, "a withheld table was built from no files, which is not the same as none")
-        #expect(parse.analysable.keys.contains { $0.hasSuffix("Stamp.swift") } == false)
-        #expect(tripwire.recorded.isEmpty)
-
-        // A resolved universe that holds nothing builds an empty table; it is not withheld.
-        let empty = ProjectLinter.DiscoveredFiles(reportable: [], evidenceOnly: [], constructionUniverse: [])
-        let built = await ProjectLinter.sharedParse(empty, projectRoot: path, withholdingBy: tripwire)
-        #expect(built.purity.isWithheld == false)
-        #expect(built.judged?.isEmpty == true, "a resolved universe that holds nothing was built from no file")
-    }
-
-    @Test("a run narrowed by flags or by configuration takes no universe walk; one that reads purity does")
-    func narrowRunsSkipTheUniverseWalk() async throws {
-        let path = try PurityGateCorpus.makeProject()
-        defer { try? FileManager.default.removeItem(atPath: path) }
-        func walks(_ rules: [RuleIdentifier]?, _ configuration: LintConfiguration = .default) async -> [Bool] {
-            let discovery = RecordingDiscovery()
-            _ = await ProjectLinter(fileDiscovery: discovery) { CrossFileAnalysisEngine(registry: $0) }
-                .lint(
-                    at: path, targetType: .auto, categories: nil, ruleIdentifiers: rules,
-                    detector: PatternRegistryFactory.createConfiguredSystem().detector,
-                    configuration: configuration
-                )
-            return discovery.nestedFlags
-        }
-        #expect(await walks([.forceTry, .printStatement]) == [false])
-        #expect(await walks([.forceTry, .directInstantiation]) == [false, true])
-        #expect(await walks(nil, LintConfiguration(enabledOnlyRules: [.forceTry, .printStatement])) == [false])
-        #expect(await walks(nil, LintConfiguration(disabledRules: [.forceTry])) == [false, true])
-    }
-
-    @Test("a tripped run that is cancelled meanwhile still never returns the first pass's findings")
-    func cancelledTrippedRunNeverReturnsTheFirstPass() async throws {
-        let path = try PurityGateCorpus.makeProject()
-        defer { try? FileManager.default.removeItem(atPath: path) }
-        let registry = PatternVisitorRegistry()
-        registry.register(pattern: SyntaxPattern(
-            name: .couldBePrivate, visitor: CancellingUndeclaredReader.self, severity: .info,
-            category: .codeQuality, messageTemplate: "read", suggestion: "", description: "test reader"
-        ))
-        // Its own task, so the reader cancels the lint and not the test.
-        let detector = SourcePatternDetector(registry: registry)
-        let run = await Task {
-            await PurityGateCorpus.lint(at: path, rules: [.couldBePrivate], detector: detector)
-        }.value
-        #expect(run.trips.isEmpty == false)
-        // Pass 1 judged without the table, counted the `Item` closure pure, and cancelled the run.
-        // Its finding must not survive, whatever the cancelled rerun manages to report.
-        let firstPass = try #require(CancellingUndeclaredReader.emitted.all.first, "pass 1 reported nothing")
-        #expect(run.issues.contains { $0.message == firstPass } == false, "\(run.issues.map(\.message))")
-    }
-
-    @Test("the caller's detector never keeps a purity catalog a run withheld")
-    func theCallersDetectorKeepsNoPurityCatalog() async throws {
-        let path = try PurityGateCorpus.makeProject()
-        defer { try? FileManager.default.removeItem(atPath: path) }
-        let detector = PatternRegistryFactory.createConfiguredSystem().detector
-        let run = await PurityGateCorpus.lint(at: path, rules: [.forceTry], detector: detector)
-        #expect(run.demand.inputs.isEmpty)
-        #expect(detector.knownCleanInstanceMethods.isWithheld == false)
-        #expect(detector.knownImpurePackageFunctions.isWithheld == false)
-    }
-
-    @Test("a rerun is reported to the linter's notice, naming what was read")
-    func rerunIsReported() async throws {
-        let path = try PurityGateCorpus.makeProject()
-        defer { try? FileManager.default.removeItem(atPath: path) }
-        let notices = NoticeBox()
-        _ = await ProjectLinter { notices.append($0) }.lint(
-            at: path, targetType: .auto, categories: nil, ruleIdentifiers: [.printStatement],
-            detector: UndeclaredReader.oracle.detector(), configuration: .default
-        )
-        #expect(notices.all.count == 1)
-        #expect(notices.all.first?.contains("PurityInferrer()") == true, "\(notices.all)")
-    }
-}
-
 /// Collects notices from a `@Sendable` closure.
 final class NoticeBox: @unchecked Sendable {
     private let lock = NSLock()
@@ -556,5 +285,276 @@ enum PurityGateCorpus {
             .deletingLastPathComponent()   // repository root
             .appendingPathComponent("Packages/SwiftProjectLintVisitors/Sources")
             .path
+    }
+}
+
+/// **The purity gate is only as good as the declarations it is derived from.**
+///
+/// A run builds the construction universe, the table and the two pre-scan catalogs only when a
+/// visitor it executes declares that it reads them (`PackagePurityConsumer`). Everything it does
+/// not build it withholds, and a read of a withheld surface trips the run, which is then redone with
+/// everything built — so what a wrong declaration leaves unbuilt costs time, never a finding. A
+/// missing one does cost findings elsewhere: the declaration also keeps a reader off the files the
+/// table was not built from (`ProjectLinter.withinPurityScope`), and an undeclared reader judges
+/// them without their own types. These tests keep the declarations right, so neither is lost:
+///
+/// - every registered rule runs **alone** with exactly the demand its declaration derives, and must
+///   not trip — an undeclared read fails here, naming the rule;
+/// - every declared input must actually be read — a stale declaration fails here;
+/// - the gated run and the run with everything built must report the same findings, which also
+///   catches a table read that bypasses all three tripwired surfaces;
+/// - and the fallback itself is exercised with visitors that read without declaring.
+@Suite("The purity gate is derived from the visitors' declarations")
+struct PurityGateDeclarationTests {
+
+    // MARK: - The declarations
+
+    static let registered = PatternRegistryFactory.createConfiguredSystem().visitorRegistry.getAllPatterns()
+
+    static let ruleNames: [RuleIdentifier] = Set(registered.map(\.name)).sorted { $0.rawValue < $1.rawValue }
+
+    /// The reviewed list. A change here is a change to what narrow runs cost, and gets reviewed.
+    static let expectedDeclarations: [RuleIdentifier: PackagePurityInputs] = [
+        .pureFunctionCandidate: [.oracle, .cleanInstanceMethods, .impurePackageFunctions],
+        .missingEquatableOnPureResult: [.oracle, .cleanInstanceMethods, .impurePackageFunctions],
+        .pureMutatorCandidate: [.oracle, .cleanInstanceMethods, .impurePackageFunctions],
+        .pureClosureCandidate: [.oracle],
+        .impureClosureInventory: [.oracle],
+        .extractableTotalKernel: [.oracle],
+        .directInstantiation: [.cleanInstanceMethods],
+        .concreteTypeUsage: [.cleanInstanceMethods],
+        .couldBePrivate: [.oracle],
+        .couldBePrivateMember: [.oracle],
+        .unreachableEffectClosure: [.oracle],
+    ]
+
+    static let declaredRules = expectedDeclarations.keys.sorted { $0.rawValue < $1.rawValue }
+
+    static func declared(_ rule: RuleIdentifier) -> PackagePurityInputs {
+        registered.filter { $0.name == rule }.reduce(into: []) { $0.formUnion($1.packagePurityInputs) }
+    }
+
+    @Test("the declarations are the reviewed eleven")
+    func declarationInventory() {
+        var declared: [RuleIdentifier: PackagePurityInputs] = [:]
+        for rule in Self.ruleNames where !Self.declared(rule).isEmpty {
+            declared[rule] = Self.declared(rule)
+        }
+        #expect(declared == Self.expectedDeclarations)
+    }
+
+    @Test("every rule, run alone, reads nothing it does not declare", arguments: ruleNames)
+    func everyRuleAloneReadsOnlyWhatItDeclares(rule: RuleIdentifier) async throws {
+        let run = try await PurityGateCorpus.lint(rules: [rule])
+        #expect(run.demand.inputs == Self.declared(rule))
+        #expect(
+            run.trips.isEmpty,
+            "\(rule.rawValue) read \(run.trips) without declaring it: conform its visitor to PackagePurityConsumer"
+        )
+    }
+
+    @Test("every declared input is read on the corpus, so no declaration is stale", arguments: declaredRules)
+    func everyDeclaredInputIsRead(rule: RuleIdentifier) async throws {
+        let run = try await PurityGateCorpus.lint(rules: [rule], demand: .init(inputs: []))
+        let read = run.trips.reduce(into: PackagePurityInputs()) { $0.formUnion($1.input) }
+        #expect(read == Self.expectedDeclarations[rule], "read \(read)")
+    }
+
+    @Test("the gated run reports exactly what the run with everything built reports", arguments: ruleNames)
+    func gatedEqualsEverything(rule: RuleIdentifier) async throws {
+        let path = try PurityGateCorpus.makeProject()
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let gated = await PurityGateCorpus.lint(at: path, rules: [rule])
+        let everything = await PurityGateCorpus.lint(at: path, rules: [rule], demand: .everything)
+        #expect(PurityGateCorpus.rendered(gated.issues) == PurityGateCorpus.rendered(everything.issues))
+    }
+
+    @Test("every undeclared rule at once, over this repository's own visitors, reads nothing")
+    func undeclaredRulesTogetherOverRealSources() async {
+        let undeclared = Self.ruleNames.filter { Self.declared($0).isEmpty }
+        let run = await PurityGateCorpus.lint(at: PurityGateCorpus.visitorsSources, rules: undeclared)
+        #expect(run.demand.inputs.isEmpty)
+        #expect(run.trips.isEmpty, "\(run.trips)")
+        #expect(run.issues.isEmpty == false, "the run reported nothing, so its silence proves nothing")
+    }
+
+    @Test("the demand is taken per visitor: a shared visitor counts under every rule it reports")
+    func demandIsPerVisitor() {
+        func pattern(_ name: RuleIdentifier, _ visitor: PatternVisitorProtocol.Type) -> SyntaxPattern {
+            SyntaxPattern(
+                name: name, visitor: visitor, severity: .info, category: .codeQuality,
+                messageTemplate: "", suggestion: "", description: ""
+            )
+        }
+        let registry = PatternVisitorRegistry()
+        registry.register(patterns: [
+            pattern(.forceTry, DeclaredSharedReader.self),
+            pattern(.forceUnwrap, DeclaredSharedReader.self),
+            pattern(.todoComment, UndeclaredOracleReader.self),
+        ])
+        typealias Demand = ProjectLinter.PurityDemand
+        #expect(Demand(planned: [.forceUnwrap], registry: registry).inputs == [.oracle])
+        #expect(Demand(planned: [.todoComment], registry: registry).inputs.isEmpty)
+        #expect(Demand(planned: [.printStatement], registry: registry).inputs.isEmpty, "not registered, not run")
+        #expect(Demand(planned: [], registry: registry).inputs.isEmpty)
+        // `nil` runs every registered pattern, so it demands every declaration in the registry.
+        #expect(Demand(planned: nil, registry: registry).inputs == [.oracle])
+        #expect(Demand(planned: nil, registry: PatternVisitorRegistry()).inputs.isEmpty)
+    }
+
+    /// What `Docs/rules/pure-function-candidate.md` says: with any other reader on, turning Pure
+    /// Function, Pure Mutator and Missing Equatable on Pure Function Result off still builds the table
+    /// and skips the one-hop join; it skips the clean-method catalog too unless Direct Instantiation
+    /// or Concrete Type Usage is on, since the other six read only the oracle.
+    @Test("without the three candidate rules the join is skipped, and the catalog too unless its two readers run")
+    func onlyTheCandidateRulesReadTheJoin() {
+        let joinReaders: Set<RuleIdentifier> = [
+            .pureFunctionCandidate, .missingEquatableOnPureResult, .pureMutatorCandidate
+        ]
+        let others = Self.declaredRules.filter { !joinReaders.contains($0) }
+        let registry = PatternRegistryFactory.createConfiguredSystem().visitorRegistry
+        func demand(_ rules: [RuleIdentifier]) -> PackagePurityInputs {
+            ProjectLinter.PurityDemand(planned: rules, registry: registry).inputs
+        }
+        #expect(demand(others) == [.oracle, .cleanInstanceMethods])
+
+        let catalogReaders = Set(others.filter { Self.declared($0).contains(.cleanInstanceMethods) })
+        #expect(catalogReaders == [.directInstantiation, .concreteTypeUsage])
+        let oracleOnly = others.filter { !catalogReaders.contains($0) }
+        #expect(oracleOnly.count == 6)
+        #expect(demand(oracleOnly) == [.oracle])
+        for reader in oracleOnly {
+            #expect(demand([reader]) == [.oracle], "\(reader.rawValue)")
+        }
+    }
+
+    // MARK: - The fallback
+
+    @Test("an undeclared read is redone with everything built, whichever surface it reads", arguments: [
+        UndeclaredReader.oracle, .cleanInstanceMethods, .impurePackageFunctions
+    ])
+    func undeclaredReadFallsBack(reader: UndeclaredReader) async throws {
+        let path = try PurityGateCorpus.makeProject(item: reader.item)
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let detector = reader.detector()
+
+        let gated = await PurityGateCorpus.lint(at: path, rules: [.printStatement], detector: detector)
+        let everything = await PurityGateCorpus.lint(
+            at: path, rules: [.printStatement], detector: reader.detector(), demand: .everything
+        )
+
+        #expect(gated.demand.inputs.isEmpty, "the reader declares nothing")
+        #expect(gated.trips.map(\.input) .contains(reader.input))
+        // The reader reports only what the built surface tells it, so a finding is the rerun's.
+        #expect(everything.issues.isEmpty == false, "the fixture moved nothing")
+        #expect(PurityGateCorpus.rendered(gated.issues) == PurityGateCorpus.rendered(everything.issues))
+    }
+
+    @Test("a tripped run and a clean one, side by side, keep their own tripwires")
+    func tripwiresArePerRun() async throws {
+        let path = try PurityGateCorpus.makeProject()
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        for _ in 0..<4 {
+            async let tripped = PurityGateCorpus.lint(
+                at: path, rules: [.printStatement], detector: UndeclaredReader.oracle.detector()
+            )
+            async let clean = PurityGateCorpus.lint(at: path, rules: [.printStatement])
+            let (one, two) = await (tripped, clean)
+            #expect(one.trips.isEmpty == false)
+            #expect(two.trips.isEmpty)
+        }
+    }
+
+    // MARK: - The run
+
+    @Test("a narrow run builds nothing: no universe walk, and the purity is withheld")
+    func narrowRunWithholds() async throws {
+        let path = try PurityGateCorpus.makeProject()
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let linter = ProjectLinter()
+        let gated = await linter.discoverFiles(at: path, configuration: .default, resolvingUniverse: false)
+        let open = await linter.discoverFiles(at: path, configuration: .default)
+        #expect(gated.constructionUniverse == nil, "not resolved, which is not the same as empty")
+        let stamp = open.constructionUniverse?.contains { $0.hasSuffix("Stamp.swift") }
+        #expect(stamp == true, "the nested package fell out")
+        #expect(gated.reportable == open.reportable)
+
+        let tripwire = PurityTripwire()
+        let parse = await ProjectLinter.sharedParse(gated, projectRoot: path, withholdingBy: tripwire)
+        #expect(parse.purity.isWithheld)
+        #expect(parse.judged == nil, "a withheld table was built from no files, which is not the same as none")
+        #expect(parse.analysable.keys.contains { $0.hasSuffix("Stamp.swift") } == false)
+        #expect(tripwire.recorded.isEmpty)
+
+        // A resolved universe that holds nothing builds an empty table; it is not withheld.
+        let empty = ProjectLinter.DiscoveredFiles(reportable: [], evidenceOnly: [], constructionUniverse: [])
+        let built = await ProjectLinter.sharedParse(empty, projectRoot: path, withholdingBy: tripwire)
+        #expect(built.purity.isWithheld == false)
+        #expect(built.judged?.isEmpty == true, "a resolved universe that holds nothing was built from no file")
+    }
+
+    @Test("a run narrowed by flags or by configuration takes no universe walk; one that reads purity does")
+    func narrowRunsSkipTheUniverseWalk() async throws {
+        let path = try PurityGateCorpus.makeProject()
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        func walks(_ rules: [RuleIdentifier]?, _ configuration: LintConfiguration = .default) async -> [Bool] {
+            let discovery = RecordingDiscovery()
+            _ = await ProjectLinter(fileDiscovery: discovery) { CrossFileAnalysisEngine(registry: $0) }
+                .lint(
+                    at: path, targetType: .auto, categories: nil, ruleIdentifiers: rules,
+                    detector: PatternRegistryFactory.createConfiguredSystem().detector,
+                    configuration: configuration
+                )
+            return discovery.nestedFlags
+        }
+        #expect(await walks([.forceTry, .printStatement]) == [false])
+        #expect(await walks([.forceTry, .directInstantiation]) == [false, true])
+        #expect(await walks(nil, LintConfiguration(enabledOnlyRules: [.forceTry, .printStatement])) == [false])
+        #expect(await walks(nil, LintConfiguration(disabledRules: [.forceTry])) == [false, true])
+    }
+
+    @Test("a tripped run that is cancelled meanwhile still never returns the first pass's findings")
+    func cancelledTrippedRunNeverReturnsTheFirstPass() async throws {
+        let path = try PurityGateCorpus.makeProject()
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let registry = PatternVisitorRegistry()
+        registry.register(pattern: SyntaxPattern(
+            name: .couldBePrivate, visitor: CancellingUndeclaredReader.self, severity: .info,
+            category: .codeQuality, messageTemplate: "read", suggestion: "", description: "test reader"
+        ))
+        // Its own task, so the reader cancels the lint and not the test.
+        let detector = SourcePatternDetector(registry: registry)
+        let run = await Task {
+            await PurityGateCorpus.lint(at: path, rules: [.couldBePrivate], detector: detector)
+        }.value
+        #expect(run.trips.isEmpty == false)
+        // Pass 1 judged without the table, counted the `Item` closure pure, and cancelled the run.
+        // Its finding must not survive, whatever the cancelled rerun manages to report.
+        let firstPass = try #require(CancellingUndeclaredReader.emitted.all.first, "pass 1 reported nothing")
+        #expect(run.issues.contains { $0.message == firstPass } == false, "\(run.issues.map(\.message))")
+    }
+
+    @Test("the caller's detector never keeps a purity catalog a run withheld")
+    func theCallersDetectorKeepsNoPurityCatalog() async throws {
+        let path = try PurityGateCorpus.makeProject()
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let detector = PatternRegistryFactory.createConfiguredSystem().detector
+        let run = await PurityGateCorpus.lint(at: path, rules: [.forceTry], detector: detector)
+        #expect(run.demand.inputs.isEmpty)
+        #expect(detector.knownCleanInstanceMethods.isWithheld == false)
+        #expect(detector.knownImpurePackageFunctions.isWithheld == false)
+    }
+
+    @Test("a rerun is reported to the linter's notice, naming what was read")
+    func rerunIsReported() async throws {
+        let path = try PurityGateCorpus.makeProject()
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let notices = NoticeBox()
+        _ = await ProjectLinter { notices.append($0) }.lint(
+            at: path, targetType: .auto, categories: nil, ruleIdentifiers: [.printStatement],
+            detector: UndeclaredReader.oracle.detector(), configuration: .default
+        )
+        #expect(notices.all.count == 1)
+        #expect(notices.all.first?.contains("PurityInferrer()") == true, "\(notices.all)")
     }
 }

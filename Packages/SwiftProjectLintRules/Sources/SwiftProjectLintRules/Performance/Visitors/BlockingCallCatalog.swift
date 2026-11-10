@@ -25,6 +25,18 @@ struct BlockingCall {
     let kind: Kind
 }
 
+/// The `DispatchSemaphore(...)` calls in a subtree.
+private final class SemaphoreCreationFinder: SyntaxVisitor {
+    private(set) var creations: [FunctionCallExprSyntax] = []
+
+    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        if node.calledExpression.as(DeclReferenceExprSyntax.self)?.baseName.text == "DispatchSemaphore" {
+            creations.append(node)
+        }
+        return .visitChildren
+    }
+}
+
 /// The blocking calls `Blocking I/O On Main Actor` looks for.
 ///
 /// Three blocking calls are left out on purpose, because another rule already reports them
@@ -156,17 +168,5 @@ enum BlockingCallCatalog {
     private static func display(_ name: String, _ node: FunctionCallExprSyntax) -> String {
         let labels = node.arguments.map { "\($0.label?.text ?? "_"):" }.joined()
         return "\(name)(\(labels))"
-    }
-}
-
-/// The `DispatchSemaphore(...)` calls in a subtree.
-private final class SemaphoreCreationFinder: SyntaxVisitor {
-    private(set) var creations: [FunctionCallExprSyntax] = []
-
-    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        if node.calledExpression.as(DeclReferenceExprSyntax.self)?.baseName.text == "DispatchSemaphore" {
-            creations.append(node)
-        }
-        return .visitChildren
     }
 }

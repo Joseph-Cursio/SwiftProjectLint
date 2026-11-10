@@ -1,6 +1,39 @@
 import SwiftEffectInference
 import SwiftSyntax
 
+/// Thin forwarder onto SEI's clock-determinism refuter.
+///
+/// The refuter only ever **contradicts** the `@ClockDeterministic` claim — it
+/// has no method that confirms one, by design: the claim holds only when nothing
+/// in the function or its transitive callees reaches for ambient time, and
+/// absence is not establishable by a syntactic pass. One witness that the claim
+/// is false is, which is all a lint rule needs.
+public struct ClockDeterminismRefuter: Sendable {
+
+    private let underlying = SwiftEffectInference.ClockDeterminismRefuter()
+
+    public init() {
+        // No configuration: the underlying refuter is stateless.
+    }
+
+    /// The ambient-time source contradicting `function`'s own
+    /// `@ClockDeterministic` claim, or `nil`.
+    ///
+    /// Returns `nil` when the claim is **absent**, which is the guard that keeps
+    /// this from becoming a rule about unannotated code: a function reaching for
+    /// a clock without having claimed otherwise contradicts nothing, and
+    /// reporting it would be the tool inventing a claim in order to violate it.
+    /// The `nonInjectedNondeterminism` rule is what covers unannotated inline
+    /// clock reads, and it deliberately answers a different question.
+    ///
+    /// Composing the claim with its contradiction is done in SEI rather than
+    /// here, so the marker's spelling and its refutation cannot drift apart
+    /// across the two repositories.
+    public func contradictedClaim(in function: FunctionDeclSyntax) -> String? {
+        underlying.contradictedClaim(in: function)?.marker
+    }
+}
+
 /// Thin forwarder onto the shared nondeterminism classifier in
 /// `SwiftEffectInference`.
 ///
@@ -100,38 +133,5 @@ public enum NondeterminismSources {
         case .identity: return .identity
         case .ambientEnvironment: return .ambientEnvironment
         }
-    }
-}
-
-/// Thin forwarder onto SEI's clock-determinism refuter.
-///
-/// The refuter only ever **contradicts** the `@ClockDeterministic` claim — it
-/// has no method that confirms one, by design: the claim holds only when nothing
-/// in the function or its transitive callees reaches for ambient time, and
-/// absence is not establishable by a syntactic pass. One witness that the claim
-/// is false is, which is all a lint rule needs.
-public struct ClockDeterminismRefuter: Sendable {
-
-    private let underlying = SwiftEffectInference.ClockDeterminismRefuter()
-
-    public init() {
-        // No configuration: the underlying refuter is stateless.
-    }
-
-    /// The ambient-time source contradicting `function`'s own
-    /// `@ClockDeterministic` claim, or `nil`.
-    ///
-    /// Returns `nil` when the claim is **absent**, which is the guard that keeps
-    /// this from becoming a rule about unannotated code: a function reaching for
-    /// a clock without having claimed otherwise contradicts nothing, and
-    /// reporting it would be the tool inventing a claim in order to violate it.
-    /// The `nonInjectedNondeterminism` rule is what covers unannotated inline
-    /// clock reads, and it deliberately answers a different question.
-    ///
-    /// Composing the claim with its contradiction is done in SEI rather than
-    /// here, so the marker's spelling and its refutation cannot drift apart
-    /// across the two repositories.
-    public func contradictedClaim(in function: FunctionDeclSyntax) -> String? {
-        underlying.contradictedClaim(in: function)?.marker
     }
 }

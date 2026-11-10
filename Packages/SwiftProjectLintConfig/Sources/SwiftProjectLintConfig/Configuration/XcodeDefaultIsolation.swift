@@ -1,71 +1,6 @@
 import Foundation
 import SwiftProjectLintModels
 
-/// Reads `SWIFT_DEFAULT_ACTOR_ISOLATION` from the Xcode projects under a root.
-///
-/// A `project.pbxproj` is an old-style property list, which `PropertyListSerialization` reads. A
-/// native target compiles with default MainActor isolation when one of its build configurations
-/// (or, failing that, one of the project's) sets the key to `MainActor`. Its sources are:
-/// - the folders it synchronizes (`fileSystemSynchronizedGroups`, Xcode 16 and later), and
-/// - the files its Sources build phase lists, each resolved through its group chain.
-///
-/// Not read: settings from `.xcconfig` files, and the exceptions a synchronized folder lists for a
-/// target (files it does *not* compile).
-enum XcodeDefaultIsolation {
-
-    /// Root-relative paths from every Xcode project under `projectRoot`: a folder ending in `/`,
-    /// or one file.
-    static func sourcePaths(in projectRoot: String) -> [String] {
-        projectDirectories(in: projectRoot).flatMap { project -> [String] in
-            let pbxproj = PathString.appending("project.pbxproj", to: project.absolute)
-            guard let data = FileManager.default.contents(atPath: pbxproj) else { return [] }
-            return sourcePaths(pbxproj: data, projectDirectory: project.parent)
-        }
-    }
-
-    /// The paths one `project.pbxproj` compiles with default MainActor isolation, relative to the
-    /// analysed root. `projectDirectory` is the root-relative folder holding the `.xcodeproj`,
-    /// `""` at the root.
-    static func sourcePaths(pbxproj data: Data, projectDirectory: String) -> [String] {
-        guard let plist = try? PropertyListSerialization.propertyList(from: data, format: nil),
-              let dictionary = plist as? [String: Any],
-              let objects = dictionary["objects"] as? [String: [String: Any]],
-              let rootID = dictionary["rootObject"] as? String,
-              let project = objects[rootID] else { return [] }
-        let graph = ProjectGraph(objects: objects, projectDirectory: projectDirectory)
-        let projectSetting = graph.isolationSetting(configurationList: project["buildConfigurationList"])
-        return (project["targets"] as? [String] ?? []).flatMap { targetID -> [String] in
-            guard let target = objects[targetID], target["isa"] as? String == "PBXNativeTarget" else { return [] }
-            // A target's own setting overrides the project's.
-            let setting = graph.isolationSetting(configurationList: target["buildConfigurationList"]) ?? projectSetting
-            return setting == "MainActor" ? graph.sourcePaths(of: target) : []
-        }
-    }
-
-    /// Each `.xcodeproj` under `projectRoot`: its absolute path, and the root-relative folder
-    /// holding it (`""` at the root, otherwise ending in `/`).
-    private static func projectDirectories(in projectRoot: String) -> [(absolute: String, parent: String)] {
-        // Enumerated at the canonical root: see `ProjectRoot.url`.
-        let root = ProjectRoot(projectRoot)
-        guard let enumerator = FileManager.default.enumerator(
-            at: root.url, includingPropertiesForKeys: [.isDirectoryKey], options: .skipsHiddenFiles
-        ) else { return [] }
-        var found: [(absolute: String, parent: String)] = []
-        for case let itemURL as URL in enumerator {
-            if FileAnalysisUtils.skippedDirectories.contains(itemURL.lastPathComponent) {
-                enumerator.skipDescendants()
-                continue
-            }
-            guard itemURL.pathExtension == "xcodeproj" else { continue }
-            // A project bundle holds no other project.
-            enumerator.skipDescendants()
-            guard let parent = root.relativePath(of: itemURL.deletingLastPathComponent().path) else { continue }
-            found.append((itemURL.path, parent.isRoot ? "" : parent.value + "/"))
-        }
-        return found.sorted { $0.absolute < $1.absolute }
-    }
-}
-
 /// The object graph of one `project.pbxproj`.
 private struct ProjectGraph {
     let objects: [String: [String: Any]]
@@ -143,5 +78,70 @@ private struct ProjectGraph {
             }
         }
         return components.joined(separator: "/")
+    }
+}
+
+/// Reads `SWIFT_DEFAULT_ACTOR_ISOLATION` from the Xcode projects under a root.
+///
+/// A `project.pbxproj` is an old-style property list, which `PropertyListSerialization` reads. A
+/// native target compiles with default MainActor isolation when one of its build configurations
+/// (or, failing that, one of the project's) sets the key to `MainActor`. Its sources are:
+/// - the folders it synchronizes (`fileSystemSynchronizedGroups`, Xcode 16 and later), and
+/// - the files its Sources build phase lists, each resolved through its group chain.
+///
+/// Not read: settings from `.xcconfig` files, and the exceptions a synchronized folder lists for a
+/// target (files it does *not* compile).
+enum XcodeDefaultIsolation {
+
+    /// Root-relative paths from every Xcode project under `projectRoot`: a folder ending in `/`,
+    /// or one file.
+    static func sourcePaths(in projectRoot: String) -> [String] {
+        projectDirectories(in: projectRoot).flatMap { project -> [String] in
+            let pbxproj = PathString.appending("project.pbxproj", to: project.absolute)
+            guard let data = FileManager.default.contents(atPath: pbxproj) else { return [] }
+            return sourcePaths(pbxproj: data, projectDirectory: project.parent)
+        }
+    }
+
+    /// The paths one `project.pbxproj` compiles with default MainActor isolation, relative to the
+    /// analysed root. `projectDirectory` is the root-relative folder holding the `.xcodeproj`,
+    /// `""` at the root.
+    static func sourcePaths(pbxproj data: Data, projectDirectory: String) -> [String] {
+        guard let plist = try? PropertyListSerialization.propertyList(from: data, format: nil),
+              let dictionary = plist as? [String: Any],
+              let objects = dictionary["objects"] as? [String: [String: Any]],
+              let rootID = dictionary["rootObject"] as? String,
+              let project = objects[rootID] else { return [] }
+        let graph = ProjectGraph(objects: objects, projectDirectory: projectDirectory)
+        let projectSetting = graph.isolationSetting(configurationList: project["buildConfigurationList"])
+        return (project["targets"] as? [String] ?? []).flatMap { targetID -> [String] in
+            guard let target = objects[targetID], target["isa"] as? String == "PBXNativeTarget" else { return [] }
+            // A target's own setting overrides the project's.
+            let setting = graph.isolationSetting(configurationList: target["buildConfigurationList"]) ?? projectSetting
+            return setting == "MainActor" ? graph.sourcePaths(of: target) : []
+        }
+    }
+
+    /// Each `.xcodeproj` under `projectRoot`: its absolute path, and the root-relative folder
+    /// holding it (`""` at the root, otherwise ending in `/`).
+    private static func projectDirectories(in projectRoot: String) -> [(absolute: String, parent: String)] {
+        // Enumerated at the canonical root: see `ProjectRoot.url`.
+        let root = ProjectRoot(projectRoot)
+        guard let enumerator = FileManager.default.enumerator(
+            at: root.url, includingPropertiesForKeys: [.isDirectoryKey], options: .skipsHiddenFiles
+        ) else { return [] }
+        var found: [(absolute: String, parent: String)] = []
+        for case let itemURL as URL in enumerator {
+            if FileAnalysisUtils.skippedDirectories.contains(itemURL.lastPathComponent) {
+                enumerator.skipDescendants()
+                continue
+            }
+            guard itemURL.pathExtension == "xcodeproj" else { continue }
+            // A project bundle holds no other project.
+            enumerator.skipDescendants()
+            guard let parent = root.relativePath(of: itemURL.deletingLastPathComponent().path) else { continue }
+            found.append((itemURL.path, parent.isRoot ? "" : parent.value + "/"))
+        }
+        return found.sorted { $0.absolute < $1.absolute }
     }
 }

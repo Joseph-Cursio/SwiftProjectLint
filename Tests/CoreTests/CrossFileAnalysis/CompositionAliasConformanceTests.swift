@@ -4,31 +4,6 @@ import Foundation
 import SwiftProjectLintVisitors
 import Testing
 
-/// Every cross-file rule that reads an inheritance clause by name sees a conformance written
-/// through a composition `typealias` exactly as it sees the same conformance written out.
-///
-/// Each fixture is run three ways: spelled out, through the alias, and through the alias with
-/// expansion switched off. The first two must agree. The third must not, which is what shows
-/// the fixture reaches the conformance the rule reads; a fixture that agreed either way would
-/// pass without testing anything.
-///
-/// `Single Implementation Protocol` and `Unused Protocol Abstraction` have suites of their own,
-/// because what they count is the finding itself rather than a gate in front of it.
-@Suite
-struct CompositionAliasConformanceTests {
-
-    @Test(arguments: AliasFixture.all)
-    func throughTheAliasMatchesSpelledOut(_ fixture: AliasFixture) {
-        let spelledOut = fixture.messages(conformance: fixture.spelledOut)
-        let throughAlias = fixture.messages(conformance: fixture.alias)
-        let unexpanded = fixture.messages(conformance: fixture.alias, followingAliases: false)
-
-        #expect(spelledOut.count == fixture.expectedFindings)
-        #expect(throughAlias == spelledOut)
-        #expect(unexpanded != spelledOut)
-    }
-}
-
 /// One rule's fixture. `{conformance}` in a file is replaced by the alias or by its spelling.
 struct AliasFixture: Sendable, CustomTestStringConvertible {
     let testDescription: String
@@ -353,5 +328,30 @@ struct AliasFixture: Sendable, CustomTestStringConvertible {
             of: ProtocolCouldBePrivateVisitor.self, pattern: ProtocolCouldBePrivate().pattern,
             files: files, followingAliases: follow
         )
+    }
+}
+
+/// Every cross-file rule that reads an inheritance clause by name sees a conformance written
+/// through a composition `typealias` exactly as it sees the same conformance written out.
+///
+/// Each fixture is run three ways: spelled out, through the alias, and through the alias with
+/// expansion switched off. The first two must agree. The third must not, which is what shows
+/// the fixture reaches the conformance the rule reads; a fixture that agreed either way would
+/// pass without testing anything.
+///
+/// `Single Implementation Protocol` and `Unused Protocol Abstraction` have suites of their own,
+/// because what they count is the finding itself rather than a gate in front of it.
+@Suite
+struct CompositionAliasConformanceTests {
+
+    @Test(arguments: AliasFixture.all)
+    func throughTheAliasMatchesSpelledOut(_ fixture: AliasFixture) {
+        let spelledOut = fixture.messages(conformance: fixture.spelledOut)
+        let throughAlias = fixture.messages(conformance: fixture.alias)
+        let unexpanded = fixture.messages(conformance: fixture.alias, followingAliases: false)
+
+        #expect(spelledOut.count == fixture.expectedFindings)
+        #expect(throughAlias == spelledOut)
+        #expect(unexpanded != spelledOut)
     }
 }

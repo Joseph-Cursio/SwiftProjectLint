@@ -4,121 +4,6 @@ import SwiftUI
 import Testing
 import ViewInspector
 
-// MARK: - SystemComponents Tests
-
-struct SystemComponentsTests {
-
-    @Test
-    @MainActor
-    func testSystemComponentsInitialState() {
-        let components = SystemComponents()
-
-        // Before initialize() is called, all properties should be nil
-        #expect(components.patternRegistry == nil)
-        #expect(components.visitorRegistry == nil)
-        #expect(components.detector == nil)
-    }
-
-    @Test
-    @MainActor
-    func testSystemComponentsInitialize() async {
-        let components = SystemComponents()
-        await components.initialize()
-
-        // After initialize(), all properties should be set
-        #expect(components.patternRegistry != nil)
-        #expect(components.visitorRegistry != nil)
-        #expect(components.detector != nil)
-    }
-
-    @Test
-    @MainActor
-    func testPatternRegistryHasPatterns() async throws {
-        let components = SystemComponents()
-        await components.initialize()
-
-        let registry = try #require(components.patternRegistry)
-
-        let allPatterns = registry.getAllPatterns()
-        #expect(allPatterns.isEmpty == false, "Registry should have patterns registered")
-    }
-
-    @Test
-    @MainActor
-    func testPatternRegistryHasAllCategories() async throws {
-        let components = SystemComponents()
-        await components.initialize()
-
-        let registry = try #require(components.patternRegistry)
-
-        // Check that major categories have patterns
-        let statePatterns = registry.getPatterns(for: .stateManagement)
-        let perfPatterns = registry.getPatterns(for: .performance)
-        let archPatterns = registry.getPatterns(for: .architecture)
-        let uiPatterns = registry.getPatterns(for: .uiPatterns)
-
-        #expect(statePatterns.isEmpty == false, "Should have state management patterns")
-
-        #expect(perfPatterns.isEmpty == false, "Should have performance patterns")
-
-        #expect(archPatterns.isEmpty == false, "Should have architecture patterns")
-
-        #expect(uiPatterns.isEmpty == false, "Should have UI patterns")
-    }
-
-    @Test
-    @MainActor
-    func testVisitorRegistryHasVisitors() async throws {
-        let components = SystemComponents()
-        await components.initialize()
-
-        _ = try #require(components.visitorRegistry)
-
-        // The visitor registry should have registered visitors
-        // We can verify this indirectly by checking the pattern registry
-        #expect(components.patternRegistry != nil)
-    }
-
-    @Test
-    @MainActor
-    func testDetectorIsConfigured() async throws {
-        let components = SystemComponents()
-        await components.initialize()
-
-        // Detector should be properly configured
-        // We verify it exists and is ready to use
-        _ = try #require(components.detector)
-    }
-
-    @Test
-    @MainActor
-    func testMultipleInitializeCalls() async {
-        let components = SystemComponents()
-
-        // First initialization
-        await components.initialize()
-        let firstRegistry = components.patternRegistry
-
-        // Second initialization (should work without crashing)
-        await components.initialize()
-        let secondRegistry = components.patternRegistry
-
-        // Both should be valid
-        #expect(firstRegistry != nil)
-        #expect(secondRegistry != nil)
-    }
-
-    @Test
-    @MainActor
-    func testSystemComponentsIsObservableObject() {
-        let components = SystemComponents()
-
-        // SystemComponents should be an ObservableObject
-        let observable: any ObservableObject = components
-        #expect(observable != nil)
-    }
-}
-
 // MARK: - SystemComponents Integration Tests
 
 struct SystemComponentsIntegrationTests {
@@ -244,5 +129,120 @@ struct SystemComponentsIntegrationTests {
 
         let codeQualityPatterns = registry.getPatterns(for: .codeQuality)
         #expect(codeQualityPatterns.isEmpty == false, "Should have code quality patterns")
+    }
+}
+
+// MARK: - SystemComponents Tests
+
+struct SystemComponentsTests {
+
+    @Test
+    @MainActor
+    func testSystemComponentsInitialState() {
+        let components = SystemComponents()
+
+        // Before initialize() is called, all properties should be nil
+        #expect(components.patternRegistry == nil)
+        #expect(components.visitorRegistry == nil)
+        #expect(components.detector == nil)
+    }
+
+    @Test
+    @MainActor
+    func testSystemComponentsInitialize() async {
+        let components = SystemComponents()
+        await components.initialize()
+
+        // After initialize(), all properties should be set
+        #expect(components.patternRegistry != nil)
+        #expect(components.visitorRegistry != nil)
+        #expect(components.detector != nil)
+    }
+
+    @Test
+    @MainActor
+    func testPatternRegistryHasPatterns() async throws {
+        let components = SystemComponents()
+        await components.initialize()
+
+        let registry = try #require(components.patternRegistry)
+
+        let allPatterns = registry.getAllPatterns()
+        #expect(allPatterns.isEmpty == false, "Registry should have patterns registered")
+    }
+
+    @Test
+    @MainActor
+    func testPatternRegistryHasAllCategories() async throws {
+        let components = SystemComponents()
+        await components.initialize()
+
+        let registry = try #require(components.patternRegistry)
+
+        // Check that major categories have patterns
+        let statePatterns = registry.getPatterns(for: .stateManagement)
+        let perfPatterns = registry.getPatterns(for: .performance)
+        let archPatterns = registry.getPatterns(for: .architecture)
+        let uiPatterns = registry.getPatterns(for: .uiPatterns)
+
+        #expect(statePatterns.isEmpty == false, "Should have state management patterns")
+
+        #expect(perfPatterns.isEmpty == false, "Should have performance patterns")
+
+        #expect(archPatterns.isEmpty == false, "Should have architecture patterns")
+
+        #expect(uiPatterns.isEmpty == false, "Should have UI patterns")
+    }
+
+    @Test
+    @MainActor
+    func testVisitorRegistryHasVisitors() async throws {
+        let components = SystemComponents()
+        await components.initialize()
+
+        _ = try #require(components.visitorRegistry)
+
+        // The visitor registry should have registered visitors
+        // We can verify this indirectly by checking the pattern registry
+        #expect(components.patternRegistry != nil)
+    }
+
+    @Test
+    @MainActor
+    func testDetectorIsConfigured() async throws {
+        let components = SystemComponents()
+        await components.initialize()
+
+        // Detector should be properly configured
+        // We verify it exists and is ready to use
+        _ = try #require(components.detector)
+    }
+
+    @Test
+    @MainActor
+    func testMultipleInitializeCalls() async {
+        let components = SystemComponents()
+
+        // First initialization
+        await components.initialize()
+        let firstRegistry = components.patternRegistry
+
+        // Second initialization (should work without crashing)
+        await components.initialize()
+        let secondRegistry = components.patternRegistry
+
+        // Both should be valid
+        #expect(firstRegistry != nil)
+        #expect(secondRegistry != nil)
+    }
+
+    @Test
+    @MainActor
+    func testSystemComponentsIsObservableObject() {
+        let components = SystemComponents()
+
+        // SystemComponents should be an ObservableObject
+        let observable: any ObservableObject = components
+        #expect(observable != nil)
     }
 }
