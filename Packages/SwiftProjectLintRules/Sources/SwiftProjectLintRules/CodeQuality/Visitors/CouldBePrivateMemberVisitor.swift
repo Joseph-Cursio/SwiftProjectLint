@@ -19,7 +19,7 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
     /// `PropertyTestCandidacy.shape`, for the property-test caveat in the message.
     static let packagePurityInputs: PackagePurityInputs = [.oracle]
 
-    private struct MemberDeclaration {
+    struct MemberDeclaration {
         let typeName: String
         let memberName: String
         let memberKind: String   // "func", "var", "let"
@@ -27,17 +27,17 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
         let node: Syntax
     }
 
-    private var declarations: [MemberDeclaration] = []
+    var declarations: [MemberDeclaration] = []
 
     /// Tracks which files mention each identifier: name → Set<file>
-    private var identifierUsages: [String: Set<String>] = [:]
+    var identifierUsages: [String: Set<String>] = [:]
 
     private var currentTypeName: String = ""
     private var typeNestingDepth: Int = 0
     private var functionNestingDepth: Int = 0
 
     /// Protocol names defined in the project.
-    private var projectProtocolNames: Set<String> = []
+    var projectProtocolNames: Set<String> = []
 
     /// Names to skip — SwiftUI framework hooks, protocol requirements, etc.
     private static let ignoredNames: Set<String> = [
@@ -53,7 +53,7 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
     /// System framework protocols whose members are called by the framework,
     /// not by app code. Types conforming to these should be excluded because
     /// their members are protocol requirements that must remain accessible.
-    private static let systemFrameworkProtocols: Set<String> = [
+    static let systemFrameworkProtocols: Set<String> = [
         // AppIntents
         "AppIntent", "AppEntity", "AppShortcutsProvider", "EntityQuery",
         "EntityStringQuery", "EntityPropertyQuery", "AppEnum",
@@ -133,44 +133,6 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
     override func visitPost(_ _: ActorDeclSyntax) {
         typeNestingDepth -= 1
         if typeNestingDepth == 0 { currentTypeName = "" }
-    }
-
-    // MARK: - What narrowing would cost
-
-    /// The finding for `decl`, saying what `private` would cost when the member is a
-    /// property-test candidate.
-    ///
-    /// Narrowing a declaration used only in its own file is sound advice about scope. Applied to a
-    /// *pure function*, it is also advice that puts that function beyond the reach of any test:
-    /// `@testable import` exposes `internal`, and does not expose `private`. So the linter would be
-    /// telling the reader, on the same line, both to property-test a function and to hide it — the
-    /// `pureFunctionCandidate` rule flags exactly the declarations this one wants narrowed.
-    ///
-    /// The finding is not suppressed. Least privilege is a real principle and the reader gets to
-    /// weigh it; what they cannot do is weigh a cost nobody told them about.
-    private func narrowingMessage(for decl: MemberDeclaration) -> String {
-        let base = "'\(decl.typeName).\(decl.memberName)' is only used in its declaring file "
-            + "and could be private"
-        guard propertyTestShape(of: decl) != nil else { return base }
-
-        return base + " — but it is a property-based-test candidate, and `private` puts it beyond "
-            + "`@testable import`, which reaches `internal` and no further. Narrowing it means no "
-            + "test can call it."
-    }
-
-    private func narrowingSuggestion(for decl: MemberDeclaration) -> String {
-        let base = "Add `private` to '\(decl.memberKind) \(decl.memberName)' to narrow its scope."
-        guard propertyTestShape(of: decl) != nil else { return base }
-
-        return "Leave it `internal` if you intend to property-test it, or extract the logic into a "
-            + "type of its own — which narrows the surface *and* keeps it testable. Adding "
-            + "`private` buys scope at the cost of the test."
-    }
-
-    /// The property-test shape of `decl`, when it is a function that qualifies as one.
-    private func propertyTestShape(of decl: MemberDeclaration) -> PropertyTestShape? {
-        guard let function = decl.node.as(FunctionDeclSyntax.self) else { return nil }
-        return PropertyTestCandidacy.shape(of: function, knownEquatableTypes: knownEquatableTypes)
     }
 
     // MARK: - Collect Declarations
@@ -261,40 +223,6 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
         let memberName = Self.stripBackticks(node.declName.baseName.text)
         identifierUsages[memberName, default: []].insert(currentFilePath)
         return .visitChildren
-    }
-
-    // MARK: - Finalize
-
-    func finalizeAnalysis() {
-        for decl in declarations {
-            // Suppress members on types conforming to project-defined protocols —
-            // the member may be a protocol requirement
-            if let conformances = typeConformanceNames[decl.typeName],
-               conformances.contains(where: { projectProtocolNames.contains($0) }) {
-                continue
-            }
-
-            // Suppress members on types conforming to system framework protocols —
-            // members are called by the framework, not by app code
-            if let conformances = typeConformanceNames[decl.typeName],
-               conformances.contains(where: { Self.systemFrameworkProtocols.contains($0) }) {
-                continue
-            }
-
-            let usageFiles = identifierUsages[decl.memberName] ?? []
-            let externalFiles = usageFiles.subtracting([decl.file])
-
-            if externalFiles.isEmpty {
-                addIssue(
-                    severity: .info,
-                    message: narrowingMessage(for: decl),
-                    filePath: decl.file,
-                    lineNumber: getLineNumber(for: decl.node),
-                    suggestion: narrowingSuggestion(for: decl),
-                    ruleName: .couldBePrivateMember
-                )
-            }
-        }
     }
 
     // MARK: - Helpers
@@ -392,7 +320,7 @@ final class CouldBePrivateMemberVisitor: CrossFileVisitorBase, CrossFilePatternV
     }
 
     /// Records conformance names for later filtering in finalizeAnalysis.
-    private var typeConformanceNames: [String: Set<String>] = [:]
+    var typeConformanceNames: [String: Set<String>] = [:]
 
     private func trackConformance(
         _ name: String,

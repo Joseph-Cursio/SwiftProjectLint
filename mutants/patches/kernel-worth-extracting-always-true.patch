@@ -1,8 +1,8 @@
-diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
-index 30583e3..3baa0b3 100644
---- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
-+++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
-@@ -203,7 +203,7 @@ private struct KernelScan {
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/KernelScan.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/KernelScan.swift
+index 450d222e..aee76a6f 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/KernelScan.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/KernelScan.swift
+@@ -102,7 +102,7 @@ struct KernelScan {
      /// layout constant. A governing use alone fires on every `if` in the codebase. It is the
      /// conjunction — a value *computed* and then used as a bound, an index, a slice or a fraction —
      /// that picks out chunking math and progress tracking and essentially nothing else.

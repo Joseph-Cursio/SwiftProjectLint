@@ -23,106 +23,6 @@ enum SelfAccess: Sendable, Equatable {
     case unresolvedOrMutable
 }
 
-/// A stored property of a type, as the file that declares it shows.
-struct StoredProperty: Sendable, Equatable {
-    /// `true` for `var`, `false` for `let`. A `var` may differ between two reads, so a method
-    /// that reads one is not a function of its inputs.
-    let isMutable: Bool
-
-    /// The properties of a type that a method may read while remaining a function of `self`.
-    ///
-    /// Stored `let`s, plus **derived** computed properties: a getter whose body is pure and reads
-    /// nothing but immutable stored state (or another derived property) is a *value of the type*,
-    /// not a channel to the outside world.
-    ///
-    /// **Computed properties used to be excluded wholesale**, on the reasoning that "a computed
-    /// `var` can read anything at all." True of an arbitrary one; false of the ones that matter.
-    /// `var totalChunks: Int { (byteCount + chunkSize - 1) / chunkSize }` reads two `let`s and is as
-    /// pure as they are. Refusing it meant the linter refused **the very value type it had just told
-    /// the reader to extract** — a rule reporting a refactor and then declining its own output. Three
-    /// cold readers hit this; one wrote that the loop *"destroyed information step 1's prose already
-    /// had."*
-    ///
-    /// Promotion is a **fixpoint**, because a derived property may read another. It runs until no
-    /// further property qualifies, so a cyclic pair (`var a: Int { b }`, `var b: Int { a }`) simply
-    /// never promotes — which is the right answer, and reaching it costs no cycle detection.
-    ///
-    /// Soundness rests on two independent checks, and dropping either one breaks it:
-    /// - the getter's **body** must be pure (`PurityInferrer.isPure(_: AccessorBlockSyntax)`), which
-    ///   is what refutes `var now: Date { Date() }` — it reads no mutable state, so a name-only check
-    ///   would wave it straight through;
-    /// - every **name** the getter reads must already be immutable stored state or derived, which is
-    ///   what refutes `var scaled: Int { count * multiplier }` when `multiplier` is a `var`.
-    static func declared(in members: MemberBlockItemListSyntax) -> [String: Self] {
-        var properties: [String: Self] = [:]
-        var computed: [(name: String, accessor: AccessorBlockSyntax)] = []
-
-        for member in members {
-            guard let variable = member.decl.as(VariableDeclSyntax.self) else { continue }
-            let declaredMutable = variable.bindingSpecifier.tokenKind == .keyword(.var)
-
-            for binding in variable.bindings {
-                guard let pattern = binding.pattern.as(IdentifierPatternSyntax.self) else { continue }
-                let name = pattern.identifier.text
-
-                guard let accessor = binding.accessorBlock else {
-                    properties[name] = Self(isMutable: declaredMutable)
-                    continue
-                }
-                // `var x = 5 { didSet { … } }` is *stored*, with an observer. It is not a derived
-                // value, and its initialiser is what gives it away.
-                guard binding.initializer == nil else { continue }
-                computed.append((name, accessor))
-            }
-        }
-
-        promoteDerived(computed, into: &properties)
-        return properties
-    }
-
-    /// Repeatedly promote every computed property that reads nothing but what is already known
-    /// immutable, until a pass promotes nothing new.
-    ///
-    /// The loop is what lets `var remaining: Int { totalChunks - startIndex }` qualify on the second
-    /// pass, once `totalChunks` qualified on the first. Order of declaration therefore does not
-    /// matter, which it otherwise would.
-    private static func promoteDerived(
-        _ computed: [(name: String, accessor: AccessorBlockSyntax)],
-        into properties: inout [String: Self]
-    ) {
-        let inferrer = PurityInferrer()
-        var pending = computed
-
-        while true {
-            var promotedThisPass = false
-
-            pending.removeAll { candidate in
-                guard inferrer.isPure(candidate.accessor),
-                      readsOnlyKnownImmutable(candidate.accessor, given: properties)
-                else { return false }
-
-                properties[candidate.name] = Self(isMutable: false)
-                promotedThisPass = true
-                return true
-            }
-
-            // A pass that promotes nothing will promote nothing on the next pass either: the only
-            // thing that could change a verdict is a newly-promoted property. Cycles land here, and
-            // stay unpromoted — correctly.
-            guard promotedThisPass else { return }
-        }
-    }
-
-    /// Whether every name the getter reads is a local, a type, a pure stdlib call, or a property
-    /// already known immutable.
-    static func readsOnlyKnownImmutable(
-        _ accessor: AccessorBlockSyntax,
-        given properties: [String: Self]
-    ) -> Bool {
-        SelfAccessAnalyzer.accessorReadsOnlyImmutable(accessor, storedProperties: properties)
-    }
-}
-
 /// Decides what an instance method reads from `self`, using only what is visible in the file that
 /// declares it.
 ///
@@ -246,7 +146,7 @@ enum SelfAccessAnalyzer {
 
     // MARK: - Classification
 
-    private enum Resolution {
+    enum Resolution {
         case local
         case typeName
         case immutableSelf
@@ -375,7 +275,7 @@ enum SelfAccessAnalyzer {
         "min", "max", "abs", "zip", "stride"
     ]
 
-    private static func resolveSelfProperty(
+    static func resolveSelfProperty(
         named name: String,
         storedProperties: [String: StoredProperty]
     ) -> Resolution {
@@ -487,78 +387,6 @@ enum SelfAccessAnalyzer {
                 cursor = current.parent
             }
             return false
-        }
-    }
-
-    // MARK: - Local bindings
-
-    /// Every name bound inside `method`: its parameters, and every pattern bound in its body —
-    /// `let`/`var` declarations, `if let`/`guard let`, `for … in`, `case let`, closure parameters.
-    private static func locallyBoundNames(of method: FunctionDeclSyntax) -> Set<String> {
-        var names: Set<String> = []
-
-        for parameter in method.signature.parameterClause.parameters {
-            // The *internal* name is what the body uses: in `for file: MacCloudFile`, the body
-            // says `file`, not `for`.
-            let internalName = parameter.secondName?.text ?? parameter.firstName.text
-            if internalName != "_" { names.insert(internalName) }
-        }
-
-        if let body = method.body {
-            let collector = LocalBindingCollector(viewMode: .sourceAccurate)
-            collector.walk(body)
-            names.formUnion(collector.names)
-        }
-        return names
-    }
-
-    final class LocalBindingCollector: SyntaxVisitor {
-        var names: Set<String> = []
-
-        /// **A shorthand optional binding is not a binding, it is a read.**
-        ///
-        /// Swift 5.7's `if let tagFilter` — no `=` — takes its value from whatever `tagFilter`
-        /// already meant, so the name is not introduced here and must not be recorded as local.
-        /// Leaving it out is the whole fix: the reference then falls through to
-        /// `resolveSelfProperty`, which admits a stored `let` as `.immutableSelf` and refuses a
-        /// stored `var` — the same answer the explicit `if let filter = self.tagFilter` spelling
-        /// already got. Recording it made a method reading mutable instance state report as a
-        /// function of its inputs, and seeded it into a manifest whose contract is that it names
-        /// pure functions (SwiftProjectLint#215).
-        ///
-        /// Nothing is lost in the legitimate shadowing case. `let value = compute()` followed by
-        /// `if let value` still resolves as a local, because the `let` bound the name and this
-        /// set is a union over the whole body — the shorthand had nothing to add. A parameter is
-        /// the same. What is left over is a name neither local nor a visible stored property — a
-        /// global, or a property declared in another file — and that refuses, which is this
-        /// analyzer's stated posture for everything it cannot see.
-        override func visit(_ node: IdentifierPatternSyntax) -> SyntaxVisitorContinueKind {
-            guard Self.isShorthandOptionalBinding(node) == false else { return .visitChildren }
-            names.insert(node.identifier.text)
-            return .visitChildren
-        }
-
-        /// Whether `node` is the whole pattern of an `if let x` / `guard let x` with no initializer.
-        ///
-        /// SwiftSyntax models the shorthand as an `OptionalBindingConditionSyntax` whose
-        /// `initializer` is `nil` and whose `pattern` is this identifier. The `= expr` form is a
-        /// genuine new binding and stays in `names`: there the name on the left is the author's
-        /// choice and the thing being read is spelled out on the right, where it is classified on
-        /// its own.
-        static func isShorthandOptionalBinding(_ node: IdentifierPatternSyntax) -> Bool {
-            guard let condition = node.parent?.as(OptionalBindingConditionSyntax.self),
-                  Syntax(condition.pattern).id == Syntax(node).id else { return false }
-            return condition.initializer == nil
-        }
-
-        override func visit(_ node: ClosureShorthandParameterSyntax) -> SyntaxVisitorContinueKind {
-            names.insert(node.name.text)
-            return .visitChildren
-        }
-
-        override func visit(_ node: ClosureParameterSyntax) -> SyntaxVisitorContinueKind {
-            names.insert(node.secondName?.text ?? node.firstName.text)
-            return .visitChildren
         }
     }
 }
