@@ -1,3 +1,4 @@
+// swiftlint:disable:next unused_import - pthread_self / pthread_get_stacksize_np need it; the analyzer misses that
 import Darwin
 @testable import SwiftProjectLintEngine
 import Testing

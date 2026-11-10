@@ -1,5 +1,4 @@
 import SwiftEffectInference
-import SwiftSyntax
 
 /// **What makes a piece of code impure, grouped the way a reader has to act on it.**
 ///
