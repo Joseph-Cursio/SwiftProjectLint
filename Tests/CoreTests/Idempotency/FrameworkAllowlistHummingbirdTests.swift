@@ -10,7 +10,7 @@ import Testing
 /// Split off from `FrameworkAllowlistGatingTests` so the base struct
 /// stays under SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkAllowlistHummingbirdTests {
+struct FrameworkAllowlistHummingbirdTests: FrameworkAllowlistTestSupport {
 
     // MARK: - Hummingbird primitives (framework-gated)
 

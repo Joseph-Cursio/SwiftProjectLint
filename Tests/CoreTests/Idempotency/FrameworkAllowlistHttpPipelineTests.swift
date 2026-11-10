@@ -11,7 +11,7 @@ import Testing
 /// this slot. Split off from `FrameworkAllowlistGatingTests` so the base
 /// struct stays under SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkAllowlistHttpPipelineTests {
+struct FrameworkAllowlistHttpPipelineTests: FrameworkAllowlistTestSupport {
 
     // MARK: - HttpPipeline pipeline primitives (framework-gated, slot 14)
 

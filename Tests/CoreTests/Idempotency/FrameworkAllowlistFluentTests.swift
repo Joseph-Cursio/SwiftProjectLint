@@ -9,7 +9,7 @@ import Testing
 /// alias (slot 19). Split off from `FrameworkAllowlistGatingTests` so the
 /// base struct stays under SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkAllowlistFluentTests {
+struct FrameworkAllowlistFluentTests: FrameworkAllowlistTestSupport {
 
     // MARK: - Fluent non-idempotent verbs (framework-gated, receiver-only)
 

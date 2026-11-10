@@ -10,7 +10,7 @@ import Testing
 /// module. Split off from `FrameworkAllowlistGatingTests` so the base
 /// struct stays under SwiftLint's `type_body_length` threshold.
 @Suite
-struct AllowlistCrossFrameworkParamsTests {
+struct AllowlistCrossFrameworkParamsTests: FrameworkAllowlistTestSupport {
 
     // MARK: - Cross-framework parameters.get / queryParameters.get (slot 18)
 

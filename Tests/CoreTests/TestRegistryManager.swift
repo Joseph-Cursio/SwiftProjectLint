@@ -44,13 +44,6 @@ enum TestRegistryManager {
         isInitialized = true
     }
 
-    /// Reset the shared registry to a clean state
-    static func resetSharedRegistry() {
-        sharedVisitorRegistry.clear()
-
-        isInitialized = false
-    }
-
     /// Create isolated instances for tests that need complete isolation
     static func createIsolatedInstances() -> IsolatedTestInstances {
         let visitorRegistry = PatternVisitorRegistry()

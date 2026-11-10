@@ -285,12 +285,4 @@ public enum FileAnalysisUtils {
     ) -> Bool {
         url.pathExtension == "swift" && !excludedFilenames.contains(url.lastPathComponent)
     }
-
-    /// Returns the canonical (symlink-resolved) path using POSIX `realpath(3)`.
-    /// Falls back to the input string if the path does not exist or resolution fails.
-    static func realPath(_ path: String) -> String {
-        var buffer = [CChar](repeating: 0, count: Int(PATH_MAX))
-        guard realpath(path, &buffer) != nil else { return path }
-        return String(cString: &buffer)
-    }
 }

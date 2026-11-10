@@ -83,11 +83,4 @@ public enum BuiltInRules {
             Testability(registry: registry, visitorRegistry: visitorRegistry)
         }
     }
-
-    /// Resets registration state. Used by tests to ensure a clean slate.
-    static func reset() {
-        lock.withLock {
-            registered = false
-        }
-    }
 }

@@ -7,7 +7,7 @@ import Testing
 /// Receiver-type gating fixtures for the heuristic inferrer: stdlib
 /// collection exclusions and user-defined receiver anchors.
 @Suite
-struct HeuristicInferenceReceiverGatingTests {
+struct HeuristicInferenceReceiverGatingTests: FrameworkAllowlistTestSupport {
 
     // MARK: - Receiver-type gating (Phase 2 second slice)
 

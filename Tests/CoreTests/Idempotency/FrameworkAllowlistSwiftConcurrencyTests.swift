@@ -10,7 +10,7 @@ import Testing
 /// `imports` set. Split off from `FrameworkAllowlistGatingTests` so the
 /// base struct stays under SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkAllowlistSwiftConcurrencyTests {
+struct FrameworkAllowlistSwiftConcurrencyTests: FrameworkAllowlistTestSupport {
 
     // MARK: - Swift Concurrency Task.sleep allowlist (slot 22)
 

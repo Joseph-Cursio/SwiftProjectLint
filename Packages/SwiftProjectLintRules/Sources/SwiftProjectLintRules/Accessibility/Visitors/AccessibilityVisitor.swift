@@ -43,11 +43,6 @@ class AccessibilityVisitor: BasePatternVisitor {
 
     // MARK: - Internal Access Methods for Checkers
 
-    /// Get the current pattern for issue reporting
-    internal var currentPattern: SyntaxPattern? {
-        pattern
-    }
-
     /// Get the current file path for issue reporting
     internal func getCurrentFilePath() -> String? {
         currentFilePath

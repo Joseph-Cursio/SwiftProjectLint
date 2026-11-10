@@ -12,7 +12,7 @@ import Testing
 ///   2. Config-gated — `enabledFrameworks` non-nil restricts the active
 ///      allowlist set even when imports would otherwise allow more.
 @Suite
-struct FrameworkAllowlistGatingTests {
+struct FrameworkAllowlistGatingTests: FrameworkAllowlistTestSupport {
 
     // MARK: - Empty imports (no framework gates fire)
 

@@ -11,7 +11,7 @@ import Testing
 /// `FrameworkAllowlistGatingTests` so the base struct stays under
 /// SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkAllowlistAWSLambdaTests {
+struct FrameworkAllowlistAWSLambdaTests: FrameworkAllowlistTestSupport {
 
     // MARK: - AWSLambdaRuntime response-writer primitives (framework-gated)
 

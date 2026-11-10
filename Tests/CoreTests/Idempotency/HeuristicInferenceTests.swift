@@ -10,7 +10,7 @@ import Testing
 /// style effect for un-annotated callees at the call site. Declared effects
 /// always win; inference is strictly a fallback.
 @Suite
-struct HeuristicInferenceTests {
+struct HeuristicInferenceTests: FrameworkAllowlistTestSupport {
 
     // MARK: - Non-idempotent name triggers
 

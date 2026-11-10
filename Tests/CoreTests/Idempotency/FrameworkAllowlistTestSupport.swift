@@ -2,63 +2,56 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
-// Shared helpers for the FrameworkAllowlist* test suites. Promoted to
-// module-scope so every split file can reach them without the verbose
-// `Type.` prefix that would push call sites past the line_length limit.
-// Other idempotency suites keep their own `private func firstCall/memberCall`
-// helpers — member lookup shadows these at usage sites inside those types,
-// so there is no ambiguity.
+/// The first call in a source snippet, outermost first.
+private final class FirstCallFinder: SyntaxVisitor {
+    var call: FunctionCallExprSyntax?
 
-// periphery:ignore
-/// Namespace marker. Required by SwiftLint's `file_name` rule, which
-/// expects this file to declare a type matching its name. The helpers
-/// below remain at module scope by design.
-///
-/// Unreferenced on purpose — the marker's whole job is to exist. Periphery
-/// reports it as unused, which is correct and useless, so it is silenced here
-/// rather than in `.periphery.yml`: the reason belongs next to the code. Note
-/// that only this enum is unused; `firstCall` and `memberCall` below have 250+
-/// call sites across the idempotency suites.
-enum FrameworkAllowlistTestSupport {}
-
-func firstCall(in source: String) throws -> FunctionCallExprSyntax {
-    final class Finder: SyntaxVisitor {
-        var call: FunctionCallExprSyntax?
-
-        init() { super.init(viewMode: .sourceAccurate) }
-        override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-            if call == nil { call = node }
-            return .skipChildren
-        }
+    init() { super.init(viewMode: .sourceAccurate) }
+    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        if call == nil { call = node }
+        return .skipChildren
     }
-    let finder = Finder()
-    finder.walk(Parser.parse(source: source))
-    return try #require(finder.call)
 }
 
-/// Locates a specific member-access call by method name in a source
-/// snippet. Needed to pick the terminal `.all()` / `.first()` etc.
-/// out of a chained expression where `firstCall` would return the
-/// outer-most call.
-func memberCall(method: String, in source: String) throws -> FunctionCallExprSyntax {
-    final class Finder: SyntaxVisitor {
-        let method: String
-        var call: FunctionCallExprSyntax?
+/// The first member-access call to `method` in a source snippet.
+private final class MemberCallFinder: SyntaxVisitor {
+    let method: String
+    var call: FunctionCallExprSyntax?
 
-        init(method: String) {
-            self.method = method
-            super.init(viewMode: .sourceAccurate)
-        }
-        override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-            if call == nil,
-               let member = node.calledExpression.as(MemberAccessExprSyntax.self),
-               member.declName.baseName.text == method {
-                call = node
-            }
-            return .visitChildren
-        }
+    init(method: String) {
+        self.method = method
+        super.init(viewMode: .sourceAccurate)
     }
-    let finder = Finder(method: method)
-    finder.walk(Parser.parse(source: source))
-    return try #require(finder.call, "expected a call to .\(method)")
+    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        if call == nil,
+           let member = node.calledExpression.as(MemberAccessExprSyntax.self),
+           member.declName.baseName.text == method {
+            call = node
+        }
+        return .visitChildren
+    }
+}
+
+/// Shared helpers for the FrameworkAllowlist*, HeuristicInference* and receiver-type suites,
+/// which conform to reach `firstCall(in:)` and `memberCall(method:in:)` without a type prefix.
+/// Suites with their own helper of the same name keep it: a member declared in the type
+/// shadows this extension's.
+protocol FrameworkAllowlistTestSupport {}
+
+extension FrameworkAllowlistTestSupport {
+    func firstCall(in source: String) throws -> FunctionCallExprSyntax {
+        let finder = FirstCallFinder()
+        finder.walk(Parser.parse(source: source))
+        return try #require(finder.call)
+    }
+
+    /// Locates a specific member-access call by method name in a source
+    /// snippet. Needed to pick the terminal `.all()` / `.first()` etc.
+    /// out of a chained expression where `firstCall` would return the
+    /// outer-most call.
+    func memberCall(method: String, in source: String) throws -> FunctionCallExprSyntax {
+        let finder = MemberCallFinder(method: method)
+        finder.walk(Parser.parse(source: source))
+        return try #require(finder.call, "expected a call to .\(method)")
+    }
 }

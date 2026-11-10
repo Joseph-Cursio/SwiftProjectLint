@@ -8,7 +8,7 @@ import Testing
 /// type constructors, `.init(...)` member-access form, codec-pattern
 /// methods, and metric-pattern methods.
 @Suite
-struct HeuristicFrameworkAllowlistTests {
+struct HeuristicFrameworkAllowlistTests: FrameworkAllowlistTestSupport {
 
     // MARK: - Framework allowlist — idempotent type constructors
     //

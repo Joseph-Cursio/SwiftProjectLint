@@ -7,7 +7,7 @@ import Testing
 /// Prefix-matching fixtures for the heuristic inferrer: verb prefixes,
 /// camelCase gating on negative forms, and stdlib-receiver suppression.
 @Suite
-struct HeuristicInferencePrefixMatchingTests {
+struct HeuristicInferencePrefixMatchingTests: FrameworkAllowlistTestSupport {
 
     // MARK: - Prefix matching (Phase 2 third slice — too-narrow fix)
 

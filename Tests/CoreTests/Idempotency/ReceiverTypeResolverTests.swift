@@ -8,7 +8,7 @@ import Testing
 /// parameter, local binding, stored property, `self.` prefix) and the
 /// `.unresolved` fallback.
 @Suite
-struct ReceiverTypeResolverTests {
+struct ReceiverTypeResolverTests: FrameworkAllowlistTestSupport {
 
     /// Finds a `MemberAccessExpr`-based call whose method name matches
     /// `method`. Returns the call (not just the receiver) so tests can

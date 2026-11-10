@@ -7,7 +7,6 @@ import Testing
 private class DummyVisitor: SyntaxVisitor, PatternVisitorProtocol {
     var detectedIssues: [LintIssue] = []
     var pattern: SyntaxPattern
-    var patternCategory: PatternCategory { .architecture }
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         self.pattern = pattern

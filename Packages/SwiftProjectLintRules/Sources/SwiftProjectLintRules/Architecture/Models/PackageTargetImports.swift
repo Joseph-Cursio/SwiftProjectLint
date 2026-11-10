@@ -67,17 +67,6 @@ struct PackageTargetImports {
         self.sitesByTarget = sites
     }
 
-    /// The module names of the same-package targets `target` declares; `nil` when its dependency
-    /// list could not be read.
-    func declaredLocalModules(of target: PackageManifest.Target) -> Set<String>? {
-        guard let dependencies = target.dependencies else { return nil }
-        return Set(
-            dependencies
-                .filter { $0.isPackageProduct == false }
-                .compactMap { targetsByName[$0.name]?.moduleName }
-        )
-    }
-
     private static func imports(in files: [String], fileCache: [String: SourceFileSyntax]) -> [Site] {
         files.flatMap { file -> [Site] in
             guard let source = fileCache[file] else { return [] }

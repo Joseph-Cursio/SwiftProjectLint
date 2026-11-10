@@ -10,7 +10,7 @@ import Testing
 /// `FrameworkAllowlistGatingTests` so the base struct stays under
 /// SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkAllowlistVaporTests {
+struct FrameworkAllowlistVaporTests: FrameworkAllowlistTestSupport {
 
     // MARK: - Vapor routing DSL allowlist (slot 17)
 
