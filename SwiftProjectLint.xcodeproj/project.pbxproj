@@ -628,7 +628,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if which /opt/homebrew/bin/swiftlint >/dev/null; then\n  /opt/homebrew/bin/swiftlint\nelse\n  echo \"warning: SwiftLint not installed. Download from https://github.com/realm/SwiftLint\"\nfi\n";
+			shellScript = "# .swiftlint.yml takes its rules from ../SwiftLintConfig (github.com/Joseph-Cursio/SwiftLintConfig).\n# Without it SwiftLint would fall back to its defaults and flood the build with rules this project does not use.\nif [ ! -f \"${SRCROOT}/../SwiftLintConfig/.swiftlint.yml\" ]; then\n  echo \"warning: Shared SwiftLint config not found — clone github.com/Joseph-Cursio/SwiftLintConfig next to this repo to lint on build.\"\n  exit 0\nfi\n\nif which /opt/homebrew/bin/swiftlint >/dev/null; then\n  /opt/homebrew/bin/swiftlint\nelse\n  echo \"warning: SwiftLint not installed. Download from https://github.com/realm/SwiftLint\"\nfi\n";
 		};
 		28AF0D062E3AAAAC00861DDB /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -645,7 +645,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if which /opt/homebrew/bin/swiftlint >/dev/null; then\n  /opt/homebrew/bin/swiftlint\nelse\n  echo \"warning: SwiftLint not installed. Download from https://github.com/realm/SwiftLint\"\nfi\n";
+			shellScript = "# .swiftlint.yml takes its rules from ../SwiftLintConfig (github.com/Joseph-Cursio/SwiftLintConfig).\n# Without it SwiftLint would fall back to its defaults and flood the build with rules this project does not use.\nif [ ! -f \"${SRCROOT}/../SwiftLintConfig/.swiftlint.yml\" ]; then\n  echo \"warning: Shared SwiftLint config not found — clone github.com/Joseph-Cursio/SwiftLintConfig next to this repo to lint on build.\"\n  exit 0\nfi\n\nif which /opt/homebrew/bin/swiftlint >/dev/null; then\n  /opt/homebrew/bin/swiftlint\nelse\n  echo \"warning: SwiftLint not installed. Download from https://github.com/realm/SwiftLint\"\nfi\n";
 		};
 		28AF0D072E3AAAB600861DDB /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -662,7 +662,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if which /opt/homebrew/bin/swiftlint >/dev/null; then\n  /opt/homebrew/bin/swiftlint\nelse\n  echo \"warning: SwiftLint not installed. Download from https://github.com/realm/SwiftLint\"\nfi\n";
+			shellScript = "# .swiftlint.yml takes its rules from ../SwiftLintConfig (github.com/Joseph-Cursio/SwiftLintConfig).\n# Without it SwiftLint would fall back to its defaults and flood the build with rules this project does not use.\nif [ ! -f \"${SRCROOT}/../SwiftLintConfig/.swiftlint.yml\" ]; then\n  echo \"warning: Shared SwiftLint config not found — clone github.com/Joseph-Cursio/SwiftLintConfig next to this repo to lint on build.\"\n  exit 0\nfi\n\nif which /opt/homebrew/bin/swiftlint >/dev/null; then\n  /opt/homebrew/bin/swiftlint\nelse\n  echo \"warning: SwiftLint not installed. Download from https://github.com/realm/SwiftLint\"\nfi\n";
 		};
 		28AF0D082E3AAABF00861DDB /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -679,7 +679,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if which /opt/homebrew/bin/swiftlint >/dev/null; then\n  /opt/homebrew/bin/swiftlint\nelse\n  echo \"warning: SwiftLint not installed. Download from https://github.com/realm/SwiftLint\"\nfi\n";
+			shellScript = "# .swiftlint.yml takes its rules from ../SwiftLintConfig (github.com/Joseph-Cursio/SwiftLintConfig).\n# Without it SwiftLint would fall back to its defaults and flood the build with rules this project does not use.\nif [ ! -f \"${SRCROOT}/../SwiftLintConfig/.swiftlint.yml\" ]; then\n  echo \"warning: Shared SwiftLint config not found — clone github.com/Joseph-Cursio/SwiftLintConfig next to this repo to lint on build.\"\n  exit 0\nfi\n\nif which /opt/homebrew/bin/swiftlint >/dev/null; then\n  /opt/homebrew/bin/swiftlint\nelse\n  echo \"warning: SwiftLint not installed. Download from https://github.com/realm/SwiftLint\"\nfi\n";
 		};
 		28BFF6752E3999D200ECC6D1 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -696,7 +696,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if which /opt/homebrew/bin/swiftlint >/dev/null; then\n  /opt/homebrew/bin/swiftlint\nelse\n  echo \"warning: SwiftLint not installed. Download from https://github.com/realm/SwiftLint\"\nfi\n";
+			shellScript = "# .swiftlint.yml takes its rules from ../SwiftLintConfig (github.com/Joseph-Cursio/SwiftLintConfig).\n# Without it SwiftLint would fall back to its defaults and flood the build with rules this project does not use.\nif [ ! -f \"${SRCROOT}/../SwiftLintConfig/.swiftlint.yml\" ]; then\n  echo \"warning: Shared SwiftLint config not found — clone github.com/Joseph-Cursio/SwiftLintConfig next to this repo to lint on build.\"\n  exit 0\nfi\n\nif which /opt/homebrew/bin/swiftlint >/dev/null; then\n  /opt/homebrew/bin/swiftlint\nelse\n  echo \"warning: SwiftLint not installed. Download from https://github.com/realm/SwiftLint\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
