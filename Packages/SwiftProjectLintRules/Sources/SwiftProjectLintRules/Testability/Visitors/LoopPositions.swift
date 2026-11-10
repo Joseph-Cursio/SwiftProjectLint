@@ -106,7 +106,8 @@ enum LoopPositions {
         if unwrappedSequence.as(MemberAccessExprSyntax.self)?.declName.baseName.text == "indices" {
             return true
         }
-        guard let elements = unwrappedSequence.as(SequenceExprSyntax.self).map({ Array($0.elements) }), elements.count >= 3,
+        guard let elements = unwrappedSequence.as(SequenceExprSyntax.self).map({ Array($0.elements) }),
+              elements.count >= 3,
               isFirstPosition(elements[0]),
               let range = elements[1].as(BinaryOperatorExprSyntax.self)?.operator.text else {
             return false

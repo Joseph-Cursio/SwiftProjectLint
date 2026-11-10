@@ -84,11 +84,8 @@ struct DeepReportedFileTests {
     ]
 
     @Test(
-
         "a rule once quadratic in a chain lints it in about the time its calls take unnested",
-
         arguments: rulesOnceQuadraticInAChain
-
     )
     func nestingCostsNothing(rule: RuleIdentifier) async throws {
         // A regression in one rule can hide in the other rules' time in the default-rules ratio

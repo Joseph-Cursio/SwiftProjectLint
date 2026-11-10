@@ -7,21 +7,34 @@ import ViewInspector
 
 // MARK: - Helper for building test patterns
 
+/// One category of a test dialog: its case, its display name, and its rules with suggestions.
+private struct CategoryFixture {
+    let category: PatternCategory
+    let display: String
+    let rules: [(RuleIdentifier, String)]
+
+    init(_ category: PatternCategory, _ display: String, _ rules: [(RuleIdentifier, String)]) {
+        self.category = category
+        self.display = display
+        self.rules = rules
+    }
+}
+
 @MainActor
 private func makePatterns(
-    categories: [(PatternCategory, String, [(RuleIdentifier, String)])]
+    categories: [CategoryFixture]
 ) -> [PatternCategoryInfo] {
-    categories.map { category, display, rules in
+    categories.map { fixture in
         PatternCategoryInfo(
-            category: category,
-            display: display,
-            patterns: rules.map { ruleName, suggestion in
+            category: fixture.category,
+            display: fixture.display,
+            patterns: fixture.rules.map { ruleName, suggestion in
                 DetectionPattern(
                     name: ruleName,
                     severity: .warning,
                     message: ruleName.rawValue,
                     suggestion: suggestion,
-                    category: category
+                    category: fixture.category
                 )
             },
             useSwiftSyntax: true
@@ -76,11 +89,11 @@ struct RuleSelectionDialogTests {
     @Test("displays multiple categories with their patterns")
     func displaysMultipleCategories() throws {
         let patterns = makePatterns(categories: [
-            (.stateManagement, "State Management", [
+            CategoryFixture(.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Consolidate state"),
                 (.missingStateObject, "Use @StateObject"),
             ]),
-            (.performance, "Performance", [
+            CategoryFixture(.performance, "Performance", [
                 (.expensiveOperationInViewBody, "Move to onAppear")
             ]),
         ])
@@ -114,12 +127,12 @@ struct RuleSelectionDialogTests {
     @Test("shows correct number of toggles for multiple patterns")
     func correctToggleCount() throws {
         let patterns = makePatterns(categories: [
-            (.stateManagement, "State Management", [
+            CategoryFixture(.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Fix 1"),
                 (.missingStateObject, "Fix 2"),
                 (.uninitializedStateVariable, "Fix 3"),
             ]),
-            (.performance, "Performance", [
+            CategoryFixture(.performance, "Performance", [
                 (.expensiveOperationInViewBody, "Fix 4")
             ]),
         ])
@@ -143,11 +156,11 @@ struct RuleSelectionDialogTests {
     @Test("Select All button enables all rules")
     func selectAllEnablesAllRules() throws {
         let patterns = makePatterns(categories: [
-            (.stateManagement, "State Management", [
+            CategoryFixture(.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Fix"),
                 (.missingStateObject, "Fix"),
             ]),
-            (.performance, "Performance", [
+            CategoryFixture(.performance, "Performance", [
                 (.expensiveOperationInViewBody, "Fix")
             ]),
         ])
@@ -181,7 +194,7 @@ struct RuleSelectionDialogTests {
     @Test("Reset to Default sets only the default rule")
     func resetToDefaultSetsDefaultRule() throws {
         let patterns = makePatterns(categories: [
-            (.stateManagement, "State Management", [
+            CategoryFixture(.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Fix"),
                 (.missingStateObject, "Fix"),
             ]),
@@ -213,7 +226,7 @@ struct RuleSelectionDialogTests {
     @Test("Save button calls onSave closure")
     func saveButtonCallsOnSave() throws {
         let patterns = makePatterns(categories: [
-            (.stateManagement, "State Management", [
+            CategoryFixture(.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Fix")
             ]),
         ])
@@ -244,7 +257,7 @@ struct RuleSelectionDialogTests {
     @Test("toggling a rule on adds it to enabled set")
     func toggleOnAddsRule() throws {
         let patterns = makePatterns(categories: [
-            (.stateManagement, "State Management", [
+            CategoryFixture(.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Fix")
             ]),
         ])
@@ -272,7 +285,7 @@ struct RuleSelectionDialogTests {
     @Test("toggling a rule off removes it from enabled set")
     func toggleOffRemovesRule() throws {
         let patterns = makePatterns(categories: [
-            (.stateManagement, "State Management", [
+            CategoryFixture(.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Fix")
             ]),
         ])
@@ -344,7 +357,7 @@ struct RuleSelectionDialogTests {
     @Test("each pattern displays its suggestion in caption text")
     func patternSuggestionDisplayed() throws {
         let patterns = makePatterns(categories: [
-            (.codeQuality, "Code Quality", [
+            CategoryFixture(.codeQuality, "Code Quality", [
                 (.fatView, "Split into smaller views")
             ]),
         ])

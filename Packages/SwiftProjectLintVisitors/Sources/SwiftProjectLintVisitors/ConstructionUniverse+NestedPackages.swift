@@ -78,6 +78,31 @@ extension ConstructionUniverse {
         return collector.isReadable ? collector.paths : nil
     }
 
+    /// A package tree's root and how to read under it: what
+    /// ``compiledNestedPackages(_:reported:rootHasManifest:in:)`` asks of the file system.
+    public struct PackageTree {
+        /// The root's absolute path, which an absolute dependency path must lie under once both
+        /// are resolved.
+        public let rootPath: String
+        /// An absolute path's canonical form — symlinks resolved and the on-disk letter case, as
+        /// `realpath(3)` gives it — or the path itself when it does not resolve.
+        public let resolvingSymlinks: (String) -> String
+        /// Every manifest a directory, given relative to the resolved root (`""` is the root),
+        /// holds — `Package.swift` and each `Package@swift-*.swift` (`manifests(inDirectory:)`).
+        public let manifests: (String) -> [Manifest]
+
+        /// A tree rooted at `rootPath`, read through the two functions.
+        public init(
+            rootPath: String,
+            resolvingSymlinks: @escaping (String) -> String,
+            manifests: @escaping (String) -> [Manifest]
+        ) {
+            self.rootPath = rootPath
+            self.resolvingSymlinks = resolvingSymlinks
+            self.manifests = manifests
+        }
+    }
+
     /// The nested packages, of `nestedPackages`, whose files are in the universe.
     ///
     /// - Parameters:
@@ -87,22 +112,18 @@ extension ConstructionUniverse {
     ///     construction of them as pure.
     ///   - rootHasManifest: whether the root itself holds a manifest and nothing else builds it —
     ///     false beside an Xcode project (`holdsXcodeProject(directory:)`).
-    ///   - rootPath: the root's absolute path, which an absolute dependency path must lie under once
-    ///     both are resolved.
-    ///   - resolvingSymlinks: an absolute path's canonical form — symlinks resolved and the on-disk
-    ///     letter case, as `realpath(3)` gives it — or the path itself when it does not resolve.
-    ///   - manifests: every manifest a directory, given relative to the resolved root (`""` is the
-    ///     root), holds — `Package.swift` and each `Package@swift-*.swift` (`manifests(inDirectory:)`).
-    ///     Their dependencies are taken together, and doubt in any one — an unreadable manifest, a
-    ///     `path:` that is not a literal — is doubt, so every nested package is in.
+    ///   - tree: the root, its path resolver and its manifest reader (``PackageTree``). A
+    ///     directory's manifests are taken together, and doubt in any one — an unreadable manifest,
+    ///     a `path:` that is not a literal — is doubt, so every nested package is in.
     public static func compiledNestedPackages(
         _ nestedPackages: Set<String>,
         reported: Set<String>,
         rootHasManifest: Bool,
-        rootPath: String,
-        resolvingSymlinks: (String) -> String,
-        manifests: (String) -> [Manifest]
+        in tree: PackageTree
     ) -> Set<String> {
+        let rootPath = tree.rootPath
+        let resolvingSymlinks = tree.resolvingSymlinks
+        let manifests = tree.manifests
         guard rootHasManifest, !nestedPackages.isEmpty else { return nestedPackages }
         var closure = Closure(nestedPackages, rootPath: rootPath, resolvingSymlinks: resolvingSymlinks)
         closure.enter("")

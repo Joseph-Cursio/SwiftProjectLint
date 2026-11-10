@@ -1,13 +1,13 @@
 diff --git a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
-index 2a8ed8fe..3613e128 100644
+index 7714b422..d1673a33 100644
 --- a/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
 +++ b/Packages/SwiftProjectLintEngine/Sources/SwiftProjectLintEngine/ProjectLinter+Purity.swift
-@@ -117,7 +117,7 @@ extension ProjectLinter {
+@@ -132,7 +132,7 @@ extension ProjectLinter {
          let shared = await parseOnce(files, projectRoot: projectRoot)
          let analysable = shared.filter { $0.value.content != nil }
          guard let universe = files.constructionUniverse else {
--            return (.withheld(by: tripwire), analysable, nil)
-+            return (.unconfigured, analysable, nil)
+-            return SharedParse(purity: .withheld(by: tripwire), analysable: analysable, judged: nil)
++            return SharedParse(purity: .unconfigured, analysable: analysable, judged: nil)
          }
          let sources = constructionSources(universe, in: shared)
          let trees = sources.map { (relativePath: $0.relativePath, tree: $0.tree) }

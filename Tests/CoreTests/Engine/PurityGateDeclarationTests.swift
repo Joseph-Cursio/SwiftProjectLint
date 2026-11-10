@@ -197,19 +197,17 @@ struct PurityGateDeclarationTests {
         #expect(gated.reportable == open.reportable)
 
         let tripwire = PurityTripwire()
-        let (purity, shared, judged) = await ProjectLinter.sharedParse(
-            gated, projectRoot: path, withholdingBy: tripwire
-        )
-        #expect(purity.isWithheld)
-        #expect(judged == nil, "a withheld table was built from no files, which is not the same as none")
-        #expect(shared.keys.contains { $0.hasSuffix("Stamp.swift") } == false)
+        let parse = await ProjectLinter.sharedParse(gated, projectRoot: path, withholdingBy: tripwire)
+        #expect(parse.purity.isWithheld)
+        #expect(parse.judged == nil, "a withheld table was built from no files, which is not the same as none")
+        #expect(parse.analysable.keys.contains { $0.hasSuffix("Stamp.swift") } == false)
         #expect(tripwire.recorded.isEmpty)
 
         // A resolved universe that holds nothing builds an empty table; it is not withheld.
         let empty = ProjectLinter.DiscoveredFiles(reportable: [], evidenceOnly: [], constructionUniverse: [])
-        let (built, _, builtFrom) = await ProjectLinter.sharedParse(empty, projectRoot: path, withholdingBy: tripwire)
-        #expect(built.isWithheld == false)
-        #expect(builtFrom?.isEmpty == true, "a resolved universe that holds nothing was built from no file")
+        let built = await ProjectLinter.sharedParse(empty, projectRoot: path, withholdingBy: tripwire)
+        #expect(built.purity.isWithheld == false)
+        #expect(built.judged?.isEmpty == true, "a resolved universe that holds nothing was built from no file")
     }
 
     @Test("a run narrowed by flags or by configuration takes no universe walk; one that reads purity does")

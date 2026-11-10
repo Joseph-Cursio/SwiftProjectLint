@@ -198,7 +198,7 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
             let reportable = members.filter { conformsToCovering($0, coreNames: coreNames) == false }
             guard reportable.count >= Self.minimumClusterSize else { continue }
 
-            let locations = reportable.map { (name: $0.name, file: $0.file, line: $0.line) }
+            let locations = reportable.map { PeerLabeling.Member(name: $0.name, file: $0.file, line: $0.line) }
             let conformNames = PeerLabeling.distinctNames(reportable.map(\.name))
             let propertyList = core.map(\.name).sorted().joined(separator: ", ")
             for shape in reportable {

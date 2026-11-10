@@ -129,14 +129,16 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
     /// At most two passes, and the second only when the first tripped: it builds `.everything`, so
     /// it withholds nothing and cannot trip in turn.
     ///
+    /// The other parameters and their defaults are `analyzeProject`'s.
+    ///
     /// - Parameter forced: the demand to build regardless of the declarations; `nil` derives it.
     func lint(
         at path: String,
         targetType: TargetType,
-        categories: [PatternCategory]?,
-        ruleIdentifiers: [RuleIdentifier]?,
-        detector: (any SourcePatternDetectorProtocol)?,
-        configuration: LintConfiguration,
+        categories: [PatternCategory]? = nil,
+        ruleIdentifiers: [RuleIdentifier]? = nil,
+        detector: (any SourcePatternDetectorProtocol)? = nil,
+        configuration: LintConfiguration = .default,
         demand forced: PurityDemand? = nil
     ) async -> LintRun {
         let effectiveConfiguration = Self.resolveConfiguration(
@@ -198,7 +200,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         // Every file is read and parsed once, and the package purity is built from those same
         // trees: SEI matches by node identity, so the facts and the verdicts that consult them
         // must share a parse. When discovery resolved no universe, the table is withheld instead.
-        let (purity, shared, judged) = await Self.sharedParse(files, projectRoot: request.path, withholdingBy: tripwire)
+        let parse = await Self.sharedParse(files, projectRoot: request.path, withholdingBy: tripwire)
         let project = DiscoveredProject(
             path: request.path,
             files: files,
@@ -206,10 +208,10 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             categories: request.categories,
             effectiveRules: request.effectiveRules,
             detector: request.detector,
-            shared: shared,
+            shared: parse.analysable,
             demand: demand,
             tripwire: tripwire,
-            judgedFiles: judged
+            judgedFiles: parse.judged
         )
 
         // Bound once, around the pre-scan, the per-file task group and cross-file analysis: every
@@ -217,7 +219,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         // them walks every reported file as deep as it nests, so they run on large stacks — still
         // on the task tree, which is what carries the binding.
         let issues = await LargeStackWorkers.withExecutor {
-            await PackagePurity.$current.withValue(purity) {
+            await PackagePurity.$current.withValue(parse.purity) {
                 await analyzeDiscovered(project)
             }
         }
@@ -251,15 +253,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
 
         let perFile = await Self.runPerFileAnalysis(
             filePaths: project.files.reportable,
-            env: Self.makeEnvironment(
-                projectRoot: path,
-                registry: registry,
-                categories: effectiveRules != nil ? nil : categories,
-                ruleIdentifiers: effectiveRules,
-                collected: collected,
-                configuration: effectiveConfiguration,
-                shared: project.shared
-            )
+            env: Self.makeEnvironment(for: project, registry: registry, collected: collected)
         )
         var issues = perFile.issues
 
@@ -283,10 +277,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                 evidenceRelativePaths: Set(evidenceFiles.map(\.file.relativePath))
             ),
             registry: registry,
-            projectRoot: path,
-            categories: categories,
-            effectiveRules: effectiveRules,
-            configuration: effectiveConfiguration
+            project: project
         )
         issues.append(contentsOf: Self.applyInlineSuppression(
             to: crossFilePatternIssues,
@@ -392,17 +383,21 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
         )
     }
 
+    /// What per-file analysis produced: every file, every finding, and each file's tree by path.
+    private struct PerFileAnalysis {
+        let files: [ProjectFile]
+        let issues: [LintIssue]
+        let astCache: [String: SourceFileSyntax]
+    }
+
     /// Per-file I/O and analysis — throttled to avoid memory exhaustion on large projects by
     /// keeping at most `activeProcessorCount` files in flight and refilling as each completes.
     private static func runPerFileAnalysis(
         filePaths: [String],
         env: FileAnalysisEnvironment
-    ) async -> (files: [ProjectFile], issues: [LintIssue], astCache: [String: SourceFileSyntax]) {
+    ) async -> PerFileAnalysis {
         let maxConcurrency = max(ProcessInfo.processInfo.activeProcessorCount, 1)
-        return await withTaskGroup(
-            of: (file: ProjectFile, issues: [LintIssue],
-                 parsedAST: SourceFileSyntax)?.self
-        ) { group in
+        return await withTaskGroup(of: AnalyzedFile?.self) { group in
             var iterator = filePaths.makeIterator()
             for _ in 0..<maxConcurrency {
                 guard let filePath = iterator.next() else { break }
@@ -422,7 +417,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
                     group.addTask { analyzeFile(at: filePath, env: env) }
                 }
             }
-            return (allFiles, allIssues, astCache)
+            return PerFileAnalysis(files: allFiles, issues: allIssues, astCache: astCache)
         }
     }
 
@@ -440,11 +435,12 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
     private func runCrossFileAnalysis(
         _ input: CrossFileInput,
         registry: PatternVisitorRegistry,
-        projectRoot: String,
-        categories: [PatternCategory]?,
-        effectiveRules: [RuleIdentifier]?,
-        configuration: LintConfiguration
+        project: DiscoveredProject
     ) -> [LintIssue] {
+        let projectRoot = project.path
+        let categories = project.categories
+        let effectiveRules = project.effectiveRules
+        let configuration = project.configuration
         let crossFileEngine = crossFileAnalyzerFactory(registry)
         crossFileEngine.enabledFrameworkAllowlists = configuration.enabledFrameworkAllowlists
         crossFileEngine.executableSourcePaths =

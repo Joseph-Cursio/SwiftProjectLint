@@ -95,13 +95,21 @@ struct ReportOrderDeterminismLawsTests {
 
     /// A function rather than a stored `static let`: `any IssueFormatterProtocol` is not `Sendable`,
     /// and a global holding one is shared mutable state as far as the compiler is concerned.
-    private static func witnesses() -> [(name: String, pair: [LintIssue], formatter: any IssueFormatterProtocol)] {
+    private static func witnesses() -> [Witness] {
         [
-            ("severity", severityPair, JSONFormatter()),
-            ("locations tail", locationTailPair, JSONFormatter()),
-            ("suggestion nil vs \"\"", nilVersusEmptyPair, JSONFormatter()),
-            ("seed role", seedRolePair, PBTSeedsFormatter()),
+            Witness(name: "severity", pair: severityPair, formatter: JSONFormatter()),
+            Witness(name: "locations tail", pair: locationTailPair, formatter: JSONFormatter()),
+            Witness(name: "suggestion nil vs \"\"", pair: nilVersusEmptyPair, formatter: JSONFormatter()),
+            Witness(name: "seed role", pair: seedRolePair, formatter: PBTSeedsFormatter()),
         ]
+    }
+
+    /// A pair of findings that tied under the old comparator, and a formatter that renders them
+    /// differently.
+    private struct Witness {
+        let name: String
+        let pair: [LintIssue]
+        let formatter: any IssueFormatterProtocol
     }
 
     /// The instant every `HTMLFormatter` in these laws reports as its generation time.
@@ -127,7 +135,9 @@ struct ReportOrderDeterminismLawsTests {
     /// that went blind, L2 names the format that observed it.
     @Test
     func everyRenderedFieldIsComparedByPrecedes() {
-        for (name, pair, _) in Self.witnesses() {
+        for witness in Self.witnesses() {
+            let name = witness.name
+            let pair = witness.pair
             let forward = LintIssue.precedes(pair[0], pair[1])
             let backward = LintIssue.precedes(pair[1], pair[0])
 
@@ -151,7 +161,10 @@ struct ReportOrderDeterminismLawsTests {
     /// equal elements, which is precisely what the ordering exists to remove.
     @Test
     func tiedFindingsAreIndistinguishableInEveryFormat() {
-        for (name, pair, formatter) in Self.witnesses() {
+        for witness in Self.witnesses() {
+            let name = witness.name
+            let pair = witness.pair
+            let formatter = witness.formatter
             let forward = formatter.format(issues: pair.sortedForReporting())
             let backward = formatter.format(issues: pair.reversed().sortedForReporting())
 

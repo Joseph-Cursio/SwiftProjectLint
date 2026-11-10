@@ -113,7 +113,7 @@ final class InspectionChainEvaluator {
         // A toolbar's only child. On a custom view's body `[0]` is the first of its views, below.
         if state.kind == .singleChild, index == "0" {
             return receiver.then(InspectionStep.oneLevelDown(
-                from: state, to: .found, ownership: state.ownership, step: "[0]", written: "[0]", node: step.node
+                from: state, to: .found, step: "[0]", written: "[0]", node: step.node
             ))
         }
         if key.map(isLoopOverEveryPosition) == true {
@@ -158,7 +158,7 @@ final class InspectionChainEvaluator {
         }
         if state.kind == .singleChild, name == "first" {
             return receiver.then(InspectionStep.oneLevelDown(
-                from: state, to: .found, ownership: state.ownership, step: ".first", written: ".first", node: node
+                from: state, to: .found, step: ".first", written: ".first", node: node
             ))
         }
         guard state.isDataReceiver == false else { return receiver.then(ChainEvaluation(state: state.element)) }

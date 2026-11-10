@@ -7,21 +7,34 @@ import ViewInspector
 
 // MARK: - Helper for building test patterns
 
+/// One category of a test dialog: its case, its display name, and its rules with suggestions.
+private struct BulkCategoryFixture {
+    let category: PatternCategory
+    let display: String
+    let rules: [(RuleIdentifier, String)]
+
+    init(_ category: PatternCategory, _ display: String, _ rules: [(RuleIdentifier, String)]) {
+        self.category = category
+        self.display = display
+        self.rules = rules
+    }
+}
+
 @MainActor
 private func makeBulkPatterns(
-    categories: [(PatternCategory, String, [(RuleIdentifier, String)])]
+    categories: [BulkCategoryFixture]
 ) -> [PatternCategoryInfo] {
-    categories.map { category, display, rules in
+    categories.map { fixture in
         PatternCategoryInfo(
-            category: category,
-            display: display,
-            patterns: rules.map { ruleName, suggestion in
+            category: fixture.category,
+            display: fixture.display,
+            patterns: fixture.rules.map { ruleName, suggestion in
                 DetectionPattern(
                     name: ruleName,
                     severity: .warning,
                     message: ruleName.rawValue,
                     suggestion: suggestion,
-                    category: category
+                    category: fixture.category
                 )
             },
             useSwiftSyntax: true
@@ -45,7 +58,7 @@ struct RuleSelectionDialogBulkActionTests {
         // it set after emptying the enabled set shows the configuration of a rule the list no
         // longer offers.
         let patterns = makeBulkPatterns(categories: [
-            (.stateManagement, "State Management", [
+            BulkCategoryFixture(.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Fix"),
                 (.missingStateObject, "Fix"),
             ]),
@@ -73,7 +86,7 @@ struct RuleSelectionDialogBulkActionTests {
         // The dialog's suite passed `.constant([:])` for this binding, so a Reset that forgot to
         // clear exclusions would have gone unnoticed.
         let patterns = makeBulkPatterns(categories: [
-            (.stateManagement, "State Management", [(.missingStateObject, "Fix")])
+            BulkCategoryFixture(.stateManagement, "State Management", [(.missingStateObject, "Fix")])
         ])
         var enabled: Set<RuleIdentifier> = []
         var exclusions: [RuleIdentifier: RuleExclusions] = [
@@ -103,7 +116,7 @@ struct RuleSelectionDialogBulkActionTests {
         // the linter has. With a two-rule pattern list the two differ by every other identifier,
         // and nothing in the code said so until the methods were named.
         let patterns = makeBulkPatterns(categories: [
-            (.stateManagement, "State Management", [
+            BulkCategoryFixture(.stateManagement, "State Management", [
                 (.relatedDuplicateStateVariable, "Fix"),
                 (.missingStateObject, "Fix"),
             ]),

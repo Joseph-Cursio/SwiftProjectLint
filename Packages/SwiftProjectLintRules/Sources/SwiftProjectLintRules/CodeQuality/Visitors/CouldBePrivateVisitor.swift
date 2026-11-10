@@ -15,7 +15,14 @@ final class CouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
     static let packagePurityInputs: PackagePurityInputs = [.oracle]
 
     /// Tracks where each type name is declared: typeName → fileName
-    private var declarations: [(name: String, file: String, node: Syntax)] = []
+    /// A top-level type declaration: its name, its file, and its node.
+    private struct Declaration {
+        let name: String
+        let file: String
+        let node: Syntax
+    }
+
+    private var declarations: [Declaration] = []
 
     /// Tracks which files reference each type name: typeName → Set<fileName>
     private var references: [String: Set<String>] = [:]
@@ -237,7 +244,7 @@ final class CouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
         // Skip types that already have explicit access control
         guard !modifiers.hasExplicitAccessControl else { return }
 
-        declarations.append((name: name, file: currentFilePath, node: node))
+        declarations.append(Declaration(name: name, file: currentFilePath, node: node))
         declaredTypeNames.insert(name)
     }
 

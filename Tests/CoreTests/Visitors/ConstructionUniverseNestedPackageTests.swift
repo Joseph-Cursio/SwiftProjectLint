@@ -152,9 +152,11 @@ struct ConstructionUniverseNestedPackageTests {
             packages,
             reported: reported,
             rootHasManifest: rootHasManifest,
-            rootPath: "/work/App",
-            resolvingSymlinks: { $0 },
-            manifests: reading(manifests, versioned: versioned, unreadable: unreadable)
+            in: ConstructionUniverse.PackageTree(
+                rootPath: "/work/App",
+                resolvingSymlinks: { $0 },
+                manifests: reading(manifests, versioned: versioned, unreadable: unreadable)
+            )
         )
     }
 
@@ -217,9 +219,11 @@ struct ConstructionUniverseNestedPackageTests {
             ["A", "A/B", "C"],
             reported: [],
             rootHasManifest: true,
-            rootPath: "/work/App",
-            resolvingSymlinks: { $0 },
-            manifests: Self.reading(["": #".package(path: "A")"#, "A": #".target(name: "A", path: ".")"#])
+            in: ConstructionUniverse.PackageTree(
+                rootPath: "/work/App",
+                resolvingSymlinks: { $0 },
+                manifests: Self.reading(["": #".package(path: "A")"#, "A": #".target(name: "A", path: ".")"#])
+            )
         )
         #expect(nested == ["A", "A/B"])
         // A target path that is not a literal is doubt.
@@ -293,9 +297,11 @@ struct ConstructionUniverseNestedPackageTests {
                 Self.packages,
                 reported: [],
                 rootHasManifest: true,
-                rootPath: rootPath,
-                resolvingSymlinks: resolve,
-                manifests: Self.reading(manifests)
+                in: ConstructionUniverse.PackageTree(
+                    rootPath: rootPath,
+                    resolvingSymlinks: resolve,
+                    manifests: Self.reading(manifests)
+                )
             )
             #expect(reached == ["Vendor/Lib", "Demo"], "root spelled \(rootPath)")
         }

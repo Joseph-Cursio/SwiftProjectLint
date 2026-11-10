@@ -189,17 +189,19 @@ extension ProjectLinter {
         return resolved
     }
 
-    /// Spreads the bundled catalogs back into the flat per-file environment.
+    /// Spreads the bundled catalogs back into the flat per-file environment for `project`. The
+    /// rules a run selects narrow it by rule when there are any, else by category.
     static func makeEnvironment(
-        projectRoot: String,
+        for project: DiscoveredProject,
         registry: PatternVisitorRegistry,
-        categories: [PatternCategory]?,
-        ruleIdentifiers: [RuleIdentifier]?,
-        collected: CollectedTypes,
-        configuration: LintConfiguration,
-        shared: [String: SharedSource] = [:]
+        collected: CollectedTypes
     ) -> FileAnalysisEnvironment {
-        FileAnalysisEnvironment(
+        let projectRoot = project.path
+        let ruleIdentifiers = project.effectiveRules
+        let categories = ruleIdentifiers != nil ? nil : project.categories
+        let configuration = project.configuration
+        let shared = project.shared
+        return FileAnalysisEnvironment(
             projectRoot: projectRoot,
             registry: registry,
             categories: categories,

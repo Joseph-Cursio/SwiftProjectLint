@@ -57,11 +57,8 @@ struct PackagePurityRobustnessTests {
     static let deepSources = ["else-if chain": elseIfChain, "member chain": memberChain]
 
     @Test(
-
         "a deep file in a dependency package does not take the run down",
-
         arguments: ["else-if chain", "member chain"]
-
     )
     func deepDependencyFileIsSurvived(name: String) async throws {
         let source = try #require(Self.deepSources[name])
@@ -84,11 +81,8 @@ struct PackagePurityRobustnessTests {
     }
 
     @Test(
-
         "a deep manifest in a dependency package does not take the run down",
-
         arguments: ["else-if chain", "member chain"]
-
     )
     func deepDependencyManifestIsSurvived(name: String) async throws {
         let source = try #require(Self.deepSources[name])

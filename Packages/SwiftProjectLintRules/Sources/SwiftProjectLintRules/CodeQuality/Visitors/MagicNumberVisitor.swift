@@ -13,12 +13,19 @@ class MagicNumberVisitor: BasePatternVisitor {
     private var currentFilePath: String = ""
     private var configuration: Configuration
 
+    /// One use of a number literal, with the message and suggestion to report it under.
+    private struct Occurrence {
+        let line: Int
+        let message: String
+        let suggestion: String
+    }
+
     /// Collects magic number occurrences during the walk.
     /// Only numbers that appear 2+ times are reported (single-use literals are not magic).
-    private var magicNumberOccurrences: [String: [(line: Int, message: String, suggestion: String)]] = [:]
+    private var magicNumberOccurrences: [String: [Occurrence]] = [:]
 
     /// Collects layout magic number occurrences (reported under the opt-in layout rule).
-    private var layoutNumberOccurrences: [String: [(line: Int, message: String, suggestion: String)]] = [:]
+    private var layoutNumberOccurrences: [String: [Occurrence]] = [:]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
         self.configuration = .default
@@ -214,7 +221,7 @@ class MagicNumberVisitor: BasePatternVisitor {
         } else {
             return
         }
-        let entry = (
+        let entry = Occurrence(
             line: getLineNumber(for: node),
             message: "Consider extracting magic number \(literal) to a named constant",
             suggestion: "Extract \(literal) to a named constant for better maintainability"
@@ -230,7 +237,7 @@ class MagicNumberVisitor: BasePatternVisitor {
         } else {
             return
         }
-        let entry = (
+        let entry = Occurrence(
             line: getLineNumber(for: node),
             message: "Consider extracting layout value \(literal) to a named constant",
             suggestion: "Extract \(literal) to a design token (e.g., Spacing.medium, Layout.cornerRadius)"

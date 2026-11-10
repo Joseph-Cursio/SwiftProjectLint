@@ -117,16 +117,22 @@ extension RuleDocView {
     private static let typePattern =
         #"\b("# + types.joined(separator: "|") + #")\b"#
 
+    /// A token's regular expression, the color it is drawn in, and whether it is a comment.
+    private struct TokenPattern {
+        let pattern: String
+        let color: Color
+        let isComment: Bool
+    }
+
     func tokenizeLine(_ line: String, colors: SyntaxColors) -> AttributedString {
         // Patterns in priority order: earlier patterns win when ranges overlap.
-        let patterns: [(String, Color, Bool)] = [
-            // (pattern, color, isComment)
-            (#""[^"\n]*""#, colors.string, false),
-            (#"@[A-Za-z_][A-Za-z0-9_]*"#, colors.attribute, false),
-            (Self.keywordPattern, colors.keyword, false),
-            (Self.typePattern, colors.type, false),
-            (#"\b\d[\d_.]*\b"#, colors.number, false),
-            (#"//.*$"#, colors.comment, true),
+        let patterns: [TokenPattern] = [
+            TokenPattern(pattern: #""[^"\n]*""#, color: colors.string, isComment: false),
+            TokenPattern(pattern: #"@[A-Za-z_][A-Za-z0-9_]*"#, color: colors.attribute, isComment: false),
+            TokenPattern(pattern: Self.keywordPattern, color: colors.keyword, isComment: false),
+            TokenPattern(pattern: Self.typePattern, color: colors.type, isComment: false),
+            TokenPattern(pattern: #"\b\d[\d_.]*\b"#, color: colors.number, isComment: false),
+            TokenPattern(pattern: #"//.*$"#, color: colors.comment, isComment: true),
         ]
 
         var result = AttributedString()
@@ -138,7 +144,8 @@ extension RuleDocView {
             var bestIsComment = false
             var bestStart = remaining.endIndex
 
-            for (pattern, color, isComment) in patterns {
+            for token in patterns {
+                let (pattern, color, isComment) = (token.pattern, token.color, token.isComment)
                 guard let range = remaining.range(
                     of: pattern, options: .regularExpression
                 ) else { continue }

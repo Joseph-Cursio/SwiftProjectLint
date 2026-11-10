@@ -12,9 +12,16 @@ import SwiftProjectLintModels
 /// it keeps its own message format and so does not route through here.
 enum PeerLabeling {
 
+    /// One member of a group: its name and where it is declared.
+    struct Member {
+        let name: String
+        let file: String
+        let line: Int
+    }
+
     /// `'Name' (File.swift:line)` for every member except the one at `current`, sorted.
     static func peers(
-        _ members: [(name: String, file: String, line: Int)],
+        _ members: [Member],
         excluding current: (file: String, line: Int)
     ) -> String {
         members

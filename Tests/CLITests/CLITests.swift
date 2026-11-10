@@ -6,8 +6,15 @@ struct CLITests {
 
     // MARK: - Helpers
 
-    /// Runs the CLI binary with the given arguments and returns (exitCode, stdout, stderr).
-    private func runCLI(arguments: [String]) throws -> (exitCode: Int32, stdout: String, stderr: String) {
+    /// What one CLI run produced.
+    private struct CLIResult {
+        let exitCode: Int32
+        let stdout: String
+        let stderr: String
+    }
+
+    /// Runs the CLI binary with the given arguments and returns its exit code and output.
+    private func runCLI(arguments: [String]) throws -> CLIResult {
         let binary = productsDirectory.appendingPathComponent("CLI")
 
         let process = Process()
@@ -25,7 +32,7 @@ struct CLITests {
         let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
         let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
 
-        return (
+        return CLIResult(
             exitCode: process.terminationStatus,
             stdout: String(data: stdoutData, encoding: .utf8) ?? "",
             stderr: String(data: stderrData, encoding: .utf8) ?? ""

@@ -287,12 +287,19 @@ extension ProjectLinter {
         let shared: [String: SharedSource]
     }
 
+    /// One analysed file: what it is, what it reported, and the tree it was judged on.
+    struct AnalyzedFile: Sendable {
+        let file: ProjectFile
+        let issues: [LintIssue]
+        let parsedAST: SourceFileSyntax
+    }
+
     /// Convenience wrapper around `analyzeFile(at:projectRoot:...)` that
     /// pulls per-run inputs from a `FileAnalysisEnvironment`.
     static func analyzeFile(
         at filePath: String,
         env: FileAnalysisEnvironment
-    ) -> (file: ProjectFile, issues: [LintIssue], parsedAST: SourceFileSyntax)? {
+    ) -> AnalyzedFile? {
         analyzeFile(
             at: filePath,
             projectRoot: env.projectRoot,
@@ -359,7 +366,7 @@ extension ProjectLinter {
         enabledFrameworkAllowlists: Set<String>? = nil,
         layerPolicies: [LayerPolicy] = [],
         shared: SharedSource? = nil
-    ) -> (file: ProjectFile, issues: [LintIssue], parsedAST: SourceFileSyntax)? {
+    ) -> AnalyzedFile? {
         guard !Task.isCancelled else { return nil }
         guard let content = shared?.content ?? (try? String(contentsOfFile: filePath)) else { return nil }
 
@@ -411,7 +418,7 @@ extension ProjectLinter {
         }
 
         let issues = InlineSuppressionFilter.filter(rawIssues, fileContent: content)
-        return (file: file, issues: issues, parsedAST: parsedAST)
+        return AnalyzedFile(file: file, issues: issues, parsedAST: parsedAST)
     }
 
     /// Project-root-relative path for `filePath`, resolving symlinks on both sides so

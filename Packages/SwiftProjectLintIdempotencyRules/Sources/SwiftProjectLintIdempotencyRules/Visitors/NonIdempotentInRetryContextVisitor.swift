@@ -179,6 +179,14 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
         )
     }
 
+    /// A callee's resolved effect, with the claim the diagnostic makes about it and the hint for
+    /// overriding that claim (empty when the effect was declared).
+    private struct CalleeEffect {
+        let effect: DeclaredEffect
+        let claim: String
+        let overrideHint: String
+    }
+
     /// Returns the resolved effect for `signature` together with the
     /// diagnostic claim/override-hint prose. Returns `nil` for callees
     /// the rule does not consider (collision-withdrawn, unannotated +
@@ -187,14 +195,16 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
         call: FunctionCallExprSyntax,
         signature: FunctionSignature,
         site: AnalysisSite
-    ) -> (effect: DeclaredEffect, claim: String, overrideHint: String)? {
+    ) -> CalleeEffect? {
         // The lookup is by *call shape*, not bare signature: Swift drops a trailing closure's
         // argument label, so `perform { }` against `func perform(action:)` cannot be found
         // by name alone — and Swift is made of trailing closures.
         let calleeCall = CallSiteShape.from(call: call) ?? CallSiteShape(signature: signature)
 
         if let declared = symbolTable.effect(for: calleeCall) {
-            return (declared, "which is declared `@lint.effect non_idempotent`", "")
+            return CalleeEffect(
+                effect: declared, claim: "which is declared `@lint.effect non_idempotent`", overrideHint: ""
+            )
         }
         if symbolTable.isCollision(signature: signature) {
             // Collision-withdrawn: annotated with conflicting effects. Neither
@@ -205,11 +215,11 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
             let chainHint = upward.depth > 1
                 ? " via \(upward.depth)-hop chain of un-annotated callees"
                 : ""
-            return (
-                upward.effect,
-                "whose effect is inferred `non_idempotent` from its body\(chainHint)",
-                " If the inference is wrong, annotate '\(signature.name)' "
-                + "explicitly with `/// @lint.effect <tier>` to override the body-based inference."
+            return CalleeEffect(
+                effect: upward.effect,
+                claim: "whose effect is inferred `non_idempotent` from its body\(chainHint)",
+                overrideHint: " If the inference is wrong, annotate '\(signature.name)' "
+                    + "explicitly with `/// @lint.effect <tier>` to override the body-based inference."
             )
         }
         let siteImports = siteImportCache.imports(forSiteFile: site.location.filePath)
@@ -223,11 +233,11 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
                 imports: siteImports,
                 enabledFrameworks: enabledFrameworkAllowlists
             ) ?? ""
-            return (
-                inferred,
-                "whose effect is inferred `non_idempotent` \(reason)",
-                " If the inference is wrong, annotate '\(signature.name)' "
-                + "explicitly with `/// @lint.effect <tier>` to override."
+            return CalleeEffect(
+                effect: inferred,
+                claim: "whose effect is inferred `non_idempotent` \(reason)",
+                overrideHint: " If the inference is wrong, annotate '\(signature.name)' "
+                    + "explicitly with `/// @lint.effect <tier>` to override."
             )
         }
         return nil

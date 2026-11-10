@@ -121,11 +121,8 @@ struct PackagePurityNestedPackageTests {
     }
 
     @Test(
-
         "a dependency path is read for its value and matched where it resolves",
-
         arguments: DependencySpelling.allCases
-
     )
     func dependencyPathIsReadAsSwiftPMReadsIt(spelling: DependencySpelling) async throws {
         // Read as source text, the escape named no package; compared lexically against the

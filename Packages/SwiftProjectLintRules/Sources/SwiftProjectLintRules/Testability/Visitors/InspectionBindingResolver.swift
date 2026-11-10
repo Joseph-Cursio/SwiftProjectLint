@@ -392,6 +392,14 @@ struct InspectionRelay {
 /// Reads a type annotation as `InspectableView<ViewType.X>`, through `?`, `!` and a module
 /// qualifier. A closure, dictionary or array type that merely mentions one is not one.
 struct InspectableViewType {
+    /// What the `ViewType.X` argument of `InspectableView<…>` says: the receiver kind, the view
+    /// type spelled as its accessor, and the subject type whose layout is walked.
+    struct ViewTypeArgument {
+        let kind: ReceiverKind
+        let viewType: String?
+        let subjectType: String?
+    }
+
     let isInspectableView: Bool
     /// What a step on a value of this type does; see `ReceiverKind`.
     let kind: ReceiverKind
@@ -418,7 +426,10 @@ struct InspectableViewType {
         }
         isInspectableView = true
         let argument = generics?.arguments.first?.argument.trimmedDescription ?? ""
-        (kind, viewType, subjectType) = Self.read(viewTypeArgument: argument)
+        let argumentType = Self.read(viewTypeArgument: argument)
+        kind = argumentType.kind
+        viewType = argumentType.viewType
+        subjectType = argumentType.subjectType
     }
 
     /// Through `?`, `!`, `Optional<…>`, `inout` and parentheses.
@@ -446,18 +457,24 @@ struct InspectableViewType {
     /// `ViewType.ClassifiedView` is a found view; `ViewType.View<T>` and `ViewType.ViewModifier<T>`
     /// have `T`'s body's views as children; `ViewType.X` is a SwiftUI view; anything else — a
     /// generic `V` — is unknown, and read as a SwiftUI view.
-    static func read(viewTypeArgument text: String) -> (ReceiverKind, String?, String?) {
+    static func read(viewTypeArgument text: String) -> ViewTypeArgument {
         let unqualified = text.hasPrefix("ViewInspector.") ? String(text.dropFirst("ViewInspector.".count)) : text
-        guard unqualified.hasPrefix("ViewType.") else { return (.typed, nil, nil) }
+        guard unqualified.hasPrefix("ViewType.") else {
+            return ViewTypeArgument(kind: .typed, viewType: nil, subjectType: nil)
+        }
         let name = String(unqualified.dropFirst("ViewType.".count))
         if name == "ClassifiedView" || name == "ParentView" {
-            return (.found, nil, nil)
+            return ViewTypeArgument(kind: .found, viewType: nil, subjectType: nil)
         }
         for wrapper in ["View<", "ViewModifier<"] where name.hasPrefix(wrapper) && name.hasSuffix(">") {
             let subject = name.dropFirst(wrapper.count).dropLast()
-            return (.content, nil, InspectionVocabulary.typeName(String(subject)))
+            return ViewTypeArgument(
+                kind: .content, viewType: nil, subjectType: InspectionVocabulary.typeName(String(subject))
+            )
         }
-        return (.typed, InspectionVocabulary.accessorName(forViewType: name), nil)
+        return ViewTypeArgument(
+            kind: .typed, viewType: InspectionVocabulary.accessorName(forViewType: name), subjectType: nil
+        )
     }
 }
 

@@ -213,8 +213,12 @@ extension InspectionChainEvaluator {
                 let requirement = extensionDecl.genericWhereClause?.requirements.lazy.compactMap { requirement in
                     requirement.requirement.as(SameTypeRequirementSyntax.self).flatMap(Self.viewTypeRequirement)
                 }.first
-                let (kind, viewType, subjectType) = InspectableViewType.read(viewTypeArgument: requirement ?? "")
-                return .root(kind, ownership: ownership(subjectType), after: viewType)
+                let argumentType = InspectableViewType.read(viewTypeArgument: requirement ?? "")
+                return .root(
+                    argumentType.kind,
+                    ownership: ownership(argumentType.subjectType),
+                    after: argumentType.viewType
+                )
             }
             if scope.is(StructDeclSyntax.self) || scope.is(ClassDeclSyntax.self)
                 || scope.is(EnumDeclSyntax.self) || scope.is(ActorDeclSyntax.self) {

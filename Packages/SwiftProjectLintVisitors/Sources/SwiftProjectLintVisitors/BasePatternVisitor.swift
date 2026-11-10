@@ -406,14 +406,15 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     ///   - filePath: The file path where the issue was detected.
     ///   - lineNumber: The line number where the issue was detected.
     ///   - suggestion: Optional suggestion for fixing the issue.
-    ///   - ruleName: The name of the rule that generated this issue.
+    ///   - ruleName: The name of the rule that generated this issue; `nil`, the default, is this
+    ///     visitor's own pattern.
     public func addIssue(
         severity: IssueSeverity,
         message: String,
         filePath: String,
         lineNumber: Int,
         suggestion: String,
-        ruleName: RuleIdentifier?,
+        ruleName: RuleIdentifier? = nil,
         symbol: String? = nil,
         role: PBTSeedRole? = nil,
         effect: PBTSeedEffect? = nil,

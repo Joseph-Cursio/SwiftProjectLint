@@ -172,7 +172,7 @@ struct InspectionStep {
             return ChainEvaluation(state: state.reanchored(.slot, ownership: state.ownership, after: name))
         }
         return Self.oneLevelDown(
-            from: state, to: .slot, ownership: state.ownership, step: name, written: written, node: node
+            from: state, to: .slot, step: name, written: written, node: node
         )
     }
 
@@ -216,7 +216,7 @@ struct InspectionStep {
             return ChainEvaluation(state: cast)
         }
         return Self.oneLevelDown(
-            from: state, to: kind, ownership: stepOwnership(from: state), step: name, written: written, node: node
+            from: state, to: kind, step: name, written: written, node: node, ownership: stepOwnership(from: state)
         )
     }
 
@@ -224,15 +224,17 @@ struct InspectionStep {
     /// crosses into another view's layout — `view(AppRow.self)` inside a test-declared host — is
     /// judged in the layout it leaves; the layout it enters is walked from its top, as
     /// `find(AppRow.self)` would reach it.
+    ///
+    /// `ownership` is the layout the step lands in; `nil` stays in the receiver's.
     static func oneLevelDown(
         from state: InspectionChainState,
         to kind: ReceiverKind,
-        ownership: LayoutOwnership,
         step: String,
         written: String,
-        node: Syntax
+        node: Syntax,
+        ownership: LayoutOwnership? = nil
     ) -> ChainEvaluation {
-        var next = state.advanced(by: step, to: kind, ownership: ownership)
+        var next = state.advanced(by: step, to: kind, ownership: ownership ?? state.ownership)
         let walks = next.stepsSinceAnchor >= 2
         if next.ownership != state.ownership {
             next.stepsSinceAnchor = 0
