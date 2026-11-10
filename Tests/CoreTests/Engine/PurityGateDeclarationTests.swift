@@ -8,7 +8,7 @@ import Testing
 /// Collects notices from a `@Sendable` closure.
 final class NoticeBox: @unchecked Sendable {
     private let lock = NSLock()
-    private var notices: [String] = []
+    var notices: [String] = []
 
     func append(_ notice: String) { lock.withLock { notices.append(notice) } }
 
@@ -18,7 +18,7 @@ final class NoticeBox: @unchecked Sendable {
 /// The real discovery, recording whether each walk took nested packages in.
 final class RecordingDiscovery: FileDiscoveryProtocol, @unchecked Sendable {
     private let lock = NSLock()
-    private var flags: [Bool] = []
+    var flags: [Bool] = []
     var nestedFlags: [Bool] { lock.withLock { flags } }
 
     func findSwiftFiles(
@@ -37,7 +37,7 @@ final class RecordingDiscovery: FileDiscoveryProtocol, @unchecked Sendable {
 final class CancellingUndeclaredReader: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
     /// Every message it reported, in order: the first is pass 1's.
     static let emitted = NoticeBox()
-    private var pure = 0
+    var pure = 0
 
     override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
         if PurityInferrer().isPure(node) { pure += 1 }
@@ -102,7 +102,7 @@ final class DeclaredSharedReader: BasePatternVisitor, PackagePurityConsumer {
 
 /// Reports a closure the table refutes.
 final class UndeclaredOracleReader: BasePatternVisitor {
-    private let oracle = PurityInferrer()
+    let oracle = PurityInferrer()
 
     override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
         if oracle.refutation(for: node) != nil { addIssue(node: Syntax(node)) }
@@ -123,168 +123,6 @@ final class UndeclaredJoinReader: BasePatternVisitor {
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         if knownImpurePackageFunctions.settledNames.contains(node.name.text) { addIssue(node: Syntax(node)) }
         return .visitChildren
-    }
-}
-
-// MARK: - The corpus
-
-/// A package that moves every purity consumer: the refuting `Item` and its callers, closures over
-/// it and over a nested package's minting type, a kernel, a trapped kernel and a concrete
-/// dependency. The nested package is compiled through a local path dependency, so a run that
-/// builds the universe walks and parses it, and one that does not, does not.
-enum PurityGateCorpus {
-
-    static let files: [String: String] = [
-        "Package.swift": """
-        // swift-tools-version:5.9
-        import PackageDescription
-        let package = Package(
-            name: "Corpus",
-            dependencies: [.package(path: "Packages/Kit")],
-            targets: [.target(name: "Lib", dependencies: [.product(name: "Kit", package: "Kit")])]
-        )
-        """,
-        "Packages/Kit/Package.swift": """
-        // swift-tools-version:5.9
-        import PackageDescription
-        let package = Package(
-            name: "Kit",
-            products: [.library(name: "Kit", targets: ["Kit"])],
-            targets: [.target(name: "Kit")]
-        )
-        """,
-        "Packages/Kit/Sources/Kit/Stamp.swift": """
-        import Foundation
-
-        public struct Stamp {
-            public let id = UUID()
-            public let n: Int
-            public init(n: Int) { self.n = n }
-        }
-        """,
-        "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
-        "Sources/Lib/Closures.swift": """
-        func tally(_ values: [Int]) -> [Int] {
-            values.map { value in
-                let item = Item(n: value)
-                return item.n * 2 + 1
-            }
-        }
-
-        func stamps(_ values: [Int]) -> [Int] {
-            values.map { Stamp(n: $0).n + 1 }
-        }
-
-        func evens(_ values: [Int]) -> [Int] {
-            values.filter { $0 % 2 == 0 }
-        }
-
-        func runningTotal(_ values: [Int]) -> Int {
-            var total = 0
-            values.forEach { total += $0 }
-            return total
-        }
-        """,
-        "Sources/Lib/Builder.swift": """
-        struct TallyBuilder {
-            func build(_ n: Int) -> Int { Item(n: n).n }
-        }
-
-        func runTally(_ n: Int) -> Int {
-            let builder = TallyBuilder()
-            return builder.build(n)
-        }
-
-        final class Report {
-            let builder: TallyBuilder
-            init(builder: TallyBuilder) { self.builder = builder }
-            func total(_ n: Int) -> Int { builder.build(n) }
-        }
-        """,
-        // A near miss for `missingEquatableOnPureResult`: `Plan` is one synthesized conformance away
-        // from comparable. An instance method, so the clean-method catalog is read; and found, so the
-        // one-hop join is read after it.
-        "Sources/Lib/Plans.swift": """
-        struct Plan {
-            let steps: [Int]
-        }
-
-        struct Planner {
-            let base: Int
-            func plan(_ n: Int) -> Plan { Plan(steps: [n * base]) }
-        }
-
-        // A pure mutator for `pureMutatorCandidate`, read the same way: an instance method, found.
-        struct Tally: Equatable {
-            var n: Int
-        }
-
-        struct Adder {
-            let step: Int
-            func add(to tally: inout Tally) { tally.n += step }
-        }
-        """,
-        "Sources/Lib/Engine.swift": """
-        func appendWarnings(from names: [String], to items: inout [Item]) {
-            if !names.isEmpty {
-                let shown = names.prefix(3).joined(separator: ", ")
-                let extra = names.count > 3 ? " and \\(names.count - 3) more" : ""
-                items.append(Item(n: shown.count + extra.count))
-            }
-        }
-        """,
-    ]
-
-    static func makeProject(item: String = PackagePurityFixtures.refutingItem) throws -> String {
-        var files = files
-        files["Sources/Lib/Item.swift"] = item
-        return try PackagePurityFixtures.makeProject(files)
-    }
-
-    static func lint(
-        rules: [RuleIdentifier]?,
-        demand: ProjectLinter.PurityDemand? = nil
-    ) async throws -> ProjectLinter.LintRun {
-        let path = try makeProject()
-        defer { try? FileManager.default.removeItem(atPath: path) }
-        return await lint(at: path, rules: rules, demand: demand)
-    }
-
-    static func lint(
-        at path: String,
-        rules: [RuleIdentifier]?,
-        detector: SourcePatternDetector = PatternRegistryFactory.createConfiguredSystem().detector,
-        demand: ProjectLinter.PurityDemand? = nil
-    ) async -> ProjectLinter.LintRun {
-        await ProjectLinter().lint(
-            at: path,
-            targetType: .auto,
-            categories: nil,
-            ruleIdentifiers: rules,
-            detector: detector,
-            configuration: .default,
-            demand: demand
-        )
-    }
-
-    /// A finding as everything but its per-instance `id`, in reporting order.
-    static func rendered(_ issues: [LintIssue]) -> [String] {
-        issues.map {
-            "\($0.ruleName.rawValue)|\($0.locations.map { "\($0.filePath):\($0.lineNumber)" })|"
-                + "\($0.severity)|\($0.message)|\($0.suggestion ?? "")|\($0.symbol ?? "")|"
-                + "\(String(describing: $0.role))|\(String(describing: $0.effect))|\($0.testReachability)"
-        }
-    }
-
-    /// This repository's own visitors package: real code, over sixty files, every purity helper.
-    static var visitorsSources: String {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()   // Engine
-            .deletingLastPathComponent()   // CoreTests
-            .deletingLastPathComponent()   // Tests
-            .deletingLastPathComponent()   // repository root
-            .appendingPathComponent("Packages/SwiftProjectLintVisitors/Sources")
-            .path
     }
 }
 
@@ -463,98 +301,5 @@ struct PurityGateDeclarationTests {
             #expect(one.trips.isEmpty == false)
             #expect(two.trips.isEmpty)
         }
-    }
-
-    // MARK: - The run
-
-    @Test("a narrow run builds nothing: no universe walk, and the purity is withheld")
-    func narrowRunWithholds() async throws {
-        let path = try PurityGateCorpus.makeProject()
-        defer { try? FileManager.default.removeItem(atPath: path) }
-        let linter = ProjectLinter()
-        let gated = await linter.discoverFiles(at: path, configuration: .default, resolvingUniverse: false)
-        let open = await linter.discoverFiles(at: path, configuration: .default)
-        #expect(gated.constructionUniverse == nil, "not resolved, which is not the same as empty")
-        let stamp = open.constructionUniverse?.contains { $0.hasSuffix("Stamp.swift") }
-        #expect(stamp == true, "the nested package fell out")
-        #expect(gated.reportable == open.reportable)
-
-        let tripwire = PurityTripwire()
-        let parse = await ProjectLinter.sharedParse(gated, projectRoot: path, withholdingBy: tripwire)
-        #expect(parse.purity.isWithheld)
-        #expect(parse.judged == nil, "a withheld table was built from no files, which is not the same as none")
-        #expect(parse.analysable.keys.contains { $0.hasSuffix("Stamp.swift") } == false)
-        #expect(tripwire.recorded.isEmpty)
-
-        // A resolved universe that holds nothing builds an empty table; it is not withheld.
-        let empty = ProjectLinter.DiscoveredFiles(reportable: [], evidenceOnly: [], constructionUniverse: [])
-        let built = await ProjectLinter.sharedParse(empty, projectRoot: path, withholdingBy: tripwire)
-        #expect(built.purity.isWithheld == false)
-        #expect(built.judged?.isEmpty == true, "a resolved universe that holds nothing was built from no file")
-    }
-
-    @Test("a run narrowed by flags or by configuration takes no universe walk; one that reads purity does")
-    func narrowRunsSkipTheUniverseWalk() async throws {
-        let path = try PurityGateCorpus.makeProject()
-        defer { try? FileManager.default.removeItem(atPath: path) }
-        func walks(_ rules: [RuleIdentifier]?, _ configuration: LintConfiguration = .default) async -> [Bool] {
-            let discovery = RecordingDiscovery()
-            _ = await ProjectLinter(fileDiscovery: discovery) { CrossFileAnalysisEngine(registry: $0) }
-                .lint(
-                    at: path, targetType: .auto, categories: nil, ruleIdentifiers: rules,
-                    detector: PatternRegistryFactory.createConfiguredSystem().detector,
-                    configuration: configuration
-                )
-            return discovery.nestedFlags
-        }
-        #expect(await walks([.forceTry, .printStatement]) == [false])
-        #expect(await walks([.forceTry, .directInstantiation]) == [false, true])
-        #expect(await walks(nil, LintConfiguration(enabledOnlyRules: [.forceTry, .printStatement])) == [false])
-        #expect(await walks(nil, LintConfiguration(disabledRules: [.forceTry])) == [false, true])
-    }
-
-    @Test("a tripped run that is cancelled meanwhile still never returns the first pass's findings")
-    func cancelledTrippedRunNeverReturnsTheFirstPass() async throws {
-        let path = try PurityGateCorpus.makeProject()
-        defer { try? FileManager.default.removeItem(atPath: path) }
-        let registry = PatternVisitorRegistry()
-        registry.register(pattern: SyntaxPattern(
-            name: .couldBePrivate, visitor: CancellingUndeclaredReader.self, severity: .info,
-            category: .codeQuality, messageTemplate: "read", suggestion: "", description: "test reader"
-        ))
-        // Its own task, so the reader cancels the lint and not the test.
-        let detector = SourcePatternDetector(registry: registry)
-        let run = await Task {
-            await PurityGateCorpus.lint(at: path, rules: [.couldBePrivate], detector: detector)
-        }.value
-        #expect(run.trips.isEmpty == false)
-        // Pass 1 judged without the table, counted the `Item` closure pure, and cancelled the run.
-        // Its finding must not survive, whatever the cancelled rerun manages to report.
-        let firstPass = try #require(CancellingUndeclaredReader.emitted.all.first, "pass 1 reported nothing")
-        #expect(run.issues.contains { $0.message == firstPass } == false, "\(run.issues.map(\.message))")
-    }
-
-    @Test("the caller's detector never keeps a purity catalog a run withheld")
-    func theCallersDetectorKeepsNoPurityCatalog() async throws {
-        let path = try PurityGateCorpus.makeProject()
-        defer { try? FileManager.default.removeItem(atPath: path) }
-        let detector = PatternRegistryFactory.createConfiguredSystem().detector
-        let run = await PurityGateCorpus.lint(at: path, rules: [.forceTry], detector: detector)
-        #expect(run.demand.inputs.isEmpty)
-        #expect(detector.knownCleanInstanceMethods.isWithheld == false)
-        #expect(detector.knownImpurePackageFunctions.isWithheld == false)
-    }
-
-    @Test("a rerun is reported to the linter's notice, naming what was read")
-    func rerunIsReported() async throws {
-        let path = try PurityGateCorpus.makeProject()
-        defer { try? FileManager.default.removeItem(atPath: path) }
-        let notices = NoticeBox()
-        _ = await ProjectLinter { notices.append($0) }.lint(
-            at: path, targetType: .auto, categories: nil, ruleIdentifiers: [.printStatement],
-            detector: UndeclaredReader.oracle.detector(), configuration: .default
-        )
-        #expect(notices.all.count == 1)
-        #expect(notices.all.first?.contains("PurityInferrer()") == true, "\(notices.all)")
     }
 }

@@ -7,7 +7,7 @@ import Testing
 /// Drives the visitor over `files` and returns just this rule's findings. At file scope
 /// rather than inside the suite so the body stays within `type_body_length` as tests
 /// accumulate; call sites read identically.
-private func analyze(files: [String: String]) -> [LintIssue] {
+func duplicateStructShapeIssues(files: [String: String]) -> [LintIssue] {
     var cache: [String: SourceFileSyntax] = [:]
     for (name, source) in files {
         cache[name] = Parser.parse(source: source)
@@ -32,7 +32,7 @@ struct DuplicateStructShapeVisitorTests {
     /// shared protocol — one issue per struct, each naming the four shared properties.
     @Test
     func sharedCoreWithoutProtocolFlagsEveryMember() throws {
-        let issues = analyze(files: [
+        let issues = duplicateStructShapeIssues(files: [
             "Models.swift": """
             struct CompilerFlag {
                 let rawKey: String
@@ -82,7 +82,7 @@ struct DuplicateStructShapeVisitorTests {
     /// each issue is reported at the participating type's own file.
     @Test
     func clusterSpansFiles() {
-        let issues = analyze(files: [
+        let issues = duplicateStructShapeIssues(files: [
             "A.swift": """
             struct Alpha {
                 let rawKey: String
@@ -114,7 +114,7 @@ struct DuplicateStructShapeVisitorTests {
     /// Only two properties in common — below the four-property threshold. No issue.
     @Test
     func belowThresholdIsClean() {
-        let issues = analyze(files: [
+        let issues = duplicateStructShapeIssues(files: [
             "Models.swift": """
             struct User {
                 let id: String
@@ -136,7 +136,7 @@ struct DuplicateStructShapeVisitorTests {
     /// abstraction exists, so neither is reported.
     @Test
     func coveredBySharedProtocolIsClean() {
-        let issues = analyze(files: [
+        let issues = duplicateStructShapeIssues(files: [
             "Models.swift": """
             protocol Identity {
                 var rawKey: String { get }
@@ -168,7 +168,7 @@ struct DuplicateStructShapeVisitorTests {
     /// while its un-abstracted peers are still reported.
     @Test
     func abstractedMemberIsSuppressedWithinMixedCluster() {
-        let issues = analyze(files: [
+        let issues = duplicateStructShapeIssues(files: [
             "Models.swift": """
             protocol Identity {
                 var rawKey: String { get }
@@ -207,7 +207,7 @@ struct DuplicateStructShapeVisitorTests {
     /// the rule was dogfooded on a freshly-extracted protocol.
     @Test
     func isolatedConformanceToCoveringProtocolIsClean() {
-        let issues = analyze(files: [
+        let issues = duplicateStructShapeIssues(files: [
             "Models.swift": """
             protocol BuildSettingIdentity: Identifiable {
                 var id: UUID { get }
@@ -236,132 +236,5 @@ struct DuplicateStructShapeVisitorTests {
         ])
 
         #expect(issues.isEmpty)
-    }
-
-    /// SwiftUI `View` types share `@State`/`@Binding`/closure properties by design (bridge
-    /// pairs), so they are skipped entirely — even when they share an identical core.
-    @Test
-    func viewConformersAreSkipped() {
-        let issues = analyze(files: [
-            "Views.swift": """
-            struct ChangePreviewSheet: View {
-                let rawKey: String
-                let name: String
-                let description: String?
-                let category: String
-                var body: some View { EmptyView() }
-            }
-            struct SimulationResultsSheet: View {
-                let rawKey: String
-                let name: String
-                let description: String?
-                let category: String
-                var body: some View { EmptyView() }
-            }
-            """,
-        ])
-
-        #expect(issues.isEmpty)
-    }
-
-    /// A View-majority cluster collapses below the threshold once views are skipped: a
-    /// non-view owner left alone is not reported.
-    @Test
-    func nonViewOwnerAloneAfterSkippingViewsIsClean() {
-        let issues = analyze(files: [
-            "Mixed.swift": """
-            final class Owner {
-                let alpha: String
-                let beta: String
-                let gamma: String
-                let delta: String
-                init(alpha: String, beta: String, gamma: String, delta: String) {
-                    self.alpha = alpha; self.beta = beta; self.gamma = gamma; self.delta = delta
-                }
-            }
-            struct PanelA: View {
-                let alpha: String
-                let beta: String
-                let gamma: String
-                let delta: String
-                var body: some View { EmptyView() }
-            }
-            struct PanelB: View {
-                let alpha: String
-                let beta: String
-                let gamma: String
-                let delta: String
-                var body: some View { EmptyView() }
-            }
-            """,
-        ])
-
-        #expect(issues.isEmpty)
-    }
-
-    /// Computed properties do not contribute to the fingerprint, so two types whose only
-    /// overlap is computed vars are not clustered.
-    @Test
-    func computedPropertiesAreIgnored() {
-        let issues = analyze(files: [
-            "Models.swift": """
-            struct ViewA {
-                var rawKey: String { "a" }
-                var name: String { "a" }
-                var description: String? { nil }
-                var category: String { "a" }
-                let stored: Int
-            }
-            struct ViewB {
-                var rawKey: String { "b" }
-                var name: String { "b" }
-                var description: String? { nil }
-                var category: String { "b" }
-                let stored: Int
-            }
-            """,
-        ])
-
-        #expect(issues.isEmpty)
-    }
-
-    // MARK: - Peer naming with shared type names
-
-    @Test("clustered structs that share a name still name each other by location")
-    func sameNamedShapesReportLocationPeers() throws {
-        // The regression: three visitors each with a private `TypeShape` of identical shape.
-        // Filtering peers by name used to collapse to an empty peer list ("with  but no…")
-        // and a "conform TypeShape, TypeShape, TypeShape" suggestion.
-        let shape = "{ let name: String; let file: String; let line: Int; let extra: Bool }"
-        let issues = analyze(files: [
-            "A.swift": "struct TypeShape \(shape)",
-            "B.swift": "struct TypeShape \(shape)",
-            "C.swift": "struct TypeShape \(shape)",
-        ])
-        #expect(issues.count == 3)
-
-        let onA = try #require(issues.first { $0.filePath == "A.swift" })
-        // Peers are the other two files, not an empty string.
-        #expect(onA.message.contains("B.swift"))
-        #expect(onA.message.contains("C.swift"))
-        #expect(onA.message.contains("with  ") == false)
-
-        // The suggestion lists the name once, not three times.
-        let suggestion = try #require(onA.suggestion)
-        #expect(suggestion.contains("TypeShape, TypeShape") == false)
-    }
-
-    @Test("differently-named clustered structs still report each name")
-    func distinctlyNamedShapesUnaffected() throws {
-        let shape = "{ let alpha: Int; let bravo: Int; let charlie: Int; let delta: Int }"
-        let issues = analyze(files: [
-            "A.swift": "struct Foo \(shape)",
-            "B.swift": "struct Bar \(shape)",
-        ])
-        #expect(issues.count == 2)
-        let onFoo = try #require(issues.first { $0.filePath == "A.swift" })
-        #expect(onFoo.message.contains("Bar"))
-        #expect(onFoo.suggestion?.contains("Bar") == true)
-        #expect(onFoo.suggestion?.contains("Foo") == true)
     }
 }
