@@ -88,8 +88,10 @@ struct BlockingIOOnMainActorEndToEndTests {
     }
 
     private func makePackage(files: [String: String]) -> String {
-        let root = (FileManager.default.temporaryDirectory.path as NSString)
-            .appendingPathComponent("BlockingIO-\(UUID().uuidString)")
+        let root = PathString.appending(
+            "BlockingIO-\(UUID().uuidString)",
+            to: FileManager.default.temporaryDirectory.path
+        )
         writeFile(at: "\(root)/Package.swift", "// swift-tools-version:6.0\n")
         for (path, content) in files {
             writeFile(at: "\(root)/\(path)", content)
@@ -99,7 +101,7 @@ struct BlockingIOOnMainActorEndToEndTests {
 
     private func writeFile(at path: String, _ content: String) {
         try? FileManager.default.createDirectory(
-            atPath: (path as NSString).deletingLastPathComponent,
+            atPath: PathString.deletingLastComponent(of: path),
             withIntermediateDirectories: true
         )
         try? content.write(toFile: path, atomically: true, encoding: .utf8)

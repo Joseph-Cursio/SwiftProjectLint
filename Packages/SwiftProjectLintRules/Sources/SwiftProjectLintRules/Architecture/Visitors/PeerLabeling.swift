@@ -1,4 +1,5 @@
 import Foundation
+import SwiftProjectLintModels
 
 /// Formatting for the "these types cluster together" findings, shared by the shape-clustering
 /// rules (`DuplicateStructShape`, `SharedDomainEnumField`).
@@ -18,7 +19,7 @@ enum PeerLabeling {
     ) -> String {
         members
             .filter { $0.file != current.file || $0.line != current.line }
-            .map { "'\($0.name)' (\(($0.file as NSString).lastPathComponent):\($0.line))" }
+            .map { "'\($0.name)' (\(PathString.lastComponent(of: $0.file)):\($0.line))" }
             .sorted()
             .joined(separator: ", ")
     }

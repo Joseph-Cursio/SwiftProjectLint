@@ -97,8 +97,8 @@ struct PackagePuritySymlinkTests {
                 "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
             ])
             defer { try? FileManager.default.removeItem(atPath: root) }
-            let target = (file as NSString).lastPathComponent
-            let directory = ((file as NSString).deletingLastPathComponent as NSString).lastPathComponent
+            let target = PathString.lastComponent(of: file)
+            let directory = PathString.lastComponent(of: PathString.deletingLastComponent(of: file))
             try PackagePurityFixtures.symlink(link, to: "../\(directory)/\(target)", in: root)
 
             let universe = await PackagePurityFixtures.universe(at: root)

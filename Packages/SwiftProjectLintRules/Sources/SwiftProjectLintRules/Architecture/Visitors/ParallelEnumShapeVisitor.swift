@@ -256,7 +256,7 @@ final class ParallelEnumShapeVisitor: CrossFileVisitorBase, CrossFilePatternVisi
     }
 
     static func shortName(_ path: String) -> String {
-        (path as NSString).lastPathComponent
+        PathString.lastComponent(of: path)
     }
 
     /// The enum's domain conformances: its own plus any added in a separate extension,

@@ -125,9 +125,9 @@ struct ProjectLinterTests {
 
     private func makeTestProject() -> String {
         let tempDir = FileManager.default.temporaryDirectory.path
-        let path = (tempDir as NSString).appendingPathComponent("TestProject")
+        let path = PathString.appending("TestProject", to: tempDir)
         try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
-        let contentViewPath = (path as NSString).appendingPathComponent("ContentView.swift")
+        let contentViewPath = PathString.appending("ContentView.swift", to: path)
         let contentViewCode = """
         import SwiftUI
 
@@ -151,14 +151,14 @@ struct ProjectLinterTests {
 
     private func makeEmptyTestProject() -> String {
         let tempDir = FileManager.default.temporaryDirectory.path
-        let path = (tempDir as NSString).appendingPathComponent("EmptyTestProject")
+        let path = PathString.appending("EmptyTestProject", to: tempDir)
         try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
         return path
     }
 
     private func makeComplexTestProject() -> String {
         let tempDir = FileManager.default.temporaryDirectory.path
-        let path = (tempDir as NSString).appendingPathComponent("ComplexTestProject")
+        let path = PathString.appending("ComplexTestProject", to: tempDir)
         try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
 
         let files = [
@@ -220,7 +220,7 @@ struct ProjectLinterTests {
         ]
 
         for (fileName, content) in files {
-            let filePath = (path as NSString).appendingPathComponent(fileName)
+            let filePath = PathString.appending(fileName, to: path)
             try? content.write(toFile: filePath, atomically: true, encoding: .utf8)
         }
         return path
@@ -610,14 +610,14 @@ struct ProjectLinterNestedPackageTests {
     /// Creates a fresh temp directory with a root `Package.swift` and returns its path.
     private func makeTempPackageRoot(named: String) -> String {
         let base = FileManager.default.temporaryDirectory.path
-        let root = (base as NSString).appendingPathComponent("\(named)-\(UUID().uuidString)")
+        let root = PathString.appending("\(named)-\(UUID().uuidString)", to: base)
         writeFile(at: "\(root)/Package.swift", "// swift-tools-version:6.0\n")
         return root
     }
 
     private func writeFile(at path: String, _ content: String) {
         try? FileManager.default.createDirectory(
-            atPath: (path as NSString).deletingLastPathComponent,
+            atPath: PathString.deletingLastComponent(of: path),
             withIntermediateDirectories: true
         )
         try? content.write(toFile: path, atomically: true, encoding: .utf8)
@@ -627,25 +627,22 @@ struct ProjectLinterNestedPackageTests {
     /// first-party package under `Packages/Child` containing one obvious violation.
     private func makeNestedPackageProject() -> String {
         let base = FileManager.default.temporaryDirectory.path
-        let root = (base as NSString).appendingPathComponent("NestedPackageProject-\(UUID().uuidString)")
-        let nestedSources = (root as NSString)
-            .appendingPathComponent("Packages/Child/Sources/Child")
+        let root = PathString.appending("NestedPackageProject-\(UUID().uuidString)", to: base)
+        let nestedSources = PathString.appending("Packages/Child/Sources/Child", to: root)
         try? FileManager.default.createDirectory(atPath: nestedSources, withIntermediateDirectories: true)
 
         let manifest = "// swift-tools-version:6.0\n"
         try? manifest.write(
-            toFile: (root as NSString).appendingPathComponent("Package.swift"),
+            toFile: PathString.appending("Package.swift", to: root),
             atomically: true, encoding: .utf8
         )
         try? manifest.write(
-            toFile: ((root as NSString)
-                .appendingPathComponent("Packages/Child") as NSString)
-                .appendingPathComponent("Package.swift"),
+            toFile: PathString.appending("Packages/Child/Package.swift", to: root),
             atomically: true, encoding: .utf8
         )
         let thing = "func boom(_ value: Int?) -> Int { return value! }\n"
         try? thing.write(
-            toFile: (nestedSources as NSString).appendingPathComponent("Thing.swift"),
+            toFile: PathString.appending("Thing.swift", to: nestedSources),
             atomically: true, encoding: .utf8
         )
         return root

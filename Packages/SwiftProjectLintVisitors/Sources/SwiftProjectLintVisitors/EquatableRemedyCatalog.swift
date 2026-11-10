@@ -154,17 +154,17 @@ public struct EquatableRemedyCatalog: Sendable, Equatable {
     /// A `Set` element and a dictionary key are not demanded: both must be `Hashable` to be there,
     /// so both are already `Equatable`.
     static func demands(of type: TypeSyntax) -> Set<String>? {
-        let type = PropertyTestCandidacy.unparenthesized(type)
-        if let compared = sugaredElement(of: type) {
+        let bareType = PropertyTestCandidacy.unparenthesized(type)
+        if let compared = sugaredElement(of: bareType) {
             return demands(of: compared)
         }
-        if let member = type.as(MemberTypeSyntax.self) {
+        if let member = bareType.as(MemberTypeSyntax.self) {
             // `Outer.Inner` and `Foundation.Date`: the project's collectors key nested types by
             // their simple name, and a generic member type is refused like any other generic.
             guard member.genericArgumentClause == nil else { return nil }
             return [member.name.text]
         }
-        guard let identifier = type.as(IdentifierTypeSyntax.self) else {
+        guard let identifier = bareType.as(IdentifierTypeSyntax.self) else {
             // Tuples, closures, `any`/`some`, compositions, metatypes and attributed types: none
             // of them has a synthesized `==`.
             return nil

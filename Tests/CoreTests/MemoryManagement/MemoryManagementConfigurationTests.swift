@@ -6,7 +6,7 @@ import SwiftSyntax
 import Testing
 
 struct MemoryManagementConfigurationTests {
-    var visitor: MemoryManagementVisitor { MemoryManagementVisitor() }
+    func makeVisitor() -> MemoryManagementVisitor { MemoryManagementVisitor() }
 
     // MARK: - Configuration Tests
 
@@ -90,7 +90,7 @@ struct MemoryManagementConfigurationTests {
         }
         """
         let sourceFile = Parser.parse(source: sourceCode)
-        let visitor = self.visitor
+        let visitor = makeVisitor()
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.count == 2)
 
@@ -111,7 +111,7 @@ struct MemoryManagementConfigurationTests {
         }
         """
         let sourceFile = Parser.parse(source: sourceCode)
-        let visitor = self.visitor
+        let visitor = makeVisitor()
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.count == 1)
         visitor.reset()

@@ -78,9 +78,9 @@ struct ProtocolNamingSuffixOptInTests {
             """,
         ]
         for (relativePath, content) in files {
-            let path = (root as NSString).appendingPathComponent(relativePath)
+            let path = PathString.appending(relativePath, to: root)
             try FileManager.default.createDirectory(
-                atPath: (path as NSString).deletingLastPathComponent,
+                atPath: PathString.deletingLastComponent(of: path),
                 withIntermediateDirectories: true
             )
             try content.write(toFile: path, atomically: true, encoding: .utf8)

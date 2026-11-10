@@ -22,8 +22,7 @@ class ContentViewModel {
     var lintIssues: [LintIssue] = []
     var showRuleSelector: Bool = false
     var enabledRuleNames: Set<RuleIdentifier> = {
-        let userDefaultsKey = "enabledLintRules"
-        if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
+        if let data = UserDefaults.standard.data(forKey: ContentViewModel.userDefaultsKey),
            let saved = try? JSONDecoder().decode(Set<RuleIdentifier>.self, from: data),
            !saved.isEmpty {
             return saved
@@ -76,7 +75,7 @@ class ContentViewModel {
     /// Incremented on every tree toggle to force SwiftUI refresh.
     var treeVersion: Int = 0
 
-    private let userDefaultsKey = "enabledLintRules"
+    private static let userDefaultsKey = "enabledLintRules"
 
     // MARK: - Computed Properties
 
@@ -90,7 +89,7 @@ class ContentViewModel {
     /// Save enabled rules to UserDefaults.
     func saveEnabledRules() {
         if let data = try? JSONEncoder().encode(enabledRuleNames) {
-            UserDefaults.standard.set(data, forKey: userDefaultsKey)
+            UserDefaults.standard.set(data, forKey: Self.userDefaultsKey)
         }
     }
 

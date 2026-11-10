@@ -47,7 +47,7 @@ public struct LintConfigurationLoader {
 
     /// Loads configuration from the default location in a project directory.
     public static func load(projectRoot: String) -> LintConfiguration {
-        let path = (projectRoot as NSString).appendingPathComponent(defaultFileName)
+        let path = PathString.appending(defaultFileName, to: projectRoot)
         return load(from: path)
     }
 

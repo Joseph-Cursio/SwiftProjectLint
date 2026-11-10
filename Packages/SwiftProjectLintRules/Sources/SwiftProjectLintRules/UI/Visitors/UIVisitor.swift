@@ -99,9 +99,9 @@ class UIVisitor: BasePatternVisitor {
                 "bold", "italic", "underline", "strikethrough",
                 "fontWeight", "fontDesign",
             ]
-            let stylingModifiers = modifiers.filter { stylingModifierNames.contains($0) }
+            let appliedStyling = modifiers.filter { stylingModifierNames.contains($0) }
 
-            if stylingModifiers.count > 3 {
+            if appliedStyling.count > 3 {
                 addIssue(
                     severity: .info,
                     message: "Consider using consistent text styling",

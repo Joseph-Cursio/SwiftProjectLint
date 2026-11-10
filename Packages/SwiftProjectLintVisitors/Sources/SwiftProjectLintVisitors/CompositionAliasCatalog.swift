@@ -104,14 +104,14 @@ public struct CompositionAliasCatalog: Sendable, Equatable {
         }
 
         var resolver = Resolver(definitions: unambiguous)
-        var components: [String: [String]] = [:]
-        var existentials: Set<String> = []
+        var componentsByAlias: [String: [String]] = [:]
+        var existentialNames: Set<String> = []
         for name in unambiguous.keys {
             guard let resolved = resolver.resolve(name) else { continue }
-            components[name] = resolved.names
-            if resolved.isExistential { existentials.insert(name) }
+            componentsByAlias[name] = resolved.names
+            if resolved.isExistential { existentialNames.insert(name) }
         }
-        return Self(components: components, existentials: existentials)
+        return Self(components: componentsByAlias, existentials: existentialNames)
     }
 
     /// Memoised, cycle-checked expansion of one alias at a time.

@@ -78,13 +78,8 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
     var includeNestedPackages = false
 
     mutating func run() async throws {
-        let resolvedPath = (projectPath as NSString).standardizingPath
-        let absolutePath: String
-        if resolvedPath.hasPrefix("/") {
-            absolutePath = resolvedPath
-        } else {
-            absolutePath = FileManager.default.currentDirectoryPath + "/" + resolvedPath
-        }
+        // Relative to the current directory, with `.`, `..` and a leading `~/` resolved.
+        let absolutePath = URL(fileURLWithPath: projectPath).standardizedFileURL.path
 
         guard FileManager.default.fileExists(atPath: absolutePath) else {
             throw ValidationError("Project path does not exist: \(absolutePath)")
@@ -93,17 +88,17 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
         let selectedCategories = try parseCategories()
 
         // Load configuration from YAML file
-        var configuration: LintConfiguration
+        var lintConfiguration: LintConfiguration
         if let configPath = config {
-            configuration = LintConfigurationLoader.load(from: configPath)
+            lintConfiguration = LintConfigurationLoader.load(from: configPath)
         } else {
-            configuration = LintConfigurationLoader.load(projectRoot: absolutePath)
+            lintConfiguration = LintConfigurationLoader.load(projectRoot: absolutePath)
         }
 
         // The --include-nested-packages flag can only turn the option on, so it
         // overrides the config when present and leaves it untouched otherwise.
         if includeNestedPackages {
-            configuration = configuration.withIncludeNestedPackages(true)
+            lintConfiguration = lintConfiguration.withIncludeNestedPackages(true)
         }
 
         let system = PatternRegistryFactory.createConfiguredSystem()
@@ -114,13 +109,13 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
             targetType: targetType.coreTargetType,
             categories: selectedCategories,
             detector: system.detector,
-            configuration: configuration
+            configuration: lintConfiguration
         )
 
         // Named once and used twice: the summary caveat on stdout and the fuller notice on
         // stderr describe the same skip, so deriving them from one value keeps them from
         // drifting into disagreeing about whether anything was excluded.
-        let skippedPackages = configuration.includeNestedPackages == false
+        let skippedPackages = lintConfiguration.includeNestedPackages == false
             ? FileAnalysisUtils.nestedPackageNames(in: absolutePath)
             : []
 
@@ -152,12 +147,12 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
         // Five such comments existed in this repository alone, and 26 of the 208
         // rule keys are not the spelling a reader would guess, so the notice carries
         // the key it thinks was meant. Same stderr channel and reasoning as above.
-        Self.reportUnrecognizedSuppressionNames(projectRoot: absolutePath, configuration: configuration)
+        Self.reportUnrecognizedSuppressionNames(projectRoot: absolutePath, configuration: lintConfiguration)
 
         // A misspelled layer path or `may_depend_on` entry does not error: the layer rules simply
         // check less, and a clean result over a layer containing no files looks exactly like a clean
         // architecture. Same stderr channel and reasoning as above.
-        Self.reportLayerConfigurationProblems(projectRoot: absolutePath, configuration: configuration)
+        Self.reportLayerConfigurationProblems(projectRoot: absolutePath, configuration: lintConfiguration)
 
         // A seed-bearing finding with no resolved symbol cannot become a seed, so the manifest is
         // shorter than the run that produced it — silently, and while still exiting 0. That is the

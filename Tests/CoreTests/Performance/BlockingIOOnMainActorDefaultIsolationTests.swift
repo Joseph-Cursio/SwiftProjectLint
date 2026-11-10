@@ -116,8 +116,10 @@ struct BlockingIOOnMainActorDefaultIsolationEndToEndTests {
 
     @Test
     func targetWithDefaultIsolationInItsManifestIsAnalysedAsMainActor() async {
-        let root = (FileManager.default.temporaryDirectory.path as NSString)
-            .appendingPathComponent("BlockingIODefault-\(UUID().uuidString)")
+        let root = PathString.appending(
+            "BlockingIODefault-\(UUID().uuidString)",
+            to: FileManager.default.temporaryDirectory.path
+        )
         write("""
         // swift-tools-version:6.2
         import PackageDescription
@@ -152,7 +154,7 @@ struct BlockingIOOnMainActorDefaultIsolationEndToEndTests {
 
     private func write(_ content: String, to path: String) {
         try? FileManager.default.createDirectory(
-            atPath: (path as NSString).deletingLastPathComponent,
+            atPath: PathString.deletingLastComponent(of: path),
             withIntermediateDirectories: true
         )
         try? content.write(toFile: path, atomically: true, encoding: .utf8)

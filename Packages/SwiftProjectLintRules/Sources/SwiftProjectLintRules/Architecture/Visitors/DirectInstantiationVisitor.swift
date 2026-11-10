@@ -236,7 +236,7 @@ class DirectInstantiationVisitor: BasePatternVisitor, PackagePurityConsumer {
     /// program. Tracked by file name because there is no syntax to look at — the statements
     /// are simply at the top of the file.
     private var isMainSwiftFile: Bool {
-        (currentFilePath as NSString).lastPathComponent == "main.swift"
+        PathString.lastComponent(of: currentFilePath) == "main.swift"
     }
 
     /// Protocols whose conformers the runtime constructs, leaving no initializer to inject

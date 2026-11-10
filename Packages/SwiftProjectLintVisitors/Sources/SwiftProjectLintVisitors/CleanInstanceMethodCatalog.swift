@@ -542,7 +542,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
         /// readable value, which is right for the access analysis and wrong for asking what the
         /// type holds.
         static func declaredStorage(in members: MemberBlockItemListSyntax) -> [DeclaredStorage] {
-            var storage: [DeclaredStorage] = []
+            var declaredStorage: [DeclaredStorage] = []
             for member in members {
                 guard let variable = member.decl.as(VariableDeclSyntax.self) else { continue }
                 // A `static` member belongs to the type, not to an instance of it, so it is not
@@ -553,14 +553,14 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
                 let isMutable = variable.bindingSpecifier.tokenKind == .keyword(.var)
                 for binding in variable.bindings where binding.accessorBlock == nil {
                     let type = binding.typeAnnotation?.type
-                    storage.append(DeclaredStorage(
+                    declaredStorage.append(DeclaredStorage(
                         isMutable: isMutable,
                         typeName: type.flatMap(nominalName),
                         isSyntacticValue: type.map(isSyntacticValue) ?? false
                     ))
                 }
             }
-            return storage
+            return declaredStorage
         }
 
         /// A spelling that is a value however it is filled: an array, a dictionary, a set, a

@@ -243,7 +243,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
             for filePath in filePaths {
                 group.addTask {
                     guard let content = try? String(contentsOfFile: filePath) else { return nil }
-                    let name = (filePath as NSString).lastPathComponent
+                    let name = PathString.lastComponent(of: filePath)
                     let relativePath = filePath.hasPrefix(prefix)
                         ? String(filePath.dropFirst(prefix.count))
                         : name

@@ -52,7 +52,7 @@ extension ProjectLinter {
     /// The read is 1 KB rather than 512 bytes so that five *long* header lines still fit; that
     /// changes how much is read, not which lines count.
     static func isGeneratedFile(at filePath: String) -> Bool {
-        let name = (filePath as NSString).lastPathComponent
+        let name = PathString.lastComponent(of: filePath)
         if name.hasSuffix(".pb.swift") || name.hasSuffix(".generated.swift") {
             return true
         }
@@ -122,7 +122,7 @@ extension ProjectLinter {
 
         case .auto:
             isLibrary = FileManager.default.fileExists(
-                atPath: (path as NSString).appendingPathComponent("Package.swift")
+                atPath: PathString.appending("Package.swift", to: path)
             )
         }
         // A nested package that publishes a `.library` product is a library whatever the ROOT is,
@@ -366,7 +366,7 @@ extension ProjectLinter {
         let relativePath = Self.relativePath(for: filePath, projectRoot: projectRoot)
 
         let file = ProjectFile(
-            name: (filePath as NSString).lastPathComponent,
+            name: PathString.lastComponent(of: filePath),
             content: content,
             relativePath: relativePath
         )
@@ -442,7 +442,7 @@ extension ProjectLinter {
             let source = sources[filePath]
             guard let content = source?.content ?? (try? String(contentsOfFile: filePath)) else { return nil }
             let file = ProjectFile(
-                name: (filePath as NSString).lastPathComponent,
+                name: PathString.lastComponent(of: filePath),
                 content: content,
                 relativePath: Self.relativePath(for: filePath, projectRoot: projectRoot)
             )

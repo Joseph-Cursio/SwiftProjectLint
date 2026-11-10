@@ -325,14 +325,12 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
     /// sample file. The one definition of "test file" — rules reach it through
     /// `isTestOrFixtureFile()`, and `SourcePatternDetector` calls it directly.
     public static func isTestOrFixturePath(_ filePath: String) -> Bool {
-        let pathString = filePath as NSString
-
         // Directory-based: a *containing folder* is a test target or fixture root.
         // Matching whole path components (not raw substrings) means a production
         // file that merely mentions a marker mid-name — e.g.
         // `.../SubclassedForMockingVisitor.swift`, where "Mocking" contains "Mock" —
         // is not mistaken for a fixture.
-        for component in pathString.pathComponents.dropLast() {
+        for component in PathString.components(of: filePath).dropLast() {
             if ConstructionUniverse.isTestTargetDirectory(component) {
                 return true // SPM `Tests/` and Xcode `FooTests/` target folders
             }
@@ -345,7 +343,7 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
         }
 
         // File-name-based: standard test / fixture file names.
-        let fileName = pathString.lastPathComponent
+        let fileName = PathString.lastComponent(of: filePath)
         if fileName.hasSuffix("Test.swift") || fileName.hasSuffix("Tests.swift")
             || fileName.hasSuffix("Examples.swift") || fileName.hasSuffix("Samples.swift") {
             return true
@@ -355,7 +353,7 @@ open class BasePatternVisitor: SyntaxVisitor, PatternVisitorProtocol {
         // whole stem (`Mocks.swift`), a suffix (`ClientMock.swift`), or a prefix
         // before an uppercase letter (`MockClient.swift`) — never an inner
         // substring (`MockingbirdConfig.swift` stays production).
-        let baseName = (fileName as NSString).deletingPathExtension
+        let baseName = PathString.deletingExtension(of: fileName)
         return Self.testDoubleMarkers.contains { marker in
             if baseName == marker || baseName.hasSuffix(marker) {
                 return true

@@ -6,7 +6,7 @@ import SwiftSyntax
 import Testing
 
 struct MemoryManagementRetainCycleTests {
-    var visitor: MemoryManagementVisitor { MemoryManagementVisitor() }
+    func makeVisitor() -> MemoryManagementVisitor { MemoryManagementVisitor() }
 
     @Test func testDetectsPotentialRetainCycle() throws {
         let sourceCode = """
@@ -16,7 +16,7 @@ struct MemoryManagementRetainCycleTests {
         }
         """
         let sourceFile = Parser.parse(source: sourceCode)
-        let visitor = self.visitor
+        let visitor = makeVisitor()
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.count == 1)
         let issue = try #require(visitor.detectedIssues.first)
@@ -33,7 +33,7 @@ struct MemoryManagementRetainCycleTests {
         }
         """
         let sourceFile = Parser.parse(source: sourceCode)
-        let visitor = self.visitor
+        let visitor = makeVisitor()
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.isEmpty)
     }
@@ -46,7 +46,7 @@ struct MemoryManagementRetainCycleTests {
         }
         """
         let sourceFile = Parser.parse(source: sourceCode)
-        let visitor = self.visitor
+        let visitor = makeVisitor()
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.isEmpty)
     }
@@ -59,7 +59,7 @@ struct MemoryManagementRetainCycleTests {
         }
         """
         let sourceFile = Parser.parse(source: sourceCode)
-        let visitor = self.visitor
+        let visitor = makeVisitor()
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.isEmpty)
     }
@@ -73,7 +73,7 @@ struct MemoryManagementRetainCycleTests {
         }
         """
         let sourceFile = Parser.parse(source: sourceCode)
-        let visitor = self.visitor
+        let visitor = makeVisitor()
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.count == 2)
         let issues = visitor.detectedIssues.sorted { $0.message < $1.message }

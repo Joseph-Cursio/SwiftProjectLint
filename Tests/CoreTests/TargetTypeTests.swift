@@ -18,22 +18,21 @@ struct TargetTypeTests {
 
     private func makeProject(withManifest: Bool) -> String {
         let base = FileManager.default.temporaryDirectory.path
-        let root = (base as NSString)
-            .appendingPathComponent("TargetTypeProject-\(UUID().uuidString)")
-        let sources = (root as NSString).appendingPathComponent("Sources")
+        let root = PathString.appending("TargetTypeProject-\(UUID().uuidString)", to: base)
+        let sources = PathString.appending("Sources", to: root)
         try? FileManager.default.createDirectory(
             atPath: sources, withIntermediateDirectories: true
         )
 
         if withManifest {
             try? "// swift-tools-version:6.0\n".write(
-                toFile: (root as NSString).appendingPathComponent("Package.swift"),
+                toFile: PathString.appending("Package.swift", to: root),
                 atomically: true, encoding: .utf8
             )
         }
 
         try? "public struct Widget {\n    public func render() {}\n}\n".write(
-            toFile: (sources as NSString).appendingPathComponent("Widget.swift"),
+            toFile: PathString.appending("Widget.swift", to: sources),
             atomically: true, encoding: .utf8
         )
         return root

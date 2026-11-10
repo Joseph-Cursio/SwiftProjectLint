@@ -335,7 +335,7 @@ struct ConcreteTypeUsageActorTests {
 
     private func makePackage(named name: String, files: [String: String]) -> String {
         let base = FileManager.default.temporaryDirectory.path
-        let root = (base as NSString).appendingPathComponent("\(name)-\(UUID().uuidString)")
+        let root = PathString.appending("\(name)-\(UUID().uuidString)", to: base)
         write("// swift-tools-version:6.0\n", to: "\(root)/Package.swift")
         for (path, content) in files {
             write(content, to: "\(root)/Sources/\(name)/\(path)")
@@ -345,7 +345,7 @@ struct ConcreteTypeUsageActorTests {
 
     private func write(_ content: String, to path: String) {
         try? FileManager.default.createDirectory(
-            atPath: (path as NSString).deletingLastPathComponent,
+            atPath: PathString.deletingLastComponent(of: path),
             withIntermediateDirectories: true
         )
         try? content.write(toFile: path, atomically: true, encoding: .utf8)

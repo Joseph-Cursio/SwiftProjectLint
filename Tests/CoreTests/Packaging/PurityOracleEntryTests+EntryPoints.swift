@@ -166,14 +166,14 @@ private struct ScannedMember {
     var entryPoint: PurityOracleEntryTests.OracleEntryPoint {
         // A function's overloads share `Type.name`, so they are one entry point.
         let declaration = type.isEmpty ? name : "\(type).\(name)"
-        let tokens: [String] = switch kind {
+        let callTokens: [String] = switch kind {
         case .initializer:
             [type] + (callLabel.map { [$0] } ?? [])
 
         case .function, .property, .subscriptMember, .storedInstanceProperty:
             enclosingTypes.isEmpty ? [name] : isStatic ? [type, name] : []
         }
-        return .init(declaration: declaration, tokens: tokens)
+        return .init(declaration: declaration, tokens: callTokens)
     }
 
     /// Creates an oracle itself: `PurityInferrer(…)`, or `PurityInferrer` named beside a `.init`,
@@ -199,21 +199,21 @@ private struct OracleReachScan {
     let reaching: [ScannedMember]
 
     init(_ files: [PurityOracleEntryTests.SourceFile]) {
-        var members: [ScannedMember] = []
-        var declaredTypes: Set<String> = []
-        var publicTypes: Set<String> = []
+        var scanned: [ScannedMember] = []
+        var declared: Set<String> = []
+        var publicNames: Set<String> = []
         for file in files {
             let collector = MemberCollector(file: file.path)
             collector.walk(file.tree)
-            members += collector.members
-            declaredTypes.formUnion(collector.declaredTypes)
-            publicTypes.formUnion(collector.publicTypes)
+            scanned += collector.members
+            declared.formUnion(collector.declaredTypes)
+            publicNames.formUnion(collector.publicTypes)
         }
-        members += Self.implicitInitializers(of: members)
-        self.members = members
-        self.declaredTypes = declaredTypes
-        self.publicTypes = publicTypes
-        reaching = Self.fixpoint(members).sorted().map { members[$0] }
+        scanned += Self.implicitInitializers(of: scanned)
+        self.members = scanned
+        self.declaredTypes = declared
+        self.publicTypes = publicNames
+        reaching = Self.fixpoint(scanned).sorted().map { scanned[$0] }
     }
 
     func isCallableOutsideThePackage(_ member: ScannedMember) -> Bool {
@@ -225,30 +225,30 @@ private struct OracleReachScan {
 
     /// The members that reach an oracle, by index.
     private static func fixpoint(_ members: [ScannedMember]) -> Set<Int> {
-        var reaching: Set<Int> = []
+        var reached: Set<Int> = []
         var changed = true
         while changed {
             changed = false
             var external: [[String]] = []
             var scoped: [String: [[String]]] = [:]
             var storing: Set<String> = []
-            for index in reaching {
+            for index in reached {
                 let member = members[index]
                 external += member.externalPattern.map { [$0] } ?? []
                 if !member.scope.isEmpty { scoped[member.scope, default: []] += member.scopePatterns }
                 if member.kind == .storedInstanceProperty { storing.insert(member.type) }
             }
-            for index in members.indices where !reaching.contains(index) {
+            for index in members.indices where !reached.contains(index) {
                 let member = members[index]
                 let byStorage = member.kind == .initializer && storing.contains(member.type)
                 let reaches = member.createsAnOracle || byStorage
                 if reaches || (external + (scoped[member.scope] ?? [])).contains(where: member.spells) {
-                    reaching.insert(index)
+                    reached.insert(index)
                     changed = true
                 }
             }
         }
-        return reaching
+        return reached
     }
 
     /// The `init()` a type with stored defaults and no initializer of its own gets. Never public —

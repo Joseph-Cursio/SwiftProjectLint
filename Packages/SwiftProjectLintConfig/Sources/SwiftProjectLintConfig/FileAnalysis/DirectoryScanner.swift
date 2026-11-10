@@ -1,4 +1,5 @@
 import Foundation
+import SwiftProjectLintModels
 
 /// Scans a project directory and builds a `DirectoryNode` tree.
 ///
@@ -31,7 +32,7 @@ public struct DirectoryScanner {
     ) -> DirectoryNode {
         let fileManager = FileManager.default
         let root = ProjectRoot(rootPath)
-        let rootName = (rootPath as NSString).lastPathComponent
+        let rootName = PathString.lastComponent(of: rootPath)
 
         let rootNode = DirectoryNode(
             identifier: "",
@@ -67,7 +68,7 @@ public struct DirectoryScanner {
             // layout, so a shallow placement is better than an omission -- the opposite call from
             // `FileAnalysisUtils`, which drives exclusion matching and must skip instead.
             let relative = root.relativePath(of: resolvedPath)
-                ?? RelativePath((resolvedPath as NSString).lastPathComponent)
+                ?? RelativePath(PathString.lastComponent(of: resolvedPath))
             let relativePath = relative.value
             let dirName = relative.lastComponent
 

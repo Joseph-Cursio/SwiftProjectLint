@@ -1,5 +1,6 @@
 import Darwin
 import Foundation
+import SwiftProjectLintModels
 
 /// Utility functions for file system operations and analysis in SwiftUI projects.
 ///
@@ -18,7 +19,7 @@ public struct FileAnalysisUtils {
     public static func extractSwiftBasename(from filePath: String) -> String {
         // Normalize Windows paths to use forward slashes
         let normalizedPath = filePath.replacingOccurrences(of: "\\", with: "/")
-        let fileName = (normalizedPath as NSString).lastPathComponent
+        let fileName = PathString.lastComponent(of: normalizedPath)
 
         // Remove the *extension* — a trailing suffix — and nothing else. This
         // was `replacingOccurrences(of: ".swift", with: "")`, which stripped

@@ -314,8 +314,8 @@ private class StateVariableCounter: SyntaxVisitor {
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         // Check for @State, @StateObject, etc.
         let propertyWrappers = node.attributes.compactMap { attribute -> String? in
-            guard let attribute = attribute.as(AttributeSyntax.self),
-                  let identifier = attribute.attributeName.as(IdentifierTypeSyntax.self) else {
+            guard let attributeSyntax = attribute.as(AttributeSyntax.self),
+                  let identifier = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self) else {
                 return nil
             }
             return identifier.name.text

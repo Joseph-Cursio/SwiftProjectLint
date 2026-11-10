@@ -74,14 +74,14 @@ final class MainActorBlockingCallScanner: SyntaxVisitor {
     /// `await reader.contents(atPath:)` suspends instead of blocking; only a synchronous call
     /// holds the thread.
     static func isAwaited(_ node: FunctionCallExprSyntax) -> Bool {
-        var current = Syntax(node)
-        while let parent = current.parent {
+        var cursor = Syntax(node)
+        while let parent = cursor.parent {
             if parent.is(AwaitExprSyntax.self) {
                 return true
             }
             guard parent.is(TryExprSyntax.self) || parent.is(OptionalChainingExprSyntax.self)
                 || parent.is(ForceUnwrapExprSyntax.self) else { return false }
-            current = parent
+            cursor = parent
         }
         return false
     }

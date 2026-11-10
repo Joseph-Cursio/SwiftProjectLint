@@ -97,16 +97,16 @@ enum LoopPositions {
     /// `0..<min(rows.count, expected.count)` or `0..<count` with `let count = rows.count`, in
     /// parentheses or not.
     static func coversEveryPosition(_ sequence: ExprSyntax, _ resolver: InspectionBindingResolver) -> Bool {
-        let sequence = InspectionChainEvaluator.unwrapped(sequence)
-        if let call = sequence.as(FunctionCallExprSyntax.self), call.arguments.isEmpty,
+        let unwrappedSequence = InspectionChainEvaluator.unwrapped(sequence)
+        if let call = unwrappedSequence.as(FunctionCallExprSyntax.self), call.arguments.isEmpty,
            let reversed = call.calledExpression.as(MemberAccessExprSyntax.self),
            reversed.declName.baseName.text == "reversed", let base = reversed.base {
             return coversEveryPosition(base, resolver)
         }
-        if sequence.as(MemberAccessExprSyntax.self)?.declName.baseName.text == "indices" {
+        if unwrappedSequence.as(MemberAccessExprSyntax.self)?.declName.baseName.text == "indices" {
             return true
         }
-        guard let elements = sequence.as(SequenceExprSyntax.self).map({ Array($0.elements) }), elements.count >= 3,
+        guard let elements = unwrappedSequence.as(SequenceExprSyntax.self).map({ Array($0.elements) }), elements.count >= 3,
               isFirstPosition(elements[0]),
               let range = elements[1].as(BinaryOperatorExprSyntax.self)?.operator.text else {
             return false
@@ -136,15 +136,15 @@ enum LoopPositions {
 
     /// `rows.count`, `rows.endIndex`, `min(rows.count, expected.count)`, or a name bound to one.
     private static func isCount(_ expr: ExprSyntax, _ resolver: InspectionBindingResolver, depth: Int = 0) -> Bool {
-        let expr = InspectionChainEvaluator.unwrapped(expr)
-        if let member = expr.as(MemberAccessExprSyntax.self) {
+        let unwrappedExpr = InspectionChainEvaluator.unwrapped(expr)
+        if let member = unwrappedExpr.as(MemberAccessExprSyntax.self) {
             return ["count", "endIndex"].contains(member.declName.baseName.text)
         }
-        if let call = expr.as(FunctionCallExprSyntax.self),
+        if let call = unwrappedExpr.as(FunctionCallExprSyntax.self),
            call.calledExpression.as(DeclReferenceExprSyntax.self)?.baseName.text == "min" {
             return call.arguments.isEmpty == false && call.arguments.allSatisfy { isCount($0.expression, resolver) }
         }
-        guard depth < 4, let reference = expr.as(DeclReferenceExprSyntax.self),
+        guard depth < 4, let reference = unwrappedExpr.as(DeclReferenceExprSyntax.self),
               case .value(let value, _) = resolver.resolve(reference.baseName.text, from: Syntax(reference)) else {
             return false
         }
@@ -224,11 +224,11 @@ enum LoopPositions {
 
     private static func comparesPosition(of name: String, in expr: ExprSyntax, depth: Int = 0) -> Bool {
         guard depth < 8 else { return false }
-        let expr = InspectionChainEvaluator.unwrapped(expr)
-        if let negated = expr.as(PrefixOperatorExprSyntax.self) {
+        let unwrappedExpr = InspectionChainEvaluator.unwrapped(expr)
+        if let negated = unwrappedExpr.as(PrefixOperatorExprSyntax.self) {
             return comparesPosition(of: name, in: negated.expression, depth: depth + 1)
         }
-        guard let elements = expr.as(SequenceExprSyntax.self)?.elements else { return false }
+        guard let elements = unwrappedExpr.as(SequenceExprSyntax.self)?.elements else { return false }
         // Split at `&&` and `||`: each clause is one comparison, or a parenthesised condition.
         var clause: [ExprSyntax] = []
         for element in elements.map(Optional.some) + [nil] {

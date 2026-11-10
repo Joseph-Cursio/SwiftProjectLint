@@ -37,10 +37,10 @@ struct UnusedProtocolRequirementGuardTests {
             func helper() { self.b() }
         }
         """
-        let client = "func run(_ store: any Store) { store.both() }"
+        let caller = "func run(_ store: any Store) { store.both() }"
 
         #expect(UnusedRequirementHarness.reported([
-            "S.swift": Self.store, "E.swift": extensionFile, "C.swift": client
+            "S.swift": Self.store, "E.swift": extensionFile, "C.swift": caller
         ]) == ["Store.c()"])
     }
 
@@ -65,10 +65,10 @@ struct UnusedProtocolRequirementGuardTests {
             var label: String { String(describing: Self.self) }
         }
         """
-        let client = "func run(_ store: any Store) { store.a(); print(store.label) }"
+        let caller = "func run(_ store: any Store) { store.a(); print(store.label) }"
 
         #expect(UnusedRequirementHarness.reported([
-            "S.swift": Self.store, "E.swift": extensionFile, "C.swift": client
+            "S.swift": Self.store, "E.swift": extensionFile, "C.swift": caller
         ]) == ["Store.b()", "Store.c()"])
     }
 
@@ -87,7 +87,7 @@ struct UnusedProtocolRequirementGuardTests {
     /// parameter is a client of its own.
     @Test
     func anArgumentToAProtocolTypedParameterIsFollowed() {
-        let client = """
+        let caller = """
         final class Client {
             private let store: any Store
             init(store: any Store) { self.store = store }
@@ -96,13 +96,13 @@ struct UnusedProtocolRequirementGuardTests {
         }
         """
 
-        let reported = UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": client])
+        let reported = UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": caller])
         #expect(reported == ["Store.b()", "Store.c()"])
     }
 
     @Test
     func aMemberwiseInitializerArgumentIsFollowed() {
-        let client = """
+        let caller = """
         struct Screen {
             let store: any Store
             func refresh() { store.a() }
@@ -110,45 +110,45 @@ struct UnusedProtocolRequirementGuardTests {
         func show(_ store: any Store) -> Screen { Screen(store: store) }
         """
 
-        let reported = UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": client])
+        let reported = UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": caller])
         #expect(reported == ["Store.b()", "Store.c()"])
     }
 
     /// Anywhere else the value could reach every requirement, so the protocol is not judged.
     @Test
     func anArgumentToAnUnknownFunctionUsesEverything() {
-        let client = """
+        let caller = """
         func run(_ store: any Store) {
             store.a()
             register(store)
         }
         """
 
-        #expect(UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": client]).isEmpty)
+        #expect(UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": caller]).isEmpty)
     }
 
     @Test
     func aCollectionOfTheProtocolUsesEverything() {
-        let client = """
+        let caller = """
         final class Registry {
             var stores: [any Store] = []
             func run(_ store: any Store) { store.a() }
         }
         """
 
-        #expect(UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": client]).isEmpty)
+        #expect(UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": caller]).isEmpty)
     }
 
     @Test
     func stringInterpolationIsAnEscape() {
-        let client = "func run(_ store: any Store) { store.a(); print(\"\\(store)\") }"
+        let caller = "func run(_ store: any Store) { store.a(); print(\"\\(store)\") }"
 
-        #expect(UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": client]).isEmpty)
+        #expect(UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": caller]).isEmpty)
     }
 
     @Test
     func returningTheValueAsTheProtocolIsNotAnEscape() {
-        let client = """
+        let caller = """
         final class Holder {
             private let store: any Store
             init(store: any Store) { self.store = store }
@@ -157,13 +157,13 @@ struct UnusedProtocolRequirementGuardTests {
         func run(_ holder: Holder) { holder.current().a() }
         """
 
-        let reported = UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": client])
+        let reported = UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": caller])
         #expect(reported == ["Store.b()", "Store.c()"])
     }
 
     @Test
     func returningTheValueFromAClosureIsAnEscape() {
-        let client = """
+        let caller = """
         func run(_ store: any Store) {
             store.a()
             let provider = { store }
@@ -171,12 +171,12 @@ struct UnusedProtocolRequirementGuardTests {
         }
         """
 
-        #expect(UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": client]).isEmpty)
+        #expect(UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": caller]).isEmpty)
     }
 
     @Test
     func aClosureCaptureIsTheCapturedValue() {
-        let client = """
+        let caller = """
         final class Client {
             weak var store: (any Store & AnyObject)?
             func run() {
@@ -185,14 +185,14 @@ struct UnusedProtocolRequirementGuardTests {
         }
         """
 
-        let reported = UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": client])
+        let reported = UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": caller])
         #expect(reported == ["Store.a()", "Store.c()"])
     }
 
     /// `injected ?? Default()` is the default-injection idiom: the value is still the protocol's.
     @Test
     func aDefaultedInjectionIsTheInjectedValue() {
-        let client = """
+        let caller = """
         final class Manager {
             let store: any Store
             init(store: (any Store)? = nil) {
@@ -207,7 +207,7 @@ struct UnusedProtocolRequirementGuardTests {
         }
         """
 
-        #expect(UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": client]) == ["Store.c()"])
+        #expect(UnusedRequirementHarness.reported(["S.swift": Self.store, "C.swift": caller]) == ["Store.c()"])
     }
 
     /// `Self.message(…)` calls a static function the run declares, which returns no protocol
@@ -224,9 +224,9 @@ struct UnusedProtocolRequirementGuardTests {
             func run() { print(Self.message("done")) }
         }
         """
-        let client = "func go(_ command: any Command) { command.run() }"
+        let caller = "func go(_ command: any Command) { command.run() }"
 
-        #expect(UnusedRequirementHarness.reported(["C.swift": command, "G.swift": client]) == ["Command.validate()"])
+        #expect(UnusedRequirementHarness.reported(["C.swift": command, "G.swift": caller]) == ["Command.validate()"])
     }
 
     @Test
@@ -283,9 +283,9 @@ struct UnusedProtocolRequirementGuardTests {
             var subtitle: String { get }
         }
         """
-        let client = "func render(_ row: any Row) -> String { row.title }"
+        let caller = "func render(_ row: any Row) -> String { row.title }"
 
-        #expect(UnusedRequirementHarness.reported(["R.swift": row, "C.swift": client]) == ["Row.subtitle"])
+        #expect(UnusedRequirementHarness.reported(["R.swift": row, "C.swift": caller]) == ["Row.subtitle"])
     }
 
     @Test
@@ -300,9 +300,9 @@ struct UnusedProtocolRequirementGuardTests {
             func reset()
         }
         """
-        let client = "func run<F: Factory>(_ factory: F) { _ = factory.build() }"
+        let caller = "func run<F: Factory>(_ factory: F) { _ = factory.build() }"
 
-        #expect(UnusedRequirementHarness.reported(["F.swift": factory, "C.swift": client]) == ["Factory.reset()"])
+        #expect(UnusedRequirementHarness.reported(["F.swift": factory, "C.swift": caller]) == ["Factory.reset()"])
     }
 
     @Test
@@ -311,14 +311,14 @@ struct UnusedProtocolRequirementGuardTests {
         @objc protocol PickerDelegate { func didPick(); func didCancel() }
         protocol LegacyDelegate: NSObjectProtocol { func didPick(); func didCancel() }
         """
-        let client = """
+        let caller = """
         func run(_ picker: any PickerDelegate, _ legacy: any LegacyDelegate) {
             picker.didPick()
             legacy.didPick()
         }
         """
 
-        #expect(UnusedRequirementHarness.reported(["D.swift": delegates, "C.swift": client]).isEmpty)
+        #expect(UnusedRequirementHarness.reported(["D.swift": delegates, "C.swift": caller]).isEmpty)
     }
 
     /// A framework calls the requirements of its own protocols — ArgumentParser runs
@@ -334,7 +334,7 @@ struct UnusedProtocolRequirementGuardTests {
         protocol Subcommand: RunCommand { func describe() }
         protocol Plain: Sendable, Hashable { func a(); func b() }
         """
-        let client = """
+        let caller = """
         func go(_ command: any RunCommand, _ sub: any Subcommand, _ plain: any Plain) async throws {
             try await command.run(with: .init())
             sub.describe()
@@ -342,7 +342,7 @@ struct UnusedProtocolRequirementGuardTests {
         }
         """
 
-        #expect(UnusedRequirementHarness.reported(["C.swift": commands, "G.swift": client]) == ["Plain.b()"])
+        #expect(UnusedRequirementHarness.reported(["C.swift": commands, "G.swift": caller]) == ["Plain.b()"])
     }
 
     /// A macro on a protocol can generate callers the run cannot see — a type eraser forwarding
@@ -353,9 +353,9 @@ struct UnusedProtocolRequirementGuardTests {
         @Forwarding protocol Erased { func a(); func b() }
         @MainActor protocol Isolated { func a(); func b() }
         """
-        let client = "func run(_ erased: any Erased, _ isolated: any Isolated) { erased.a(); isolated.a() }"
+        let caller = "func run(_ erased: any Erased, _ isolated: any Isolated) { erased.a(); isolated.a() }"
 
-        #expect(UnusedRequirementHarness.reported(["P.swift": protocols, "C.swift": client]) == ["Isolated.b()"])
+        #expect(UnusedRequirementHarness.reported(["P.swift": protocols, "C.swift": caller]) == ["Isolated.b()"])
     }
 
     @Test

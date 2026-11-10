@@ -92,8 +92,10 @@ struct MainActorMissingDefaultIsolationEndToEndTests {
 
     @Test
     func modelsInATargetWithDefaultIsolationInItsManifestAreNotReported() async {
-        let root = (FileManager.default.temporaryDirectory.path as NSString)
-            .appendingPathComponent("MainActorMissingDefault-\(UUID().uuidString)")
+        let root = PathString.appending(
+            "MainActorMissingDefault-\(UUID().uuidString)",
+            to: FileManager.default.temporaryDirectory.path
+        )
         write("""
         // swift-tools-version:6.2
         import PackageDescription
@@ -142,7 +144,7 @@ struct MainActorMissingDefaultIsolationEndToEndTests {
 
     private func write(_ content: String, to path: String) {
         try? FileManager.default.createDirectory(
-            atPath: (path as NSString).deletingLastPathComponent,
+            atPath: PathString.deletingLastComponent(of: path),
             withIntermediateDirectories: true
         )
         try? content.write(toFile: path, atomically: true, encoding: .utf8)

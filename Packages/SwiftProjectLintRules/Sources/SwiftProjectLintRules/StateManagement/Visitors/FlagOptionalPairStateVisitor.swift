@@ -137,8 +137,8 @@ final class FlagOptionalPairStateVisitor: BasePatternVisitor {
             guard name.hasPrefix(prefix), name.count > prefix.count else { return nil }
             let afterIndex = name.index(name.startIndex, offsetBy: prefix.count)
             guard name[afterIndex].isUppercase else { return nil }
-            let stem = String(name[afterIndex...]).lowercased()
-            return stem.count >= 4 ? stem : nil
+            let candidate = String(name[afterIndex...]).lowercased()
+            return candidate.count >= 4 ? candidate : nil
         }
         return stem(after: "has") ?? stem(after: "is")
     }

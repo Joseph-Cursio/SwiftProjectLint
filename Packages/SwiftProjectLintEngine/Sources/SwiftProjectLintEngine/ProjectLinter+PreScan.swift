@@ -108,11 +108,11 @@ extension ProjectLinter {
                     )
                 )
             } ?? []
-            let identifiable = collectTypes(IdentifiableTypeCollector.self, in: parsed)
+            let identifiableTypes = collectTypes(IdentifiableTypeCollector.self, in: parsed)
             return Self(
-                identifiable: identifiable,
+                identifiable: identifiableTypes,
                 identifiableCollectionProperties: IdentifiableCollectionPropertyCatalog.build(
-                    from: parsed, identifiable: identifiable
+                    from: parsed, identifiable: identifiableTypes
                 ),
                 enums: collectTypes(EnumTypeCollector.self, in: parsed),
                 actors: ActorTypeCatalog.build(from: parsed, aliases: aliases),

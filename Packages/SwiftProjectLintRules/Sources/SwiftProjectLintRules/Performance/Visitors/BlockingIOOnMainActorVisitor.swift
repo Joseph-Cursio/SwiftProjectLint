@@ -76,7 +76,7 @@ final class BlockingIOOnMainActorVisitor: CrossFileVisitorBase, CrossFilePattern
 
     /// Test and fixture code, and package manifests, are not app code.
     private static func isExempt(_ path: String) -> Bool {
-        let fileName = (path as NSString).lastPathComponent
+        let fileName = PathString.lastComponent(of: path)
         return isTestOrFixturePath(path) || fileName == "Package.swift" || fileName.hasPrefix("Package@swift")
     }
 }

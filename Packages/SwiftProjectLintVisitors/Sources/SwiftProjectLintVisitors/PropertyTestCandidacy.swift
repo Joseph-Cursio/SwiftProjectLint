@@ -336,20 +336,20 @@ public enum PropertyTestCandidacy {
     /// tuple is never `Equatable`, so an Optional or Array of one has no `==`. A tuple that is the
     /// *whole* type never gets here; `typeIsAssertable` judges it element by element.
     static func baseTypeName(_ type: TypeSyntax) -> String? {
-        let type = unparenthesized(type)
-        if let optional = type.as(OptionalTypeSyntax.self) {
+        let bareType = unparenthesized(type)
+        if let optional = bareType.as(OptionalTypeSyntax.self) {
             return baseTypeName(optional.wrappedType)
         }
-        if let implicit = type.as(ImplicitlyUnwrappedOptionalTypeSyntax.self) {
+        if let implicit = bareType.as(ImplicitlyUnwrappedOptionalTypeSyntax.self) {
             return baseTypeName(implicit.wrappedType)
         }
-        if let array = type.as(ArrayTypeSyntax.self) {
+        if let array = bareType.as(ArrayTypeSyntax.self) {
             return baseTypeName(array.element)
         }
-        if type.is(DictionaryTypeSyntax.self) {
+        if bareType.is(DictionaryTypeSyntax.self) {
             return "Dictionary"
         }
-        if let identifier = type.as(IdentifierTypeSyntax.self) {
+        if let identifier = bareType.as(IdentifierTypeSyntax.self) {
             return identifier.name.text
         }
         return nil

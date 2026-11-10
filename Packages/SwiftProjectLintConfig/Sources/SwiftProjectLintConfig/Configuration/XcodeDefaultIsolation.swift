@@ -1,4 +1,5 @@
 import Foundation
+import SwiftProjectLintModels
 
 /// Reads `SWIFT_DEFAULT_ACTOR_ISOLATION` from the Xcode projects under a root.
 ///
@@ -16,7 +17,7 @@ enum XcodeDefaultIsolation {
     /// or one file.
     static func sourcePaths(in projectRoot: String) -> [String] {
         projectDirectories(in: projectRoot).flatMap { project -> [String] in
-            let pbxproj = (project.absolute as NSString).appendingPathComponent("project.pbxproj")
+            let pbxproj = PathString.appending("project.pbxproj", to: project.absolute)
             guard let data = FileManager.default.contents(atPath: pbxproj) else { return [] }
             return sourcePaths(pbxproj: data, projectDirectory: project.parent)
         }
@@ -78,13 +79,13 @@ private struct ProjectGraph {
     init(objects: [String: [String: Any]], projectDirectory: String) {
         self.objects = objects
         self.projectDirectory = projectDirectory
-        var parents: [String: String] = [:]
+        var parentByChild: [String: String] = [:]
         for (identifier, object) in objects {
             for child in object["children"] as? [String] ?? [] {
-                parents[child] = identifier
+                parentByChild[child] = identifier
             }
         }
-        self.parents = parents
+        self.parents = parentByChild
     }
 
     /// The default isolation a configuration list sets: `MainActor` if any of its configurations

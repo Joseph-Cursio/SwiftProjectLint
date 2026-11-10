@@ -29,7 +29,7 @@ struct LintConfigurationLoaderTests {
         excluded_paths:
           - "Tests/"
         """
-        let configPath = (tempDir as NSString).appendingPathComponent(".swiftprojectlint.yml")
+        let configPath = PathString.appending(".swiftprojectlint.yml", to: tempDir)
         try yaml.write(toFile: configPath, atomically: true, encoding: .utf8)
 
         let config = LintConfigurationLoader.load(projectRoot: tempDir)

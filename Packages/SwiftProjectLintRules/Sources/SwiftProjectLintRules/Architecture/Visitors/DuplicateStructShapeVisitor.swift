@@ -78,8 +78,8 @@ final class DuplicateStructShapeVisitor: CrossFileVisitorBase, CrossFilePatternV
         var conformances: Set<String> = []
         if let inheritance {
             for inherited in inheritance.inheritedTypes {
-                if let name = conformanceName(inherited.type) {
-                    conformances.formUnion(compositionAliases.expand(name))
+                if let conformance = conformanceName(inherited.type) {
+                    conformances.formUnion(compositionAliases.expand(conformance))
                 }
             }
         }

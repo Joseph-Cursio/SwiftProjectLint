@@ -48,13 +48,13 @@ struct PackageTargetImports {
         targetsByModule = Dictionary(targets.map { ($0.moduleName, $0) }) { first, _ in first }
         targetsByName = Dictionary(targets.map { ($0.name, $0) }) { first, _ in first }
 
-        var sitesByTarget: [String: [Site]] = [:]
+        var sites: [String: [Site]] = [:]
         for target in targets {
-            sitesByTarget[target.name] = Self.imports(
+            sites[target.name] = Self.imports(
                 in: package.filesByTarget[target.name] ?? [], fileCache: fileCache
             )
         }
-        self.sitesByTarget = sitesByTarget
+        self.sitesByTarget = sites
     }
 
     /// The module names of the same-package targets `target` declares; `nil` when its dependency

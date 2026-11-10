@@ -251,24 +251,24 @@ struct LossyRebuild {
     /// `nil` unless the call hard-codes at least one empty value **and** reads something — a
     /// construction made only of literals is a fresh value or a fallback, not a rebuild.
     init?(call: FunctionCallExprSyntax, type: String, reader: DeclSyntax, decomposition: Decomposition) {
-        var dropped: [DroppedField] = []
+        var droppedFields: [DroppedField] = []
         var readsSomething = false
         for argument in call.arguments {
             if let literal = EmptyLiteral.text(of: argument.expression) {
                 guard let label = argument.label?.text else { continue }
-                dropped.append(DroppedField(
+                droppedFields.append(DroppedField(
                     label: label, literal: literal, wasStored: decomposition.storedFields.contains(label)
                 ))
             } else if EmptyLiteral.isConstant(argument.expression) == false {
                 readsSomething = true
             }
         }
-        guard dropped.isEmpty == false, readsSomething else { return nil }
+        guard droppedFields.isEmpty == false, readsSomething else { return nil }
         self.call = call
         self.type = type
         self.readerName = LossyRoundTripVisitor.displayName(of: reader)
         self.writerNames = decomposition.members.map(LossyRoundTripVisitor.displayName(of:))
-        self.dropped = dropped
+        self.dropped = droppedFields
     }
 
     /// Names the halves of the round trip, and splits the fields by how they are lost — never

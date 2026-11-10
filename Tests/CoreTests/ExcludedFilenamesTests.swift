@@ -14,11 +14,13 @@ struct ExcludedFilenamesTests {
     /// A tree with the same filename in two directories, plus one file that should always
     /// be analysed. `Constants.swift` carries a force-unwrap so there is something to find.
     private func makeProject() -> String {
-        let root = (FileManager.default.temporaryDirectory.path as NSString)
-            .appendingPathComponent("ExcludedFilenames-\(UUID().uuidString)")
+        let root = PathString.appending(
+            "ExcludedFilenames-\(UUID().uuidString)",
+            to: FileManager.default.temporaryDirectory.path
+        )
         for directory in ["Sources/Alpha", "Sources/Beta"] {
             try? FileManager.default.createDirectory(
-                atPath: (root as NSString).appendingPathComponent(directory),
+                atPath: PathString.appending(directory, to: root),
                 withIntermediateDirectories: true
             )
         }
@@ -29,7 +31,7 @@ struct ExcludedFilenamesTests {
             "Sources/Alpha/Regular.swift",
         ] {
             try? body.write(
-                toFile: (root as NSString).appendingPathComponent(path),
+                toFile: PathString.appending(path, to: root),
                 atomically: true, encoding: .utf8
             )
         }
@@ -113,7 +115,7 @@ struct ExcludedFilenamesTests {
         let root = makeProject()
         defer { try? FileManager.default.removeItem(atPath: root) }
         try? "// swift-tools-version:6.0\n".write(
-            toFile: (root as NSString).appendingPathComponent("Package.swift"),
+            toFile: PathString.appending("Package.swift", to: root),
             atomically: true, encoding: .utf8
         )
 
@@ -136,12 +138,14 @@ struct ExcludedFilenamesTests {
 
     @Test("excluded_filenames is read from YAML")
     func yamlKeyIsParsed() throws {
-        let root = (FileManager.default.temporaryDirectory.path as NSString)
-            .appendingPathComponent("ExcludedFilenamesYAML-\(UUID().uuidString)")
+        let root = PathString.appending(
+            "ExcludedFilenamesYAML-\(UUID().uuidString)",
+            to: FileManager.default.temporaryDirectory.path
+        )
         try FileManager.default.createDirectory(atPath: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(atPath: root) }
 
-        let path = (root as NSString).appendingPathComponent(".swiftprojectlint.yml")
+        let path = PathString.appending(".swiftprojectlint.yml", to: root)
         try """
         excluded_filenames:
           - "Deprecations.swift"
@@ -157,12 +161,14 @@ struct ExcludedFilenamesTests {
     /// so an unconfigured project analyses everything.
     @Test("an absent key leaves the list empty")
     func absentKeyLeavesListEmpty() throws {
-        let root = (FileManager.default.temporaryDirectory.path as NSString)
-            .appendingPathComponent("ExcludedFilenamesEmpty-\(UUID().uuidString)")
+        let root = PathString.appending(
+            "ExcludedFilenamesEmpty-\(UUID().uuidString)",
+            to: FileManager.default.temporaryDirectory.path
+        )
         try FileManager.default.createDirectory(atPath: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(atPath: root) }
 
-        let path = (root as NSString).appendingPathComponent(".swiftprojectlint.yml")
+        let path = PathString.appending(".swiftprojectlint.yml", to: root)
         try "excluded_paths:\n  - \"Tests/\"\n".write(
             toFile: path, atomically: true, encoding: .utf8
         )

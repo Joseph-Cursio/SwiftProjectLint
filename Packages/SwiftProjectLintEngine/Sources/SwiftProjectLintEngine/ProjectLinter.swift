@@ -143,7 +143,7 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             for: path, base: configuration, targetType: targetType
         )
         // One detector, so the registry the demand is derived from is the registry the run executes.
-        let detector = detector ?? SourcePatternDetector()
+        let patternDetector = detector ?? SourcePatternDetector()
 
         // Which rules run is settled by the flags and the configuration alone — no file is read for
         // it — so it is settled here, once, and carried: the set the gate is derived from and the set
@@ -157,9 +157,9 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             configuration: effectiveConfiguration,
             categories: categories,
             effectiveRules: effectiveRules,
-            detector: detector
+            detector: patternDetector
         )
-        let demand = forced ?? PurityDemand(planned: effectiveRules, registry: detector.registry)
+        let demand = forced ?? PurityDemand(planned: effectiveRules, registry: patternDetector.registry)
 
         let first = await pass(request, demand: demand)
         guard !first.trips.isEmpty else {

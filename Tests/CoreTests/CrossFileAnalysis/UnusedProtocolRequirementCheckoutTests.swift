@@ -180,7 +180,7 @@ struct UnusedProtocolRequirementCheckoutTests {
         }
         typealias OrderStore = OrderSaving & OrderHistory & OrderAdministration & AnalyticsRecording
         """
-        let viewModel = """
+        let viewModelSource = """
         final class CheckoutViewModel {
             private let store: any OrderSaving
             init(store: any OrderSaving) { self.store = store }
@@ -188,6 +188,6 @@ struct UnusedProtocolRequirementCheckoutTests {
         }
         """
 
-        #expect(UnusedRequirementHarness.reported(["Roles.swift": roles, "VM.swift": viewModel]).isEmpty)
+        #expect(UnusedRequirementHarness.reported(["Roles.swift": roles, "VM.swift": viewModelSource]).isEmpty)
     }
 }

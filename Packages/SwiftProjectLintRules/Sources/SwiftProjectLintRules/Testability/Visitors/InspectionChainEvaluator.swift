@@ -27,17 +27,17 @@ final class InspectionChainEvaluator {
 
     private func evaluate(_ expr: ExprSyntax, depth: Int) -> ChainEvaluation {
         guard depth < Self.maxDepth else { return .unrelated }
-        let expr = Self.unwrapped(expr)
-        if let call = expr.as(FunctionCallExprSyntax.self) {
+        let unwrappedExpr = Self.unwrapped(expr)
+        if let call = unwrappedExpr.as(FunctionCallExprSyntax.self) {
             return evaluateCall(call, depth: depth)
         }
-        if let subscriptCall = expr.as(SubscriptCallExprSyntax.self) {
+        if let subscriptCall = unwrappedExpr.as(SubscriptCallExprSyntax.self) {
             return evaluateSubscript(subscriptCall, depth: depth)
         }
-        if let member = expr.as(MemberAccessExprSyntax.self), let base = member.base {
+        if let member = unwrappedExpr.as(MemberAccessExprSyntax.self), let base = member.base {
             return evaluateProperty(member, of: base, depth: depth)
         }
-        if let reference = expr.as(DeclReferenceExprSyntax.self) {
+        if let reference = unwrappedExpr.as(DeclReferenceExprSyntax.self) {
             return ChainEvaluation(state: state(of: reference, depth: depth))
         }
         return .unrelated

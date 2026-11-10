@@ -42,7 +42,7 @@ struct DirectoryScannerTests {
         defer { cleanup() }
 
         let root = DirectoryScanner.scanSync(rootPath: path)
-        let expectedName = (path as NSString).lastPathComponent
+        let expectedName = PathString.lastComponent(of: path)
         #expect(root.name == expectedName)
         #expect(root.id.isEmpty)
         #expect(root.depth == 0)

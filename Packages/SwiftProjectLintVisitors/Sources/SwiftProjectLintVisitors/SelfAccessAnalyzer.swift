@@ -499,14 +499,14 @@ struct StoredProperty: Sendable, Equatable {
 
         for member in members {
             guard let variable = member.decl.as(VariableDeclSyntax.self) else { continue }
-            let isMutable = variable.bindingSpecifier.tokenKind == .keyword(.var)
+            let declaredMutable = variable.bindingSpecifier.tokenKind == .keyword(.var)
 
             for binding in variable.bindings {
                 guard let pattern = binding.pattern.as(IdentifierPatternSyntax.self) else { continue }
                 let name = pattern.identifier.text
 
                 guard let accessor = binding.accessorBlock else {
-                    properties[name] = Self(isMutable: isMutable)
+                    properties[name] = Self(isMutable: declaredMutable)
                     continue
                 }
                 // `var x = 5 { didSet { … } }` is *stored*, with an observer. It is not a derived

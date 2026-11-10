@@ -54,17 +54,17 @@ struct StringTestAtom: Equatable {
         guard elements.count == 3,
               let comparison = elements[1].as(BinaryOperatorExprSyntax.self)?.operator.text,
               comparison == "==" || comparison == "!=" else { return nil }
-        let (receiver, literal): (ExprSyntax, String)
+        let (operand, text): (ExprSyntax, String)
         if let value = literalText(elements[2]) {
-            (receiver, literal) = (elements[0], value)
+            (operand, text) = (elements[0], value)
         } else if let value = literalText(elements[0]) {
-            (receiver, literal) = (elements[2], value)
+            (operand, text) = (elements[2], value)
         } else {
             return nil
         }
-        guard literalText(receiver) == nil else { return nil }
-        let kind: Kind = literal.isEmpty ? .isEmpty : .equals(literal)
-        return Self(receiver: receiver.trimmedDescription, kind: kind, negated: comparison == "!=")
+        guard literalText(operand) == nil else { return nil }
+        let atomKind: Kind = text.isEmpty ? .isEmpty : .equals(text)
+        return Self(receiver: operand.trimmedDescription, kind: atomKind, negated: comparison == "!=")
     }
 
     private static func read(_ expr: ExprSyntax) -> Self? {
@@ -93,14 +93,14 @@ struct StringTestAtom: Equatable {
               call.arguments.count == 1, call.trailingClosure == nil,
               let argument = call.arguments.first, argument.label == nil,
               let literal = literalText(argument.expression), !literal.isEmpty else { return nil }
-        let kind: Kind
+        let atomKind: Kind
         switch member.declName.baseName.text {
-        case "contains": kind = .contains(literal)
-        case "hasPrefix": kind = .prefix(literal)
-        case "hasSuffix": kind = .suffix(literal)
+        case "contains": atomKind = .contains(literal)
+        case "hasPrefix": atomKind = .prefix(literal)
+        case "hasSuffix": atomKind = .suffix(literal)
         default: return nil
         }
-        return Self(receiver: base.trimmedDescription, kind: kind, negated: false)
+        return Self(receiver: base.trimmedDescription, kind: atomKind, negated: false)
     }
 
     /// A string literal's text when it has no interpolation.

@@ -191,8 +191,10 @@ struct LayerDependencyVisitorTests {
     /// The layers reach this rule through the cross-file engine, which never had to carry them
     /// before. A real run from a config file is the only way to see that they arrive.
     @Test func aConfiguredProjectRunReportsTheDependency() async throws {
-        let root = (FileManager.default.temporaryDirectory.path as NSString)
-            .appendingPathComponent("LayerDependencyE2E-\(UUID().uuidString)")
+        let root = PathString.appending(
+            "LayerDependencyE2E-\(UUID().uuidString)",
+            to: FileManager.default.temporaryDirectory.path
+        )
         defer { try? FileManager.default.removeItem(atPath: root) }
         let project: [String: String] = files(adding: [
             "Presentation/CheckoutViewModel.swift": "final class CheckoutViewModel { let store: CoreDataOrderStore }",
@@ -210,9 +212,9 @@ struct LayerDependencyVisitorTests {
             """,
         ])
         for (relative, content) in project {
-            let path = (root as NSString).appendingPathComponent(relative)
+            let path = PathString.appending(relative, to: root)
             try FileManager.default.createDirectory(
-                atPath: (path as NSString).deletingLastPathComponent, withIntermediateDirectories: true
+                atPath: PathString.deletingLastComponent(of: path), withIntermediateDirectories: true
             )
             try content.write(toFile: path, atomically: true, encoding: .utf8)
         }
