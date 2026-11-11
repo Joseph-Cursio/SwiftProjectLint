@@ -1,5 +1,5 @@
-@testable import Core
 import PropertyBased
+import SwiftProjectLintConfig
 import Testing
 
 /// Property-based laws for the `DirectoryNode` exclusion **inverse pair** —
@@ -40,13 +40,13 @@ struct DirectoryNodeExclusionRoundTripTests {
             node("Sources", "Sources", 1, [
                 node("Sources/App", "App", 2, [
                     node("Sources/App/Views", "Views", 3),
-                    node("Sources/App/Models", "Models", 3)
+                    node("Sources/App/Models", "Models", 3),
                 ]),
-                node("Sources/Core", "Core", 2)
+                node("Sources/Core", "Core", 2),
             ]),
             node("Tests", "Tests", 1, [
                 node("Tests/CoreTests", "CoreTests", 2)
-            ])
+            ]),
         ])
     }
 

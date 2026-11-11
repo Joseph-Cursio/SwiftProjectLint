@@ -1,5 +1,3 @@
-import Foundation
-import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
@@ -340,7 +338,7 @@ extension NonInjectedNondeterminismVisitor {
         "formatted",
         "ISO8601Format",
         "description",
-        "debugDescription"
+        "debugDescription",
     ]
 
     /// An argument that supplies no value from the surrounding scope.

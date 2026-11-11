@@ -1,13 +1,15 @@
-@testable import Core
 import Foundation
-import SwiftParser
 @testable import SwiftProjectLintRules
-import SwiftSyntax
 import Testing
 
 /// Tests for type extraction from explicit type annotations
 @Suite
 struct TypeExtractionTests {
+
+    enum TypeMatchMode: Sendable {
+        case exact
+        case contains
+    }
 
     struct TypeExtractionCase: CustomTestStringConvertible, Sendable {
         let declaration: String
@@ -15,11 +17,6 @@ struct TypeExtractionTests {
         let expectedName: String?
         let typeMatchMode: TypeMatchMode
         var testDescription: String { declaration }
-
-        enum TypeMatchMode: Sendable {
-            case exact
-            case contains
-        }
 
         init(_ declaration: String, type expectedType: String, name: String? = nil, match: TypeMatchMode = .exact) {
             self.declaration = declaration
@@ -35,7 +32,7 @@ struct TypeExtractionTests {
         TypeExtractionCase("@State private var isEnabled: Bool = true", type: "Bool"),
         TypeExtractionCase("@State private var optionalValue: String? = nil", type: "String", match: .contains),
         TypeExtractionCase("@State private var content: some View = Text(\"Test\")", type: "View"),
-        TypeExtractionCase("@State private var value: String", type: "String")
+        TypeExtractionCase("@State private var value: String", type: "String"),
     ]
 
     @Test(arguments: cases)

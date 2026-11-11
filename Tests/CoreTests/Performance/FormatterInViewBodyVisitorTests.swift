@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -44,9 +45,11 @@ struct FormatterInViewBodyVisitorTests {
         ("DateComponentsFormatter", "struct V: View { var body: some View { let f = DateComponentsFormatter() } }"),
         ("ByteCountFormatter", "struct V: View { var body: some View { let f = ByteCountFormatter() } }"),
         ("MeasurementFormatter", "struct V: View { var body: some View { let f = MeasurementFormatter() } }"),
-        ("PersonNameComponentsFormatter", "struct V: View { var body: some View { let f = PersonNameComponentsFormatter() } }"),
+        ("PersonNameComponentsFormatter", """
+            struct V: View { var body: some View { let f = PersonNameComponentsFormatter() } }
+            """),
         ("JSONDecoder", "struct V: View { var body: some View { let d = JSONDecoder() } }"),
-        ("JSONEncoder", "struct V: View { var body: some View { let e = JSONEncoder() } }")
+        ("JSONEncoder", "struct V: View { var body: some View { let e = JSONEncoder() } }"),
     ])
     func detectsFormatterType(typeName: String, source: String) {
         let visitor = makeVisitor()

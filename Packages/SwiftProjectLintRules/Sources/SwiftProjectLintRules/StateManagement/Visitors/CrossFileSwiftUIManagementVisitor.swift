@@ -4,7 +4,6 @@
 //
 //  Created by Joseph Cursio on 7/9/25.
 //
-import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 

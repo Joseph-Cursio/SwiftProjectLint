@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -51,7 +52,7 @@ struct SharedDomainEnumFieldVisitorTests {
                 let severity: IssueSeverity
                 let detail: String
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 3)
@@ -68,7 +69,7 @@ struct SharedDomainEnumFieldVisitorTests {
         let issues = analyze(files: [
             "Severity.swift": "enum IssueSeverity { case error, warning }",
             "A.swift": "struct Alpha { let severity: IssueSeverity }",
-            "B.swift": "struct Beta { let severity: IssueSeverity }"
+            "B.swift": "struct Beta { let severity: IssueSeverity }",
         ])
 
         #expect(issues.isEmpty)
@@ -82,7 +83,7 @@ struct SharedDomainEnumFieldVisitorTests {
         let issues = analyze(files: [
             "A.swift": "struct Alpha { let id: String }",
             "B.swift": "struct Beta { let id: String }",
-            "C.swift": "struct Gamma { let id: String }"
+            "C.swift": "struct Gamma { let id: String }",
         ])
 
         #expect(issues.isEmpty)
@@ -99,7 +100,7 @@ struct SharedDomainEnumFieldVisitorTests {
             """,
             "A.swift": "struct Alpha: Ranked { let severity: IssueSeverity }",
             "B.swift": "struct Beta: Ranked { let severity: IssueSeverity }",
-            "C.swift": "struct Gamma: Ranked { let severity: IssueSeverity }"
+            "C.swift": "struct Gamma: Ranked { let severity: IssueSeverity }",
         ])
 
         #expect(issues.isEmpty)
@@ -113,7 +114,7 @@ struct SharedDomainEnumFieldVisitorTests {
             "Severity.swift": "enum IssueSeverity { case error, warning }",
             "A.swift": "struct Alpha { let severity: IssueSeverity }",
             "B.swift": "struct Beta { let level: IssueSeverity }",
-            "C.swift": "struct Gamma { let rank: IssueSeverity }"
+            "C.swift": "struct Gamma { let rank: IssueSeverity }",
         ])
 
         #expect(issues.isEmpty)
@@ -129,7 +130,7 @@ struct SharedDomainEnumFieldVisitorTests {
             "Kind.swift": "enum Kind { case a, b, c }",
             "A.swift": "struct Record { let kind: Kind; let id: Int }",
             "B.swift": "struct Record { let kind: Kind; let id: Int }",
-            "C.swift": "struct Record { let kind: Kind; let id: Int }"
+            "C.swift": "struct Record { let kind: Kind; let id: Int }",
         ])
         #expect(issues.count == 3)
         let onA = try #require(issues.first { $0.filePath == "A.swift" })

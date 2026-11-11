@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -41,7 +42,7 @@ struct DateNowVisitorTests {
     @Test("Detects Date() initializer", arguments: [
         "let now = Date()",
         "let elapsed = Date().timeIntervalSince(lastRun)",
-        "lastRunDate = Date()"
+        "lastRunDate = Date()",
     ])
     func detectsDateInit(source: String) {
         let visitor = makeVisitor()
@@ -68,7 +69,7 @@ struct DateNowVisitorTests {
         "let now = Date.now",
         "let date = Date(timeIntervalSince1970: 0)",
         "let formatter = DateFormatter()\nlet url = URL(string: \"https://example.com\")",
-        "let future = Date.distantFuture\nlet past = Date.distantPast"
+        "let future = Date.distantFuture\nlet past = Date.distantPast",
     ])
     func noIssueForNonDateInit(source: String) {
         let visitor = makeVisitor()

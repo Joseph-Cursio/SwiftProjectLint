@@ -1,5 +1,7 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
 import Testing
 
 /// `Protocol Naming Suffix` is a team naming convention, so it is opt-in.
@@ -75,12 +77,12 @@ struct ProtocolNamingSuffixOptInTests {
                 private let store: any OrderStore
                 init(store: any OrderStore) { self.store = store }
             }
-            """
+            """,
         ]
         for (relativePath, content) in files {
-            let path = (root as NSString).appendingPathComponent(relativePath)
+            let path = PathString.appending(relativePath, to: root)
             try FileManager.default.createDirectory(
-                atPath: (path as NSString).deletingLastPathComponent,
+                atPath: PathString.deletingLastComponent(of: path),
                 withIntermediateDirectories: true
             )
             try content.write(toFile: path, atomically: true, encoding: .utf8)

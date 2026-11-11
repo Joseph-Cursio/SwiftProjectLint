@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -42,7 +43,7 @@ struct CircularDependencyVisitorTests {
             class SessionManager {
                 var userManager: UserManager
             }
-            """
+            """,
         ])
         let issue = try #require(issues.first)
         #expect(issues.count == 1)
@@ -62,7 +63,7 @@ struct CircularDependencyVisitorTests {
             class TypeB {
                 var ref: TypeA?
             }
-            """
+            """,
         ])
         #expect(issues.count == 1)
     }
@@ -80,7 +81,7 @@ struct CircularDependencyVisitorTests {
             class TypeB {
                 var name: String
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -96,7 +97,7 @@ struct CircularDependencyVisitorTests {
             class Child {
                 weak var parent: Parent?
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -115,7 +116,7 @@ struct CircularDependencyVisitorTests {
             class SessionManager: SessionProviding {
                 var userManager: UserManager
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -126,7 +127,7 @@ struct CircularDependencyVisitorTests {
             class Node {
                 var next: Node?
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }
@@ -142,7 +143,7 @@ struct CircularDependencyVisitorTests {
             class TypeB {
                 var count: Int
             }
-            """
+            """,
         ])
         #expect(issues.isEmpty)
     }

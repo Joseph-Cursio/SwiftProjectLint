@@ -1,9 +1,9 @@
 import SwiftParser
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
-/// The catalog behind `ObservableEnvironmentViewMissingInspectionHook`'s gate.
+/// The catalog behind `ObservableViewMissingInspectionHook`'s gate.
 @Suite("Type names referenced from a ViewInspector file")
 struct InspectedTypeNameCollectorTests {
 

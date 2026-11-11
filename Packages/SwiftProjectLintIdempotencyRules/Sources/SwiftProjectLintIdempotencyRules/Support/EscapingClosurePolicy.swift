@@ -20,7 +20,7 @@ enum EscapingClosurePolicy {
         "withThrowingTaskGroup",
         "withDiscardingTaskGroup",
         "withThrowingDiscardingTaskGroup",
-        "task"
+        "task",
     ]
 
     /// A closure is escaping when its *nearest* enclosing `FunctionCallExprSyntax`

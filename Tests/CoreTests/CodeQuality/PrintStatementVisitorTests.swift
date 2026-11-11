@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -42,7 +43,7 @@ struct PrintStatementVisitorTests {
     @Test("Detects print/debugPrint call", arguments: [
         "print(\"hello\")",
         "debugPrint(object)",
-        "print(\"x:\", someValue)"
+        "print(\"x:\", someValue)",
     ])
     func detectsPrintCall(source: String) {
         let visitor = makeVisitor()
@@ -110,7 +111,7 @@ struct PrintStatementVisitorTests {
     @Test("No issue for non-print function calls", arguments: [
         "logger.info(\"hello\")",
         "textField.print()",
-        "log(\"message\")\nNSLog(\"something\")"
+        "log(\"message\")\nNSLog(\"something\")",
     ])
     func noIssueForNonPrintCalls(source: String) {
         let visitor = makeVisitor()

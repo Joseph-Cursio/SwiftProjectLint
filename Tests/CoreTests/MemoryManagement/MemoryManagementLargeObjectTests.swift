@@ -1,12 +1,13 @@
-@testable import Core
 import Foundation
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
 struct MemoryManagementLargeObjectTests {
-    var visitor: MemoryManagementVisitor { MemoryManagementVisitor() }
+    func makeVisitor() -> MemoryManagementVisitor { MemoryManagementVisitor() }
 
     @Test func testDetectsLargeArrayInState() throws {
         let sourceCode = """
@@ -38,7 +39,7 @@ struct MemoryManagementLargeObjectTests {
         }
         """
         let sourceFile = Parser.parse(source: sourceCode)
-        let visitor = self.visitor
+        let visitor = makeVisitor()
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.count == 1)
         let issue = try #require(visitor.detectedIssues.first)
@@ -55,7 +56,7 @@ struct MemoryManagementLargeObjectTests {
         }
         """
         let sourceFile = Parser.parse(source: sourceCode)
-        let visitor = self.visitor
+        let visitor = makeVisitor()
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.isEmpty)
     }
@@ -90,7 +91,7 @@ struct MemoryManagementLargeObjectTests {
         }
         """
         let sourceFile = Parser.parse(source: sourceCode)
-        let visitor = self.visitor
+        let visitor = makeVisitor()
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.isEmpty)
     }
@@ -103,7 +104,7 @@ struct MemoryManagementLargeObjectTests {
         }
         """
         let sourceFile = Parser.parse(source: sourceCode)
-        let visitor = self.visitor
+        let visitor = makeVisitor()
         visitor.walk(sourceFile)
         #expect(visitor.detectedIssues.isEmpty)
     }

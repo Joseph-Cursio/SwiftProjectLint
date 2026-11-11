@@ -1,12 +1,28 @@
 @testable import App
-import Core
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
+
+// Dummy visitor to satisfy SyntaxPattern initializer
+private class DummyVisitor: SyntaxVisitor, PatternVisitorProtocol {
+    var detectedIssues: [LintIssue] = []
+    var pattern: SyntaxPattern
+
+    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
+        self.pattern = pattern
+        super.init(viewMode: viewMode)
+    }
+
+    func reset() { detectedIssues.removeAll() }
+}
 
 @MainActor
 struct PatternConfigurationTests {
     class MockPatternRegistry: SourcePatternRegistryProtocol {
         var patterns: [PatternCategory: [SyntaxPattern]] = [:]
+
         func getPatterns(for category: PatternCategory) -> [SyntaxPattern] {
             patterns[category] ?? []
         }
@@ -84,7 +100,7 @@ struct PatternConfigurationTests {
             LintIssue(
                 severity: .warning, message: "B", filePath: "file.swift", lineNumber: 2,
                 suggestion: "", ruleName: .fatViewDetection
-            )
+            ),
         ]
         let filtered = PatternConfiguration.filterIssuesByEnabledRules(
             issues,
@@ -106,7 +122,7 @@ struct PatternConfigurationTests {
         let expectedCategories: Set<PatternCategory> = [
             .stateManagement, .performance, .architecture, .codeQuality,
             .security, .accessibility, .memoryManagement, .networking,
-            .uiPatterns, .animation, .modernization, .idempotency, .testability
+            .uiPatterns, .animation, .modernization, .idempotency, .testability,
         ]
         #expect(categories == expectedCategories)
     }
@@ -154,18 +170,4 @@ struct PatternConfigurationTests {
         #expect(info.patterns.isEmpty)
         #expect(info.useSwiftSyntax)
     }
-}
-
-// Dummy visitor to satisfy SyntaxPattern initializer
-private class DummyVisitor: SyntaxVisitor, PatternVisitorProtocol {
-    var detectedIssues: [LintIssue] = []
-    var pattern: SyntaxPattern
-    var patternCategory: PatternCategory { .architecture }
-
-    required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.pattern = pattern
-        super.init(viewMode: viewMode)
-    }
-
-    func reset() { detectedIssues.removeAll() }
 }

@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -99,7 +100,7 @@ struct NavigationViewDeprecatedVisitorTests {
         TabView {
             Text("Tab 1")
         }
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

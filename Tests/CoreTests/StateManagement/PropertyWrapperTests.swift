@@ -1,4 +1,4 @@
-import Core
+import SwiftProjectLintRules
 import Testing
 
 struct PropertyWrapperTests {
@@ -36,7 +36,7 @@ struct PropertyWrapperTests {
             "ScaledMetric", "Namespace", "FetchRequest", "SectionedFetchRequest",
             "Query", "AppStorage", "SceneStorage", "UIApplicationDelegateAdaptor",
             "WKExtensionDelegateAdaptor", "NSApplicationDelegateAdaptor",
-            "FocusedBinding", "FocusedValue", "AccessibilityFocusState", "Unknown"
+            "FocusedBinding", "FocusedValue", "AccessibilityFocusState", "Unknown",
         ]
 
         let actualWrappers = Set(PropertyWrapper.allCases.map(\.rawValue))

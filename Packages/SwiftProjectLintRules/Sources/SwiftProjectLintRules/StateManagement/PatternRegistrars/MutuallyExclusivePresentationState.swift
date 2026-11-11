@@ -12,7 +12,7 @@ struct MutuallyExclusivePresentationState: PatternRegistrarProtocol {
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .mutuallyExclusivePresentationState,
-            visitor: MutuallyExclusivePresentationStateVisitor.self,
+            visitor: ExclusivePresentationStateVisitor.self,
             severity: .info,
             category: .stateManagement,
             messageTemplate: "State '{typeName}' has {count} presentation slots "

@@ -42,7 +42,7 @@ struct PackagePurityStaticConsumersTests {
     private var purity: PackagePurity {
         PackagePurity.build(from: [
             (relativePath: "Sources/Lib/Item.swift", tree: itemTree),
-            (relativePath: "Sources/Lib/Subjects.swift", tree: subjectTree)
+            (relativePath: "Sources/Lib/Subjects.swift", tree: subjectTree),
         ])
     }
 

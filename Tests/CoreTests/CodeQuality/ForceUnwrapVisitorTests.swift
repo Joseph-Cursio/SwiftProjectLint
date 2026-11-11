@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -40,7 +41,7 @@ struct ForceUnwrapVisitorTests {
 
     @Test("Detects force unwrap expression", arguments: [
         "let value = optional!",
-        "let value = foo.bar!.baz"
+        "let value = foo.bar!.baz",
     ])
     func detectsForceUnwrap(source: String) {
         let visitor = makeVisitor()
@@ -66,7 +67,7 @@ struct ForceUnwrapVisitorTests {
     @Test("No issue for safe optional handling", arguments: [
         "let value: String! = \"hello\"",
         "let value = foo?.bar",
-        "let value = optional ?? \"default\""
+        "let value = optional ?? \"default\"",
     ])
     func noIssueForSafeOptionalHandling(source: String) {
         let visitor = makeVisitor()

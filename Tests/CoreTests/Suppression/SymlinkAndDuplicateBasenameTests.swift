@@ -1,5 +1,6 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
 import Testing
 
 /// Regression tests for the slot-12 round-6 blocker surfaced on
@@ -28,7 +29,7 @@ import Testing
 struct SymlinkAndDuplicateBasenameTests {
 
     private func writeFile(at path: String, content: String) {
-        let dir = (path as NSString).deletingLastPathComponent
+        let dir = PathString.deletingLastComponent(of: path)
         try? FileManager.default.createDirectory(
             atPath: dir,
             withIntermediateDirectories: true

@@ -1,4 +1,4 @@
-import Core
+import SwiftProjectLintModels
 import SwiftUI
 
 // periphery:ignore
@@ -11,7 +11,7 @@ import SwiftUI
 /// table. Periphery reports it as unused, which is true and not a reason to
 /// delete it. If the adoption path is ever abandoned, remove this type *and*
 /// both doc references together.
-enum PatternCategoryColors {
+enum PatternCategoryColors { // swiftlint:disable:this unused_declaration - kept on purpose, see above
     // Table lookup keeps `color(for:)` under SwiftLint's cyclomatic-complexity
     // budget. `.other` is both an explicit entry and the fallback colour, so
     // any future category added without a palette entry degrades to the same
@@ -29,9 +29,10 @@ enum PatternCategoryColors {
         .animation: .mint,
         .modernization: .yellow,
         .idempotency: .brown,
-        .other: .gray
+        .other: .gray,
     ]
 
+    // swiftlint:disable:next unused_declaration - the colour lookup the adoption path will call
     static func color(for category: PatternCategory) -> Color {
         palette[category] ?? .gray
     }

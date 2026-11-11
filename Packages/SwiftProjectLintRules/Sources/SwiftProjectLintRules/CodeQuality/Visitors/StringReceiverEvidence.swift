@@ -22,12 +22,12 @@ enum StringReceiverEvidence {
 
     private static let producingSuffixes = [
         ".description", ".trimmedDescription", ".lowercased()", ".uppercased()", ".capitalized",
-        ".localizedLowercase", ".localizedUppercase"
+        ".localizedLowercase", ".localizedUppercase",
     ]
 
     private static let producingCalls = [
         ".trimmingCharacters(", ".replacingOccurrences(", ".joined(", ".appending(",
-        ".padding(", ".applyingTransform("
+        ".padding(", ".applyingTransform(",
     ]
 
     static func isString(_ receiver: String, at node: Syntax) -> Bool {

@@ -13,7 +13,7 @@ final class LegacyObservableObjectVisitor: BasePatternVisitor {
         "StateObject": "Use @State with an @Observable class instead of @StateObject",
         "ObservedObject": "Use @Bindable or pass the object directly instead of @ObservedObject",
         "EnvironmentObject": "Use @Environment with an @Observable class instead of @EnvironmentObject",
-        "Published": "Properties on @Observable classes are tracked automatically — remove @Published"
+        "Published": "Properties on @Observable classes are tracked automatically — remove @Published",
     ]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -41,7 +42,7 @@ struct LegacyRandomVisitorTests {
     @Test("Detects legacy random call", arguments: [
         ("let value = arc4random()", "arc4random"),
         ("let value = arc4random_uniform(10)", "arc4random_uniform"),
-        ("let value = drand48()", "drand48")
+        ("let value = drand48()", "drand48"),
     ])
     func detectsLegacyRandomCall(source: String, expectedSubstring: String) throws {
         let visitor = makeVisitor()
@@ -70,7 +71,7 @@ struct LegacyRandomVisitorTests {
     @Test("No issue for modern random API", arguments: [
         "let value = Int.random(in: 0..<10)",
         "let coin = Bool.random()",
-        "let value = Double.random(in: 0.0...1.0)"
+        "let value = Double.random(in: 0.0...1.0)",
     ])
     func noIssueForModernRandom(source: String) {
         let visitor = makeVisitor()

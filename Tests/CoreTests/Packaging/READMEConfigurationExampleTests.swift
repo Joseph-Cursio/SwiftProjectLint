@@ -1,5 +1,6 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
 import Testing
 
 /// The README's configuration example must configure what it claims to.
@@ -28,7 +29,9 @@ struct READMEConfigurationExampleTests {
 
     /// The fenced YAML block that configures `architectural_layers`.
     private static func configurationExample() throws -> String {
-        let blocks = try readme.components(separatedBy: "```yaml").dropFirst()
+        let blocks = try readme
+            .components(separatedBy: "```yaml")
+            .dropFirst()
             .compactMap { $0.components(separatedBy: "```").first }
         return try #require(blocks.first { $0.contains("architectural_layers:") })
     }

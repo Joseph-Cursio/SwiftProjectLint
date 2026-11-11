@@ -1,8 +1,4 @@
-@testable import Core
-import Foundation
-import SwiftParser
 @testable import SwiftProjectLintRules
-import SwiftSyntax
 import Testing
 
 /// Tests for different property wrapper types detection
@@ -35,7 +31,7 @@ struct SVPropertyWrapperTests {
         WrapperCase("@SceneStorage(\"draft\") var draft: String = \"\"", wrapper: .sceneStorage),
         WrapperCase("@GestureState private var dragOffset = CGSize.zero", wrapper: .gestureState),
         WrapperCase("@Namespace private var animation", wrapper: .namespace),
-        WrapperCase("@ScaledMetric var size: CGFloat = 100", wrapper: .scaledMetric)
+        WrapperCase("@ScaledMetric var size: CGFloat = 100", wrapper: .scaledMetric),
     ]
 
     @Test(arguments: cases)

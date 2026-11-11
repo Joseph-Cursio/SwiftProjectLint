@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -39,7 +40,7 @@ struct NonisolatedUnsafeVisitorTests {
     @Test("Detects nonisolated(unsafe) variant", arguments: [
         """
         nonisolated(unsafe) private var cache: [String]
-        """
+        """,
     ])
     func detectsVariant(source: String) {
         let visitor = makeVisitor()
@@ -61,7 +62,7 @@ struct NonisolatedUnsafeVisitorTests {
         // MainActor var
         """
         @MainActor var value = 0
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

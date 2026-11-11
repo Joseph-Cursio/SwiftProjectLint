@@ -1,11 +1,11 @@
-@testable import Core
-import Foundation
 //
 //  SourcePatternRuleIdFilteringTests.swift
 //  SwiftProjectLint
 //
 //  Created by Joseph Cursio on 7/15/25.
 //
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import Testing
 
 /// Comprehensive Characterization Tests for SourcePatternDetector
@@ -49,7 +49,7 @@ struct RuleIdentifierFilteringTests {
         let specificRules: [RuleIdentifier] = [
             .relatedDuplicateStateVariable,
             .unusedStateVariable,
-            .missingAccessibilityLabel
+            .missingAccessibilityLabel,
         ]
 
         let specificIssues = detector.detectPatterns(

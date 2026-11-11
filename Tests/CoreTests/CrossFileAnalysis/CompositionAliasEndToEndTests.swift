@@ -1,5 +1,6 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
 import Testing
 
 /// Checkout's split store, end to end: the conformance written through
@@ -26,7 +27,7 @@ struct CompositionAliasEndToEndTests {
             "Protocol 'OrderAdministration' has only one conformer ('CoreDataOrderStore') — "
                 + "consider removing the abstraction.",
             "Protocol 'OrderHistory' has only one conformer ('CoreDataOrderStore') — "
-                + "consider removing the abstraction."
+                + "consider removing the abstraction.",
         ])
     }
 
@@ -118,7 +119,7 @@ struct CompositionAliasEndToEndTests {
             init(store: any OrderSaving) { self.store = store }
             func checkout() async throws { try await store.save(Order()) }
         }
-        """
+        """,
     ]
 
     private func analyze(_ root: String) async -> [LintIssue] {
@@ -128,7 +129,7 @@ struct CompositionAliasEndToEndTests {
 
     private func makePackage(named name: String, files: [String: String]) -> String {
         let base = FileManager.default.temporaryDirectory.path
-        let root = (base as NSString).appendingPathComponent("\(name)-\(UUID().uuidString)")
+        let root = PathString.appending("\(name)-\(UUID().uuidString)", to: base)
         write("// swift-tools-version:6.0\n", to: "\(root)/Package.swift")
         for (path, content) in files {
             write(content, to: "\(root)/\(path)")
@@ -138,7 +139,7 @@ struct CompositionAliasEndToEndTests {
 
     private func write(_ content: String, to path: String) {
         try? FileManager.default.createDirectory(
-            atPath: (path as NSString).deletingLastPathComponent,
+            atPath: PathString.deletingLastComponent(of: path),
             withIntermediateDirectories: true
         )
         try? content.write(toFile: path, atomically: true, encoding: .utf8)

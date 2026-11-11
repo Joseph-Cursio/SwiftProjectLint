@@ -3,6 +3,93 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
+// MARK: - Syntax
+
+/// The names declared as a `Dictionary` or `Set` anywhere in a file.
+///
+/// File-wide rather than scope-aware, and deliberately so: a visitor's aggregation state is a
+/// stored property of the type, and the locals a `finalizeAnalysis` builds are named distinctly
+/// from it. Over-collecting costs a `.sorted()` nobody needed; under-collecting costs the finding.
+private enum UnorderedNames {
+
+    static func declared(in tree: SourceFileSyntax) -> Set<String> {
+        let collector = Collector(viewMode: .sourceAccurate)
+        collector.walk(tree)
+        return collector.names
+    }
+
+    private final class Collector: SyntaxVisitor {
+        var names: Set<String> = []
+
+        override func visit(_ node: PatternBindingSyntax) -> SyntaxVisitorContinueKind {
+            guard let name = node.pattern.as(IdentifierPatternSyntax.self)?.identifier.text
+            else { return .visitChildren }
+            if let annotation = node.typeAnnotation?.type, Self.isUnordered(annotation) {
+                names.insert(name)
+            }
+            return .visitChildren
+        }
+
+        /// `[K: V]` and `Set<E>`, in either spelling. An array literal type is ordered and a
+        /// `Dictionary`'s *values* are not, which is why `[V]` is absent here.
+        private static func isUnordered(_ type: TypeSyntax) -> Bool {
+            if type.is(DictionaryTypeSyntax.self) { return true }
+            if let identifier = type.as(IdentifierTypeSyntax.self) {
+                return identifier.name.text == "Set" || identifier.name.text == "Dictionary"
+            }
+            return false
+        }
+    }
+}
+
+/// The `for`-in sequences inside a `finalizeAnalysis` that are rooted at an unordered name and do
+/// not go through `sorted`.
+private final class UnorderedWalkFinder: SyntaxVisitor {
+    private let unordered: Set<String>
+    private var depth = 0
+    var unorderedWalks: [String] = []
+
+    init(unordered: Set<String>) {
+        self.unordered = unordered
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        if node.name.text == "finalizeAnalysis" { depth += 1 }
+        return .visitChildren
+    }
+
+    override func visitPost(_ node: FunctionDeclSyntax) {
+        if node.name.text == "finalizeAnalysis" { depth -= 1 }
+    }
+
+    override func visit(_ node: ForStmtSyntax) -> SyntaxVisitorContinueKind {
+        guard depth > 0 else { return .visitChildren }
+        let sequence = node.sequence
+        let text = sequence.trimmedDescription
+        if let root = Self.rootName(of: sequence), unordered.contains(root),
+           text.contains("sorted") == false {
+            unorderedWalks.append(text)
+        }
+        return .visitChildren
+    }
+
+    /// The bare identifier a member chain is rooted at — `groups` for `groups.values`.
+    ///
+    /// A call stops the walk: `candidatePairs()` is a function, and what it returns is its own
+    /// business (`ParallelListDrift`'s sorts before returning). Subscripts stop it too, because
+    /// `typeReferences[typeA] ?? []` yields the *value*, which is an array.
+    private static func rootName(of expression: ExprSyntax) -> String? {
+        if let reference = expression.as(DeclReferenceExprSyntax.self) {
+            return reference.baseName.text
+        }
+        if let member = expression.as(MemberAccessExprSyntax.self) {
+            return member.base.flatMap(rootName(of:))
+        }
+        return nil
+    }
+}
+
 /// **Every walk inside a `finalizeAnalysis` has a stated order.**
 ///
 /// This is the law `DetectorRobustnessPropertyTests.detection_isDeterministic` claimed and could
@@ -92,92 +179,5 @@ struct AggregationDeterminismTests {
         }
 
         #expect(offenders.isEmpty, "\(offenders.joined(separator: "\n"))")
-    }
-}
-
-// MARK: - Syntax
-
-/// The names declared as a `Dictionary` or `Set` anywhere in a file.
-///
-/// File-wide rather than scope-aware, and deliberately so: a visitor's aggregation state is a
-/// stored property of the type, and the locals a `finalizeAnalysis` builds are named distinctly
-/// from it. Over-collecting costs a `.sorted()` nobody needed; under-collecting costs the finding.
-private enum UnorderedNames {
-
-    static func declared(in tree: SourceFileSyntax) -> Set<String> {
-        let collector = Collector(viewMode: .sourceAccurate)
-        collector.walk(tree)
-        return collector.names
-    }
-
-    private final class Collector: SyntaxVisitor {
-        var names: Set<String> = []
-
-        override func visit(_ node: PatternBindingSyntax) -> SyntaxVisitorContinueKind {
-            guard let name = node.pattern.as(IdentifierPatternSyntax.self)?.identifier.text
-            else { return .visitChildren }
-            if let annotation = node.typeAnnotation?.type, Self.isUnordered(annotation) {
-                names.insert(name)
-            }
-            return .visitChildren
-        }
-
-        /// `[K: V]` and `Set<E>`, in either spelling. An array literal type is ordered and a
-        /// `Dictionary`'s *values* are not, which is why `[V]` is absent here.
-        private static func isUnordered(_ type: TypeSyntax) -> Bool {
-            if type.is(DictionaryTypeSyntax.self) { return true }
-            if let identifier = type.as(IdentifierTypeSyntax.self) {
-                return identifier.name.text == "Set" || identifier.name.text == "Dictionary"
-            }
-            return false
-        }
-    }
-}
-
-/// The `for`-in sequences inside a `finalizeAnalysis` that are rooted at an unordered name and do
-/// not go through `sorted`.
-private final class UnorderedWalkFinder: SyntaxVisitor {
-    private let unordered: Set<String>
-    private var depth = 0
-    var unorderedWalks: [String] = []
-
-    init(unordered: Set<String>) {
-        self.unordered = unordered
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        if node.name.text == "finalizeAnalysis" { depth += 1 }
-        return .visitChildren
-    }
-
-    override func visitPost(_ node: FunctionDeclSyntax) {
-        if node.name.text == "finalizeAnalysis" { depth -= 1 }
-    }
-
-    override func visit(_ node: ForStmtSyntax) -> SyntaxVisitorContinueKind {
-        guard depth > 0 else { return .visitChildren }
-        let sequence = node.sequence
-        let text = sequence.trimmedDescription
-        if let root = Self.rootName(of: sequence), unordered.contains(root),
-           text.contains("sorted") == false {
-            unorderedWalks.append(text)
-        }
-        return .visitChildren
-    }
-
-    /// The bare identifier a member chain is rooted at — `groups` for `groups.values`.
-    ///
-    /// A call stops the walk: `candidatePairs()` is a function, and what it returns is its own
-    /// business (`ParallelListDrift`'s sorts before returning). Subscripts stop it too, because
-    /// `typeReferences[typeA] ?? []` yields the *value*, which is an array.
-    private static func rootName(of expression: ExprSyntax) -> String? {
-        if let reference = expression.as(DeclReferenceExprSyntax.self) {
-            return reference.baseName.text
-        }
-        if let member = expression.as(MemberAccessExprSyntax.self) {
-            return member.base.flatMap(rootName(of:))
-        }
-        return nil
     }
 }

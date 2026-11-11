@@ -73,6 +73,6 @@ public enum SwiftUIViewType: String, CaseIterable, Sendable {
         // Display
         .progressView, .gauge, .chart, .canvas, .timelineView,
         // Navigation & presentation
-        .navigationView, .tabView, .videoPlayer, .map
+        .navigationView, .tabView, .videoPlayer, .map,
     ]
 }

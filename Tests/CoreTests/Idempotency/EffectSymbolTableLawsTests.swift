@@ -109,7 +109,7 @@ struct EffectSymbolTableLawsTests {
     private static func chainSource(length: Int, anchorToken: String) -> SourceFileSyntax {
         var lines = [
             "/// @lint.effect \(anchorToken)",
-            "func anchor() {}"
+            "func anchor() {}",
         ]
         var previous = "anchor"
         for index in 1...length {

@@ -34,7 +34,7 @@ public struct PackagePurityInputs: OptionSet, Sendable, Hashable, CustomStringCo
         let names: [(Self, String)] = [
             (.oracle, "oracle"),
             (.cleanInstanceMethods, "cleanInstanceMethods"),
-            (.impurePackageFunctions, "impurePackageFunctions")
+            (.impurePackageFunctions, "impurePackageFunctions"),
         ]
         return "[" + names.filter { contains($0.0) }.map(\.1).joined(separator: ", ") + "]"
     }
@@ -66,10 +66,10 @@ public protocol PackagePurityConsumer: PatternVisitorProtocol {
     static var packagePurityInputs: PackagePurityInputs { get }
 }
 
-extension SyntaxPattern {
+public extension SyntaxPattern {
     /// What this pattern's visitor declares it reads of the package purity; empty when its visitor
     /// does not conform to ``PackagePurityConsumer``.
-    public var packagePurityInputs: PackagePurityInputs {
+    var packagePurityInputs: PackagePurityInputs {
         (visitor as? any PackagePurityConsumer.Type)?.packagePurityInputs ?? []
     }
 }

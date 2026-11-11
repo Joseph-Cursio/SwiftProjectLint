@@ -17,7 +17,7 @@ extension PerformanceVisitor {
     private static let unsafeIDPatterns: [(pattern: String, message: String)] = [
         ("\\.self", "Using \\.self as id in ForEach can cause performance issues"),
         ("\\.hashValue",
-         "ForEach using \\.hashValue as ID — hash values are not unique")
+         "ForEach using \\.hashValue as ID — hash values are not unique"),
     ]
 
     func detectForEachSelfID(_ node: FunctionCallExprSyntax) {

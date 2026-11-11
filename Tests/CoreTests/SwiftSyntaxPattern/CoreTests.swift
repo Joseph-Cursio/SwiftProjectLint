@@ -1,16 +1,14 @@
-@testable import Core
 ///
 /// NOTE ON TEST ISOLATION
 ///
 /// These tests now use a shared registry for performance while maintaining
 /// test isolation through controlled pattern registration and cleanup.
 ///
-import Foundation
-import SwiftParser
-import SwiftSyntax
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import Testing
 
-struct CoreTests {
+enum CoreTests {
 
     // MARK: - Test Helper Methods
 

@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// When an index in a loop visits every position, which compares a whole sequence, and when the

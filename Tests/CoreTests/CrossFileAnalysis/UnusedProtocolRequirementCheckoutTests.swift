@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// The reproduction target: Checkout's `OrderStore`, on the branches the SOLID essay uses.
@@ -89,7 +89,7 @@ struct UnusedProtocolRequirementCheckoutTests {
             "Domain/OrderStore.swift": Self.fatStore,
             "Presentation/CheckoutViewModel.swift": Self.viewModel,
             "Persistence/CoreDataOrderStore.swift": Self.conformer,
-            "App/CheckoutApp.swift": Self.app
+            "App/CheckoutApp.swift": Self.app,
         ]
 
         #expect(UnusedRequirementHarness.reported(files) == [
@@ -101,7 +101,7 @@ struct UnusedProtocolRequirementCheckoutTests {
             "OrderStore.receiptText(for:)",
             "OrderStore.recentOrders()",
             "OrderStore.recordAnalyticsEvent(_:)",
-            "OrderStore.refund(_:amount:)"
+            "OrderStore.refund(_:amount:)",
         ])
 
         let issues = UnusedRequirementHarness.issues(files)
@@ -154,7 +154,7 @@ struct UnusedProtocolRequirementCheckoutTests {
         let files = [
             "OrderStore.swift": store,
             "CheckoutViewModel.swift": layerViolation,
-            "CoreDataOrderStore.swift": Self.conformer
+            "CoreDataOrderStore.swift": Self.conformer,
         ]
 
         #expect(UnusedRequirementHarness.reported(files) == ["OrderStore.recentOrders()"])
@@ -180,7 +180,7 @@ struct UnusedProtocolRequirementCheckoutTests {
         }
         typealias OrderStore = OrderSaving & OrderHistory & OrderAdministration & AnalyticsRecording
         """
-        let viewModel = """
+        let viewModelSource = """
         final class CheckoutViewModel {
             private let store: any OrderSaving
             init(store: any OrderSaving) { self.store = store }
@@ -188,6 +188,6 @@ struct UnusedProtocolRequirementCheckoutTests {
         }
         """
 
-        #expect(UnusedRequirementHarness.reported(["Roles.swift": roles, "VM.swift": viewModel]).isEmpty)
+        #expect(UnusedRequirementHarness.reported(["Roles.swift": roles, "VM.swift": viewModelSource]).isEmpty)
     }
 }

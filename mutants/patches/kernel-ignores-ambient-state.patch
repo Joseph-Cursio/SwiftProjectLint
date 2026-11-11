@@ -1,8 +1,8 @@
-diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
-index 30583e3..6ebd1d7 100644
---- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
-+++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/ExtractableTotalKernelVisitor.swift
-@@ -457,7 +457,7 @@ private struct Collector {
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/Collector.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/Collector.swift
+index 8a1214f5..2c0989f4 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/Collector.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/Testability/Visitors/Collector.swift
+@@ -127,7 +127,7 @@ struct Collector {
              // `ContinuousClock.now` is a member access with no call in it. `Date()` was already
              // refused because it *is* a call whose callee is not a pure conversion — which is why
              // only the clock-property spelling ever got through, and why the gap went unnoticed.

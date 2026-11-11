@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
@@ -41,7 +40,7 @@ final class ParallelEnumShapeVisitor: CrossFileVisitorBase, CrossFilePatternVisi
         "Double", "Float", "Bool", "Character", "Substring",
         "CaseIterable", "Equatable", "Hashable", "Comparable", "Identifiable",
         "Codable", "Encodable", "Decodable", "Sendable", "RawRepresentable",
-        "CustomStringConvertible", "CustomDebugStringConvertible", "Error", "LocalizedError"
+        "CustomStringConvertible", "CustomDebugStringConvertible", "Error", "LocalizedError",
     ]
 
     /// Which syntactic shape a list was read from — reported so the message names the right
@@ -256,7 +255,7 @@ final class ParallelEnumShapeVisitor: CrossFileVisitorBase, CrossFilePatternVisi
     }
 
     static func shortName(_ path: String) -> String {
-        (path as NSString).lastPathComponent
+        PathString.lastComponent(of: path)
     }
 
     /// The enum's domain conformances: its own plus any added in a separate extension,

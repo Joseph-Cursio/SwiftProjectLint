@@ -1,5 +1,6 @@
-@testable import Core
 import PropertyBased
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
 import Testing
 
 /// Property-based laws for `LintConfiguration.applyOverrides(to:projectRoot:)` —
@@ -41,7 +42,7 @@ struct OverrideApplicationLawsTests {
     /// issues at once. A wide pool would almost never produce that collision.
     private static let rulePool: [RuleIdentifier] = [
         .pureFunctionCandidate, .extractableTotalKernel, .idempotencyViolation,
-        .forceTry, .magicNumber
+        .forceTry, .magicNumber,
     ]
 
     // `Gen.element(of:)` is declared over the *optional* element type — it

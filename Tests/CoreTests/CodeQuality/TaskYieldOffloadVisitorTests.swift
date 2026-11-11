@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -39,7 +40,7 @@ struct TaskYieldOffloadVisitorTests {
     @Test("Detects Task.yield variant", arguments: [
         """
         Task.yield()
-        """
+        """,
     ])
     func detectsVariant(source: String) {
         let visitor = makeVisitor()
@@ -61,7 +62,7 @@ struct TaskYieldOffloadVisitorTests {
         // Instance task cancel
         """
         task.cancel()
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

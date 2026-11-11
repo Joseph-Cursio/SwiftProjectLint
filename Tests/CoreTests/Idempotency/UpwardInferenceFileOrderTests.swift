@@ -31,7 +31,7 @@ struct UpwardInferenceFileOrderTests {
         "Zebra.swift": "func zebra() {}",
         "Alpha.swift": "func alpha() {}",
         "Middle.swift": "func middle() {}",
-        "Beta.swift": "func beta() {}"
+        "Beta.swift": "func beta() {}",
     ]
 
     private static func fileCache() -> [String: SourceFileSyntax] {
@@ -61,7 +61,7 @@ struct UpwardInferenceFileOrderTests {
             IdempotencyViolationVisitor(fileCache: cache).orderedSources,
             OnceContractViolationVisitor(fileCache: cache).orderedSources,
             NonIdempotentInRetryContextVisitor(fileCache: cache).orderedSources,
-            UnannotatedInStrictReplayableContextVisitor(fileCache: cache).orderedSources
+            UnannotatedStrictReplayableVisitor(fileCache: cache).orderedSources,
         ].map { sources in
             sources.compactMap { source in
                 cache.first { $0.value.description == source.description }?.key

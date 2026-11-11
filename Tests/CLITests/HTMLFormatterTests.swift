@@ -34,7 +34,7 @@ struct HTMLFormatterTests {
             LintIssue(
                 severity: .info, message: "Info", filePath: "C.swift",
                 lineNumber: 3, suggestion: nil, ruleName: .dateNow
-            )
+            ),
         ]
         let html = HTMLFormatter().format(issues: issues)
 
@@ -112,7 +112,7 @@ struct HTMLFormatterTests {
             LintIssue(
                 severity: .error, message: "Force try", filePath: "A.swift",
                 lineNumber: 7, suggestion: nil, ruleName: .forceTry
-            )
+            ),
         ]
         let formatter = HTMLFormatter { Date(timeIntervalSince1970: 1_800_000_000) }
 

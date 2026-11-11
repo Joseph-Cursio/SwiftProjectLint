@@ -29,7 +29,7 @@ struct AnimationHierarchy: PatternRegistrarProtocol {
                 suggestion: "Specify an explicit animation curve such as .easeInOut, .spring(), or .linear.",
                 description: "Detects use of .animation(.default, value:) which relies on the system default " +
                     "animation curve and may produce inconsistent behavior."
-            )
+            ),
         ]
     }
 

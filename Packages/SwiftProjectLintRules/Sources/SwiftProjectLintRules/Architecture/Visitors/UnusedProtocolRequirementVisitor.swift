@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
@@ -31,7 +30,7 @@ final class UnusedProtocolRequirementVisitor: CrossFileVisitorBase, CrossFilePat
         "errorDescription", "failureReason", "recoverySuggestion", "helpAnchor",
         "makeIterator", "next", "makeAsyncIterator", "rawValue", "allCases",
         "wrappedValue", "projectedValue", "unownedExecutor", "startIndex", "endIndex", "index",
-        "objectWillChange"
+        "objectWillChange",
     ]
 
     /// Framework protocols a project protocol may refine and still be judged: each one's
@@ -45,7 +44,7 @@ final class UnusedProtocolRequirementVisitor: CrossFileVisitorBase, CrossFilePat
         "Encodable", "Decodable", "CustomStringConvertible", "CustomDebugStringConvertible", "Error",
         "LocalizedError", "CaseIterable", "RawRepresentable", "Sequence", "IteratorProtocol",
         "AsyncSequence", "AsyncIteratorProtocol", "View", "ViewModifier", "Shape", "App", "Scene",
-        "Observable", "ObservableObject", "Transferable", "EnvironmentKey", "PreferenceKey"
+        "Observable", "ObservableObject", "Transferable", "EnvironmentKey", "PreferenceKey",
     ]
 
     /// Attributes that change nothing about who calls a protocol's requirements. Any other

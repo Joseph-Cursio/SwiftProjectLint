@@ -1,8 +1,35 @@
-import Core
-import SwiftUI
+@testable import App
+import Foundation
+import SwiftProjectLintModels
 import Testing
 
-@testable import App
+// MARK: - Additional ContentViewModel Tests
+
+@Suite("ContentViewModel Pattern Tests")
+@MainActor
+struct ContentViewModelPatternTests {
+    /// The saved rules' store: never `.standard`, which other test processes share (`IsolatedDefaults`).
+    private let store = IsolatedDefaults()
+
+    // MARK: - allPatternsByCategory
+
+    @Test("allPatternsByCategory returns empty when registry is nil")
+    func allPatternsByCategoryNilRegistry() {
+        let viewModel = ContentViewModel(defaults: store.defaults)
+        viewModel.patternRegistry = nil
+        #expect(viewModel.allPatternsByCategory.isEmpty)
+    }
+
+    @Test("allPatternsByCategory returns categories with configured registry")
+    func allPatternsByCategoryWithRegistry() async {
+        let systemComponents = SystemComponents()
+        await systemComponents.initialize()
+        let viewModel = ContentViewModel(defaults: store.defaults)
+        viewModel.patternRegistry = systemComponents.patternRegistry
+        let patterns = viewModel.allPatternsByCategory
+        #expect(patterns.isEmpty == false)
+    }
+}
 
 @Suite("ContentViewModel Tests")
 @MainActor
@@ -227,7 +254,7 @@ struct ContentViewModelTests {
             LintIssue(
                 severity: .warning, message: "Test", filePath: "/test.swift",
                 lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable
-            )
+            ),
         ]
         let filtered = viewModel.filterIssuesByEnabledRules(issues)
         #expect(filtered.isEmpty)
@@ -245,7 +272,7 @@ struct ContentViewModelTests {
             LintIssue(
                 severity: .error, message: "Missing @StateObject", filePath: "/test.swift",
                 lineNumber: 5, suggestion: nil, ruleName: .missingStateObject
-            )
+            ),
         ]
         let filtered = viewModel.filterIssuesByEnabledRules(issues)
         let firstFiltered = try #require(filtered.first)
@@ -322,33 +349,5 @@ struct ContentViewModelTests {
         // Without a configured detector the shared registry is empty —
         // this documents the failure mode so it stays visible.
         #expect(viewModel.lintIssues.isEmpty)
-    }
-}
-
-// MARK: - Additional ContentViewModel Tests
-
-@Suite("ContentViewModel Pattern Tests")
-@MainActor
-struct ContentViewModelPatternTests {
-    /// The saved rules' store: never `.standard`, which other test processes share (`IsolatedDefaults`).
-    private let store = IsolatedDefaults()
-
-    // MARK: - allPatternsByCategory
-
-    @Test("allPatternsByCategory returns empty when registry is nil")
-    func allPatternsByCategoryNilRegistry() {
-        let viewModel = ContentViewModel(defaults: store.defaults)
-        viewModel.patternRegistry = nil
-        #expect(viewModel.allPatternsByCategory.isEmpty)
-    }
-
-    @Test("allPatternsByCategory returns categories with configured registry")
-    func allPatternsByCategoryWithRegistry() async {
-        let systemComponents = SystemComponents()
-        await systemComponents.initialize()
-        let viewModel = ContentViewModel(defaults: store.defaults)
-        viewModel.patternRegistry = systemComponents.patternRegistry
-        let patterns = viewModel.allPatternsByCategory
-        #expect(patterns.isEmpty == false)
     }
 }

@@ -1,7 +1,7 @@
-@testable import Core
 import Foundation
-@testable import SwiftProjectLintIdempotencyRules
-@testable import SwiftProjectLintRules
+import SwiftProjectLintIdempotencyRules
+import SwiftProjectLintRegistry
+import SwiftProjectLintRules
 
 /// A struct containing isolated test instances for pattern detection.
 struct IsolatedTestInstances {
@@ -14,7 +14,7 @@ struct IsolatedTestInstances {
 /// This provides a centralized way to manage shared registries while maintaining
 /// test isolation where needed.
 @preconcurrency @MainActor
-class TestRegistryManager {
+enum TestRegistryManager {
 
     // MARK: - Shared Instances
 
@@ -42,13 +42,6 @@ class TestRegistryManager {
         IdempotencyRules.registerAll()
         sharedPatternRegistry.initialize()
         isInitialized = true
-    }
-
-    /// Reset the shared registry to a clean state
-    static func resetSharedRegistry() {
-        sharedVisitorRegistry.clear()
-
-        isInitialized = false
     }
 
     /// Create isolated instances for tests that need complete isolation
@@ -88,7 +81,9 @@ class TestRegistryManager {
 
     /// Measure execution time of an async test operation
     @preconcurrency
-    static func measureExecutionTime<T: Sendable>(_ operation: @Sendable () async throws -> T) async rethrows -> (T, Duration) {
+    static func measureExecutionTime<T: Sendable>(
+        _ operation: @Sendable () async throws -> T
+    ) async rethrows -> (T, Duration) {
         let start = ContinuousClock.now
         let result = try await operation()
         let end = ContinuousClock.now

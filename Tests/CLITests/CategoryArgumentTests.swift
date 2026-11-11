@@ -1,6 +1,5 @@
 import ArgumentParser
 @testable import CLI
-import Core
 import Testing
 
 /// `--categories` accepts a repeated flag and/or comma-separated values, and — the point of the

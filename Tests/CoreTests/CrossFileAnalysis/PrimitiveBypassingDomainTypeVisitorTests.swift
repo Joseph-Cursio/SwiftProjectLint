@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -36,7 +37,7 @@ struct PrimitiveBypassingDomainTypeVisitorTests {
                 var seen: [IdempotencyKey: Response] = [:]
                 var replayCache: [String: Response] = [:]
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -57,7 +58,7 @@ struct PrimitiveBypassingDomainTypeVisitorTests {
                 var seen: [IdempotencyKey: Response] = [:]
                 var flags: [String: Bool] = [:]
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -69,7 +70,7 @@ struct PrimitiveBypassingDomainTypeVisitorTests {
     func wrapperExistsButNeverKeyedClean() {
         let issues = analyze(files: [
             "Key.swift": "struct IdempotencyKey { let value: String }",
-            "Store.swift": "struct Store { var responses: [String: Response] = [:] }"
+            "Store.swift": "struct Store { var responses: [String: Response] = [:] }",
         ])
 
         #expect(issues.isEmpty)
@@ -85,7 +86,7 @@ struct PrimitiveBypassingDomainTypeVisitorTests {
                 var seen: [IdempotencyKey: Response] = [:]
                 var pending: [IdempotencyKey: Response] = [:]
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -101,7 +102,7 @@ struct PrimitiveBypassingDomainTypeVisitorTests {
                 var byPair: [Pair: Response] = [:]
                 var byString: [String: Response] = [:]
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -117,7 +118,7 @@ struct PrimitiveBypassingDomainTypeVisitorTests {
                 var byID: Dictionary<UserID, Profile> = [:]
                 var byRaw: Dictionary<UUID, Profile> = [:]
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -132,7 +133,7 @@ struct PrimitiveBypassingDomainTypeVisitorTests {
         let issues = analyze(files: [
             "Key.swift": "struct IdempotencyKey { let value: String }",
             "Good.swift": "struct A { var seen: [IdempotencyKey: Response] = [:] }",
-            "Bad.swift": "struct B { var cache: [String: Response] = [:] }"
+            "Bad.swift": "struct B { var cache: [String: Response] = [:] }",
         ])
 
         #expect(issues.count == 1)
@@ -150,7 +151,7 @@ struct PrimitiveBypassingDomainTypeVisitorTests {
                 var byKind: [MediaKind: Data] = [:]
                 var byRaw: [String: Data] = [:]
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -168,7 +169,7 @@ struct PrimitiveBypassingDomainTypeVisitorTests {
                 var byKind: [Kind: String] = [:]
                 var byRaw: [String: String] = [:]
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -191,7 +192,7 @@ struct PrimitiveBypassingDomainTypeVisitorTests {
                 var byToken: [Token: Session] = [:]
                 var byRaw: [String: Session] = [:]
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)

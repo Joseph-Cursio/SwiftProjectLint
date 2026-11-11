@@ -1,7 +1,5 @@
-@testable import Core
 import SwiftParser
-@testable import SwiftProjectLintVisitors
-import SwiftSyntax
+import SwiftProjectLintVisitors
 import Testing
 
 /// `CompositionAliasCatalog` resolves `typealias OrderStore = OrderSaving & OrderHistory` to the
@@ -102,7 +100,7 @@ struct CompositionAliasCatalogTests {
         "protocol Feature { associatedtype Store }",
         "func make<Store: OrderSaving>(_ store: Store) {}",
         "typealias Store<T> = Box<T>",
-        "typealias Store = () -> Void"
+        "typealias Store = () -> Void",
     ])
     func aNameAlsoDeclaredAnotherWayIsNotExpanded(other: String) {
         let aliases = catalog("struct Outer { typealias Store = OrderSaving & OrderHistory }", other)

@@ -29,7 +29,7 @@ struct SuppressionAuditWalkTests {
     @Test func reportsUnknownNamesWithRootRelativePaths() throws {
         let root = try makeProject([
             "Sources/Model.swift": "// swiftprojectlint:disable:next legacy-observable-object\nlet x = 1\n",
-            "Sources/Fine.swift": "// swiftprojectlint:disable:next force-try\nlet y = 1\n"
+            "Sources/Fine.swift": "// swiftprojectlint:disable:next force-try\nlet y = 1\n",
         ])
         defer { try? FileManager.default.removeItem(at: root) }
 
@@ -63,7 +63,7 @@ struct SuppressionAuditWalkTests {
     @Test func reportsNothingWhenEveryNameResolves() throws {
         let root = try makeProject([
             "Sources/A.swift": "// swiftprojectlint:disable:next force-try magic-number\nlet x = 1\n",
-            "Sources/B.swift": "// swiftprojectlint:disable\nlet y = 1\n"
+            "Sources/B.swift": "// swiftprojectlint:disable\nlet y = 1\n",
         ])
         defer { try? FileManager.default.removeItem(at: root) }
 

@@ -1,7 +1,8 @@
-@testable import Core
 @testable import SwiftProjectLintIdempotencyRules
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 @testable import SwiftProjectLintRules
-import SwiftSyntax
+import SwiftProjectLintVisitors
 import Testing
 
 /// Serialized so that concurrent tests in this suite cannot race on the
@@ -97,7 +98,7 @@ struct SyntaxRegistryTests {
                 messageTemplate: "Pattern 2",
                 suggestion: "Suggestion 2",
                 description: "Description 2"
-            )
+            ),
         ]
         registry.register(patterns: patterns)
         #expect(registry.getPatterns(for: .codeQuality).count >= 2)

@@ -50,7 +50,7 @@ struct OnceReachTransitiveTests {
                     a()
                 }
             }
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         #expect(issues.count == 1)
@@ -79,7 +79,7 @@ struct OnceReachTransitiveTests {
                     a()
                 }
             }
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         #expect(issues.count == 1)
@@ -106,7 +106,7 @@ struct OnceReachTransitiveTests {
 
             /// @lint.context once
             func bootstrap() {}
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         #expect(issues.count == 1)
@@ -133,7 +133,7 @@ struct OnceReachTransitiveTests {
             "Bootstrap.swift": """
             /// @lint.context once
             func bootstrap() {}
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         #expect(issues.count == 1)
@@ -164,7 +164,7 @@ struct OnceReachTransitiveTests {
                     a()
                 }
             }
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         #expect(issues.count == 1)
@@ -187,7 +187,7 @@ struct OnceReachTransitiveTests {
                     a()
                 }
             }
-            """
+            """,
         ]
         #expect(runRule(files).detectedIssues.isEmpty)
     }
@@ -216,7 +216,7 @@ struct OnceReachTransitiveTests {
                     helper()
                 }
             }
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         // Exactly one diagnostic: the direct replayable→once edge inside
@@ -250,7 +250,7 @@ struct OnceReachTransitiveTests {
                     bootstrap()
                 }
             }
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         #expect(issues.count == 1)
@@ -277,7 +277,7 @@ struct OnceReachTransitiveTests {
             func handle() {
                 helper()
             }
-            """
+            """,
         ]
         let issues = runRule(files).detectedIssues
         #expect(issues.count == 1)

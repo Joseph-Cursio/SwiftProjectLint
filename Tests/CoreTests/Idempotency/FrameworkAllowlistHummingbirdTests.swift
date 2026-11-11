@@ -1,7 +1,5 @@
 import enum SwiftEffectInference.Effect
-import SwiftParser
-@testable import SwiftProjectLintVisitors
-import SwiftSyntax
+import SwiftProjectLintVisitors
 import Testing
 
 /// Hummingbird-framework allowlist coverage: primitive pairs
@@ -10,7 +8,7 @@ import Testing
 /// Split off from `FrameworkAllowlistGatingTests` so the base struct
 /// stays under SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkAllowlistHummingbirdTests {
+struct FrameworkAllowlistHummingbirdTests: FrameworkAllowlistTestSupport {
 
     // MARK: - Hummingbird primitives (framework-gated)
 

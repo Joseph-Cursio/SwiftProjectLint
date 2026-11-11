@@ -1,7 +1,7 @@
-@testable import Core
 import PropertyBased
 import SwiftParser
-import SwiftSyntax
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import Testing
 
 /// Property-based law: **narrowing the enabled rule set is pure filtering.**
@@ -68,7 +68,7 @@ struct RuleSelectionFilteringPropertyTests {
                 "\(issue.severity)",
                 issue.message,
                 issue.suggestion ?? "",
-                locations
+                locations,
             ].joined(separator: "§")
         }
         .sorted()

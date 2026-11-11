@@ -1,5 +1,3 @@
-import Foundation
-
 /// A node in a directory tree with tri-state check behavior.
 ///
 /// Used by the GUI to let users visually include/exclude directories

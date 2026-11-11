@@ -2,6 +2,80 @@ import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
+/// Collects, from one view's members, whether it animates and whether it ever
+/// consults Reduce Motion. Nested type declarations are skipped so each view is
+/// judged on its own body.
+final class MotionScanner: SyntaxVisitor {
+
+    struct Trigger {
+        let description: String
+        let node: FunctionCallExprSyntax
+    }
+
+    /// Identifiers that mean the view has consulted the preference. Any mention
+    /// counts — reading it at all implies the author considered motion.
+    private static let reduceMotionNames: Set<String> = [
+        "accessibilityReduceMotion",
+        "isReduceMotionEnabled",
+    ]
+
+    /// Transitions that move nothing, so they need no Reduce Motion handling.
+    private static let motionlessTransitions: Set<String> = ["opacity", "identity"]
+
+    private(set) var firstTrigger: Trigger?
+    private(set) var checksReduceMotion = false
+
+    override func visit(_ _: StructDeclSyntax) -> SyntaxVisitorContinueKind { .skipChildren }
+    override func visit(_ _: ClassDeclSyntax) -> SyntaxVisitorContinueKind { .skipChildren }
+    override func visit(_ _: EnumDeclSyntax) -> SyntaxVisitorContinueKind { .skipChildren }
+    override func visit(_ _: ActorDeclSyntax) -> SyntaxVisitorContinueKind { .skipChildren }
+
+    override func visit(_ node: TokenSyntax) -> SyntaxVisitorContinueKind {
+        if Self.reduceMotionNames.contains(node.text) {
+            checksReduceMotion = true
+        }
+        return .visitChildren
+    }
+
+    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        if firstTrigger == nil, let description = triggerDescription(node) {
+            firstTrigger = Trigger(description: description, node: node)
+        }
+        return .visitChildren
+    }
+
+    /// Names the animation this call introduces, or nil when it introduces none.
+    private func triggerDescription(_ node: FunctionCallExprSyntax) -> String? {
+        if node.calledExpression.as(DeclReferenceExprSyntax.self)?.baseName.text == "withAnimation" {
+            return "withAnimation"
+        }
+
+        guard let member = node.calledExpression.as(MemberAccessExprSyntax.self) else { return nil }
+
+        switch member.declName.baseName.text {
+        case "animation":
+            // `.animation(nil, value:)` switches animation off — the opposite of the problem.
+            guard let first = node.arguments.first,
+                  first.expression.is(NilLiteralExprSyntax.self) == false else { return nil }
+            return ".animation"
+
+        case "transition":
+            guard let first = node.arguments.first, carriesMotion(first.expression) else { return nil }
+            return ".transition"
+
+        default:
+            return nil
+        }
+    }
+
+    /// False for `.opacity` and `.identity`, which change no position or size.
+    func carriesMotion(_ expression: ExprSyntax) -> Bool {
+        guard let member = expression.as(MemberAccessExprSyntax.self),
+              member.base == nil else { return true }
+        return Self.motionlessTransitions.contains(member.declName.baseName.text) == false
+    }
+}
+
 /// Detects a SwiftUI view that animates without ever consulting the user's
 /// Reduce Motion preference.
 ///
@@ -63,79 +137,5 @@ final class AnimationWithoutReduceMotionVisitor: BasePatternVisitor {
             ruleName: .animationWithoutReduceMotion
         )
         return .visitChildren
-    }
-}
-
-/// Collects, from one view's members, whether it animates and whether it ever
-/// consults Reduce Motion. Nested type declarations are skipped so each view is
-/// judged on its own body.
-final class MotionScanner: SyntaxVisitor {
-
-    struct Trigger {
-        let description: String
-        let node: FunctionCallExprSyntax
-    }
-
-    /// Identifiers that mean the view has consulted the preference. Any mention
-    /// counts — reading it at all implies the author considered motion.
-    private static let reduceMotionNames: Set<String> = [
-        "accessibilityReduceMotion",
-        "isReduceMotionEnabled"
-    ]
-
-    /// Transitions that move nothing, so they need no Reduce Motion handling.
-    private static let motionlessTransitions: Set<String> = ["opacity", "identity"]
-
-    private(set) var firstTrigger: Trigger?
-    private(set) var checksReduceMotion = false
-
-    override func visit(_ _: StructDeclSyntax) -> SyntaxVisitorContinueKind { .skipChildren }
-    override func visit(_ _: ClassDeclSyntax) -> SyntaxVisitorContinueKind { .skipChildren }
-    override func visit(_ _: EnumDeclSyntax) -> SyntaxVisitorContinueKind { .skipChildren }
-    override func visit(_ _: ActorDeclSyntax) -> SyntaxVisitorContinueKind { .skipChildren }
-
-    override func visit(_ node: TokenSyntax) -> SyntaxVisitorContinueKind {
-        if Self.reduceMotionNames.contains(node.text) {
-            checksReduceMotion = true
-        }
-        return .visitChildren
-    }
-
-    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        if firstTrigger == nil, let description = triggerDescription(node) {
-            firstTrigger = Trigger(description: description, node: node)
-        }
-        return .visitChildren
-    }
-
-    /// Names the animation this call introduces, or nil when it introduces none.
-    private func triggerDescription(_ node: FunctionCallExprSyntax) -> String? {
-        if node.calledExpression.as(DeclReferenceExprSyntax.self)?.baseName.text == "withAnimation" {
-            return "withAnimation"
-        }
-
-        guard let member = node.calledExpression.as(MemberAccessExprSyntax.self) else { return nil }
-
-        switch member.declName.baseName.text {
-        case "animation":
-            // `.animation(nil, value:)` switches animation off — the opposite of the problem.
-            guard let first = node.arguments.first,
-                  first.expression.is(NilLiteralExprSyntax.self) == false else { return nil }
-            return ".animation"
-
-        case "transition":
-            guard let first = node.arguments.first, carriesMotion(first.expression) else { return nil }
-            return ".transition"
-
-        default:
-            return nil
-        }
-    }
-
-    /// False for `.opacity` and `.identity`, which change no position or size.
-    func carriesMotion(_ expression: ExprSyntax) -> Bool {
-        guard let member = expression.as(MemberAccessExprSyntax.self),
-              member.base == nil else { return true }
-        return Self.motionlessTransitions.contains(member.declName.baseName.text) == false
     }
 }

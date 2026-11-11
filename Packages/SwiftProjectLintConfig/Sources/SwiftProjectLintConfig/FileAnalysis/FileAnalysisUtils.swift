@@ -1,11 +1,11 @@
-import Darwin
 import Foundation
+import SwiftProjectLintModels
 
 /// Utility functions for file system operations and analysis in SwiftUI projects.
 ///
 /// This struct provides helper methods for finding Swift files, extracting view names,
 /// and other file-related operations used during architectural analysis.
-public struct FileAnalysisUtils {
+public enum FileAnalysisUtils {
 
     /// Extracts the view name from a given Swift file path.
     ///
@@ -18,7 +18,7 @@ public struct FileAnalysisUtils {
     public static func extractSwiftBasename(from filePath: String) -> String {
         // Normalize Windows paths to use forward slashes
         let normalizedPath = filePath.replacingOccurrences(of: "\\", with: "/")
-        let fileName = (normalizedPath as NSString).lastPathComponent
+        let fileName = PathString.lastComponent(of: normalizedPath)
 
         // Remove the *extension* — a trailing suffix — and nothing else. This
         // was `replacingOccurrences(of: ".swift", with: "")`, which stripped
@@ -136,6 +136,8 @@ public struct FileAnalysisUtils {
         return names.sorted()
     }
 
+    /// Whether any directory under `path`, other than skipped build and dependency folders, holds
+    /// its own `Package.swift`.
     public static func containsNestedPackage(in path: String) -> Bool {
         let fileManager = FileManager.default
         let rootURL = URL(fileURLWithPath: path, isDirectory: true)
@@ -166,7 +168,7 @@ public struct FileAnalysisUtils {
     /// dependency checkouts, and VCS directories that should never be linted.
     static let skippedDirectories: Set<String> = [
         ".build", ".git", ".swiftpm", "DerivedData", "Pods",
-        ".hg", ".svn", "node_modules", "Carthage"
+        ".hg", ".svn", "node_modules", "Carthage",
     ]
 
     /// Whether a file or directory named `name` is skipped with everything below it: one of
@@ -281,13 +283,5 @@ public struct FileAnalysisUtils {
         excludedFilenames: [String]
     ) -> Bool {
         url.pathExtension == "swift" && !excludedFilenames.contains(url.lastPathComponent)
-    }
-
-    /// Returns the canonical (symlink-resolved) path using POSIX `realpath(3)`.
-    /// Falls back to the input string if the path does not exist or resolution fails.
-    static func realPath(_ path: String) -> String {
-        var buffer = [CChar](repeating: 0, count: Int(PATH_MAX))
-        guard realpath(path, &buffer) != nil else { return path }
-        return String(cString: &buffer)
     }
 }

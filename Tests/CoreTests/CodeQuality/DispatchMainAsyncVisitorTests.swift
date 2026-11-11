@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -43,7 +44,7 @@ struct DispatchMainAsyncVisitorTests {
 
     @Test("Detects DispatchQueue.main usage", arguments: [
         ("DispatchQueue.main.async {\n    self.updateUI()\n}", "async"),
-        ("DispatchQueue.main.sync {\n    self.updateUI()\n}", "sync")
+        ("DispatchQueue.main.sync {\n    self.updateUI()\n}", "sync"),
     ])
     func detectsDispatchMainUsage(source: String, expectedSubstring: String) throws {
         let visitor = makeVisitor()
@@ -71,7 +72,7 @@ struct DispatchMainAsyncVisitorTests {
     @Test("No issue for non-main dispatch usage", arguments: [
         "DispatchQueue.global().async {\n    self.doWork()\n}",
         "await MainActor.run {\n    self.updateUI()\n}",
-        "let queue = DispatchQueue(label: \"com.app.worker\")\nqueue.async { self.doWork() }"
+        "let queue = DispatchQueue(label: \"com.app.worker\")\nqueue.async { self.doWork() }",
     ])
     func noIssueForNonMainDispatch(source: String) {
         let visitor = makeVisitor()

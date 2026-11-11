@@ -1,5 +1,3 @@
-@testable import Core
-import Foundation
 import SwiftParser
 import SwiftProjectLintVisitors
 import SwiftSyntax
@@ -162,6 +160,7 @@ struct ForeignExtensionCarrierTests {
 
     final class PropertyFinder: SyntaxVisitor {
         var found: [String: VariableDeclSyntax] = [:]
+
         override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
             guard let binding = PropertyTestCandidacy.soleBinding(of: node),
                   let name = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text
@@ -173,6 +172,7 @@ struct ForeignExtensionCarrierTests {
 
     final class FunctionFinder: SyntaxVisitor {
         var found: [String: FunctionDeclSyntax] = [:]
+
         override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
             found[node.name.text] = node
             return .visitChildren

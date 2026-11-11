@@ -1,5 +1,3 @@
-@testable import Core
-import Foundation
 import SwiftParser
 @testable import SwiftProjectLintRules
 import SwiftSyntax

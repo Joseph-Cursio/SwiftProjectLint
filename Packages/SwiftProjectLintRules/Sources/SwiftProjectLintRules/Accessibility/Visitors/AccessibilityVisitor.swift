@@ -1,5 +1,3 @@
-import Foundation
-import SwiftParser
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
@@ -42,11 +40,6 @@ class AccessibilityVisitor: BasePatternVisitor {
     private var imagesInLabels: Set<Syntax> = []
 
     // MARK: - Internal Access Methods for Checkers
-
-    /// Get the current pattern for issue reporting
-    internal var currentPattern: SyntaxPattern? {
-        pattern
-    }
 
     /// Get the current file path for issue reporting
     internal func getCurrentFilePath() -> String? {

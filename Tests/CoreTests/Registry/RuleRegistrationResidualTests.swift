@@ -1,4 +1,7 @@
-@testable import Core
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
+import SwiftProjectLintVisitors
 import Testing
 
 /// Every declared rule must be reachable by the engine, and every exception must say why.

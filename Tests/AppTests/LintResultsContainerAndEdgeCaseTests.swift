@@ -1,83 +1,7 @@
 @testable import App
-@testable import Core
-import SwiftUI
+import SwiftProjectLintModels
 import Testing
 import ViewInspector
-
-// MARK: - LintResultsContainerView Tests
-
-struct LintResultsContainerAndEdgeCaseTests {
-    @Test
-    @MainActor
-    func testContainerViewHasFullScreenButton() throws {
-        let issues = [
-            LintIssue(
-                severity: .warning, message: "Test issue", filePath: "/file.swift",
-                lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable
-            )
-        ]
-        let container = LintResultsContainerView(issues: issues)
-        let inspected = try container.inspect()
-
-        let texts = try inspected.findAll(ViewType.Text.self).map { try $0.string() }
-        #expect(texts.contains("Full Screen"))
-    }
-
-    @Test
-    @MainActor
-    func testContainerViewContainsLintResultsView() throws {
-        let issues = [
-            LintIssue(
-                severity: .error, message: "Error in container", filePath: "/file.swift",
-                lineNumber: 5, suggestion: nil, ruleName: .missingStateObject
-            )
-        ]
-        let container = LintResultsContainerView(issues: issues)
-        let inspected = try container.inspect()
-
-        let texts = try inspected.findAll(ViewType.Text.self).map { try $0.string() }
-        #expect(texts.contains("Error in container"))
-        #expect(texts.contains("Summary"))
-    }
-
-    @Test
-    @MainActor
-    func testContainerViewHasExpandIcon() throws {
-        let issues = [
-            LintIssue(
-                severity: .info, message: "Info", filePath: "/file.swift",
-                lineNumber: 1, suggestion: nil, ruleName: .uninitializedStateVariable
-            )
-        ]
-        let container = LintResultsContainerView(issues: issues)
-        let inspected = try container.inspect()
-
-        let images = inspected.findAll(ViewType.Image.self)
-        #expect(images.count >= 1)
-    }
-
-    @Test("container with empty issues still shows summary and full screen button")
-    @MainActor
-    func containerEmptyIssues() throws {
-        let container = LintResultsContainerView(issues: [])
-        let inspected = try container.inspect()
-
-        let texts = try inspected.findAll(ViewType.Text.self).map { try $0.string() }
-        #expect(texts.contains("Full Screen"))
-        #expect(texts.contains("Summary"))
-    }
-
-    @Test("expand icon uses arrow.up.left.and.arrow.down.right system image")
-    @MainActor
-    func expandIconSystemName() throws {
-        let container = LintResultsContainerView(issues: [])
-        let inspected = try container.inspect()
-
-        let images = inspected.findAll(ViewType.Image.self)
-        let systemNames = images.compactMap { try? $0.actualImage().name() }
-        #expect(systemNames.contains("arrow.up.left.and.arrow.down.right"))
-    }
-}
 
 // MARK: - FullScreenResultsView Tests
 
@@ -93,7 +17,7 @@ struct FullScreenResultsViewTests {
             LintIssue(
                 severity: .warning, message: "Full screen warning", filePath: "/file2.swift",
                 lineNumber: 2, suggestion: nil, ruleName: .missingStateObject
-            )
+            ),
         ]
         let fullScreen = FullScreenResultsView(issues: issues)
         let inspected = try fullScreen.inspect()
@@ -110,7 +34,7 @@ struct FullScreenResultsViewTests {
             LintIssue(
                 severity: .error, message: "Error", filePath: "/file.swift",
                 lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable
-            )
+            ),
         ]
         let fullScreen = FullScreenResultsView(issues: issues)
         let inspected = try fullScreen.inspect()
@@ -130,7 +54,7 @@ struct FullScreenResultsViewTests {
             LintIssue(
                 severity: .info, message: "Info", filePath: "/file.swift",
                 lineNumber: 1, suggestion: nil, ruleName: .uninitializedStateVariable
-            )
+            ),
         ]
         let fullScreen = FullScreenResultsView(issues: issues)
         let inspected = try fullScreen.inspect()
@@ -170,7 +94,7 @@ struct FullScreenResultsViewTests {
             LintIssue(
                 severity: .info, message: "Info 1", filePath: "/f4.swift",
                 lineNumber: 4, suggestion: nil, ruleName: .uninitializedStateVariable
-            )
+            ),
         ]
         let fullScreen = FullScreenResultsView(issues: issues)
         let inspected = try fullScreen.inspect()
@@ -192,7 +116,7 @@ struct FullScreenResultsViewTests {
             LintIssue(
                 severity: .warning, message: "Second", filePath: "/f2.swift",
                 lineNumber: 2, suggestion: nil, ruleName: .missingStateObject
-            )
+            ),
         ]
         let fullScreen = FullScreenResultsView(issues: issues)
         let inspected = try fullScreen.inspect()
@@ -262,7 +186,7 @@ about the lint issue that was detected in the codebase during analysis
             LintIssue(
                 severity: .info, message: "Info type", filePath: "/i.swift",
                 lineNumber: 3, suggestion: nil, ruleName: .uninitializedStateVariable
-            )
+            ),
         ]
         let view = LintResultsView(issues: issues)
         let inspected = try view.inspect()
@@ -301,5 +225,80 @@ about the lint issue that was detected in the codebase during analysis
         #expect(issue.locations.count == 10)
         #expect(issue.filePath == "/file1.swift")
         #expect(issue.lineNumber == 10)
+    }
+}
+
+// MARK: - LintResultsContainerView Tests
+
+struct LintResultsContainerAndEdgeCaseTests {
+    @Test
+    @MainActor
+    func testContainerViewHasFullScreenButton() throws {
+        let issues = [
+            LintIssue(
+                severity: .warning, message: "Test issue", filePath: "/file.swift",
+                lineNumber: 1, suggestion: nil, ruleName: .relatedDuplicateStateVariable
+            ),
+        ]
+        let container = LintResultsContainerView(issues: issues)
+        let inspected = try container.inspect()
+
+        let texts = try inspected.findAll(ViewType.Text.self).map { try $0.string() }
+        #expect(texts.contains("Full Screen"))
+    }
+
+    @Test
+    @MainActor
+    func testContainerViewContainsLintResultsView() throws {
+        let issues = [
+            LintIssue(
+                severity: .error, message: "Error in container", filePath: "/file.swift",
+                lineNumber: 5, suggestion: nil, ruleName: .missingStateObject
+            ),
+        ]
+        let container = LintResultsContainerView(issues: issues)
+        let inspected = try container.inspect()
+
+        let texts = try inspected.findAll(ViewType.Text.self).map { try $0.string() }
+        #expect(texts.contains("Error in container"))
+        #expect(texts.contains("Summary"))
+    }
+
+    @Test
+    @MainActor
+    func testContainerViewHasExpandIcon() throws {
+        let issues = [
+            LintIssue(
+                severity: .info, message: "Info", filePath: "/file.swift",
+                lineNumber: 1, suggestion: nil, ruleName: .uninitializedStateVariable
+            ),
+        ]
+        let container = LintResultsContainerView(issues: issues)
+        let inspected = try container.inspect()
+
+        let images = inspected.findAll(ViewType.Image.self)
+        #expect(images.count >= 1)
+    }
+
+    @Test("container with empty issues still shows summary and full screen button")
+    @MainActor
+    func containerEmptyIssues() throws {
+        let container = LintResultsContainerView(issues: [])
+        let inspected = try container.inspect()
+
+        let texts = try inspected.findAll(ViewType.Text.self).map { try $0.string() }
+        #expect(texts.contains("Full Screen"))
+        #expect(texts.contains("Summary"))
+    }
+
+    @Test("expand icon uses arrow.up.left.and.arrow.down.right system image")
+    @MainActor
+    func expandIconSystemName() throws {
+        let container = LintResultsContainerView(issues: [])
+        let inspected = try container.inspect()
+
+        let images = inspected.findAll(ViewType.Image.self)
+        let systemNames = images.compactMap { try? $0.actualImage().name() }
+        #expect(systemNames.contains("arrow.up.left.and.arrow.down.right"))
     }
 }

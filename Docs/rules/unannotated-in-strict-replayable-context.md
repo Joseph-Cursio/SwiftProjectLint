@@ -12,7 +12,7 @@ The default `/// @lint.context replayable` rule (`nonIdempotentInRetryContext`) 
 `strict_replayable` is the opt-in variant for handlers where that lenient default is the wrong call — payment flows, exactly-once queue consumers, financial postings, anything where an unproven callee on a retry path is itself a finding worth investigating. Annotating with `/// @lint.context strict_replayable` flips the default: callees must be *proven safe* (idempotent, observational, or externally-idempotent) rather than merely *not proven dangerous*.
 
 ### Discussion
-`UnannotatedInStrictReplayableContextVisitor` walks each function declaration whose doc comment carries `/// @lint.context strict_replayable`, then inspects every direct call in its body. A callee fires the rule iff **none** of the following hold:
+`UnannotatedStrictReplayableVisitor` walks each function declaration whose doc comment carries `/// @lint.context strict_replayable`, then inspects every direct call in its body. A callee fires the rule iff **none** of the following hold:
 
 1. **Declared effect** in the symbol table — any tier (`idempotent`, `observational`, `externally_idempotent(by:)`, or even `non_idempotent`).
 2. **Upward-inferred effect** — the callee's body is analysed and yields a classification.

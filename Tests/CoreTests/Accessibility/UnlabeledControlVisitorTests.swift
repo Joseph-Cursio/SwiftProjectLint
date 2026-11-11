@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -129,7 +130,7 @@ struct UnlabeledControlVisitorTests {
                 Toggle("Bold", isOn: $on)
             }
         }
-        """
+        """,
     ])
     func noIssue(source: String) {
         #expect(analyze(source).isEmpty)

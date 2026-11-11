@@ -1,5 +1,5 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -117,7 +117,7 @@ struct IdentifiableTypeCollectorTests {
         #expect(collect(from: source) == [
             "Entry", "Feed.Entry",
             "Inner", "Middle.Inner", "Outer.Middle.Inner",
-            "Row", "Store.Row"
+            "Row", "Store.Row",
         ])
     }
 

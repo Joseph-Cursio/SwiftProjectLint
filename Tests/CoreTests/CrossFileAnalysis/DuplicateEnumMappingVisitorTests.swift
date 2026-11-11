@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -46,7 +47,7 @@ struct DuplicateEnumMappingVisitorTests {
         let issues = analyze(files: [
             "Tier.swift": "enum Tier { case verified, strong, likely }",
             "A.swift": labelMap("labelA"),
-            "B.swift": labelMap("labelB")
+            "B.swift": labelMap("labelB"),
         ])
         // Two sites is enough for the exact-value rule.
         #expect(issues.count == 2)
@@ -61,7 +62,7 @@ struct DuplicateEnumMappingVisitorTests {
     func singleMappingDoesNotFire() {
         let issues = analyze(files: [
             "Tier.swift": "enum Tier { case verified, strong, likely }",
-            "A.swift": labelMap("labelA")
+            "A.swift": labelMap("labelA"),
         ])
         #expect(issues.isEmpty)
     }
@@ -91,7 +92,7 @@ struct DuplicateEnumMappingVisitorTests {
         let issues = analyze(files: [
             "Sev.swift": "enum Sev { case error, warning, info }",
             "FG.swift": foreground,
-            "BG.swift": background
+            "BG.swift": background,
         ])
         // Same shape, different values — a real second mapping, not a copy. This is exactly the
         // case Scattered Enum Mapping's looser match would risk; value-matching leaves it alone.
@@ -116,7 +117,7 @@ struct DuplicateEnumMappingVisitorTests {
         """
         let issues = analyze(files: [
             "Tier.swift": centralized,
-            "Projection.swift": labelMap("humanReadableTier")
+            "Projection.swift": labelMap("humanReadableTier"),
         ])
         // The `switch self` mapping is the canonical home; only the copy is reported.
         #expect(issues.count == 1)
@@ -143,7 +144,7 @@ struct DuplicateEnumMappingVisitorTests {
         let issues = analyze(files: [
             "Flag.swift": "enum Flag { case on, off }",
             "A.swift": twoArm("a"),
-            "B.swift": twoArm("b")
+            "B.swift": twoArm("b"),
         ])
         #expect(issues.isEmpty)
     }
@@ -166,7 +167,7 @@ struct DuplicateEnumMappingVisitorTests {
         let issues = analyze(files: [
             "Tier.swift": "enum Tier { case verified, strong, likely }",
             "A.swift": logicSwitch("a"),
-            "B.swift": logicSwitch("b")
+            "B.swift": logicSwitch("b"),
         ])
         // `compute(tier)` is a lowercase-callee call, not a literal/member/initializer — the
         // switch is arbitrary logic, not a constant map, so it is not a mapping site.
@@ -180,7 +181,7 @@ struct DuplicateEnumMappingVisitorTests {
         let both = labelMap("labelA") + "\n" + labelMap("labelB")
         let issues = analyze(files: [
             "Tier.swift": "enum Tier { case verified, strong, likely }",
-            "Both.swift": both
+            "Both.swift": both,
         ])
         #expect(issues.count == 2)
     }

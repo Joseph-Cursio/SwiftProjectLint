@@ -86,9 +86,17 @@ final class MissingEquatableOnPureResultVisitor: BasePatternVisitor, PackagePuri
         return .visitChildren
     }
 
+    /// The types a near miss needs `Equatable` on, whether the function is partial, and the value
+    /// a mutator mutates (`nil` for a function's result).
+    private struct NearMiss {
+        let equatable: [String]
+        let isPartial: Bool
+        let mutates: String?
+    }
+
     /// A near miss of either kind: a function whose result needs the conformance, or a mutator
     /// whose mutated value does. At most one applies — a mutator returns nothing.
-    private func nearMiss(_ node: FunctionDeclSyntax) -> (equatable: [String], isPartial: Bool, mutates: String?)? {
+    private func nearMiss(_ node: FunctionDeclSyntax) -> NearMiss? {
         if let result = PropertyTestCandidacy.equatableNearMiss(
             of: node,
             knownEquatableTypes: knownEquatableTypes,
@@ -96,7 +104,7 @@ final class MissingEquatableOnPureResultVisitor: BasePatternVisitor, PackagePuri
             knownValueTypes: knownValueTypes,
             cleanInstanceMethods: knownCleanInstanceMethods
         ) {
-            return (result.equatable, result.candidate.isPartial, nil)
+            return NearMiss(equatable: result.equatable, isPartial: result.candidate.isPartial, mutates: nil)
         }
         guard !knownEquatableRemedies.isEmpty,
               let mutator = PropertyTestCandidacy.mutatorCandidate(
@@ -109,7 +117,9 @@ final class MissingEquatableOnPureResultVisitor: BasePatternVisitor, PackagePuri
               !mutator.equatable.isEmpty else {
             return nil
         }
-        return (mutator.equatable, mutator.candidate.isPartial, mutator.mutates)
+        return NearMiss(
+            equatable: mutator.equatable, isPartial: mutator.candidate.isPartial, mutates: mutator.mutates
+        )
     }
 
     /// `A`, `A` and `B`, or `A`, `B` and `C` — each in backticks.

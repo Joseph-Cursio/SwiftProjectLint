@@ -1,4 +1,5 @@
 import Foundation
+import SwiftProjectLintModels
 
 /// Finds the source files a project compiles with default MainActor isolation (SE-0466).
 ///
@@ -24,7 +25,7 @@ public enum DefaultIsolationDetector {
         let packages = [(relative: "", absolute: projectRoot)]
             + NestedPackageWalker.packageDirectories(in: projectRoot)
         for package in packages {
-            let manifestPath = (package.absolute as NSString).appendingPathComponent("Package.swift")
+            let manifestPath = PathString.appending("Package.swift", to: package.absolute)
             guard let manifest = try? String(contentsOfFile: manifestPath, encoding: .utf8) else { continue }
             paths.formUnion(targetPaths(manifest: manifest).map { package.relative + $0 })
         }

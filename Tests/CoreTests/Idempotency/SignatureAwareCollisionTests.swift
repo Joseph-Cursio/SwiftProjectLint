@@ -1,6 +1,5 @@
 import SwiftEffectInference
 import SwiftParser
-@testable import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 

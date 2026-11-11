@@ -1,6 +1,5 @@
-@testable import Core
 import Foundation
-@testable import SwiftProjectLintConfig
+import SwiftProjectLintConfig
 import Testing
 
 /// `print` to stdout is a CLI's interface, not logging — and a CLI is often a package *beside* an

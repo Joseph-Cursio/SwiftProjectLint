@@ -1,8 +1,8 @@
-diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
-index 087101b7..449cd904 100644
---- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
-+++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
-@@ -173,7 +173,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog+Building.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog+Building.swift
+index 15323762..231b1502 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog+Building.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog+Building.swift
+@@ -55,7 +55,7 @@ extension CleanInstanceMethodCatalog {
              var promotedThisPass = false
              for (name, members) in types where !members.isActor && !found.contains(name) {
                  guard members.declaredStorage.allSatisfy({ storage in
@@ -11,7 +11,11 @@ index 087101b7..449cd904 100644
                  }) else { continue }
                  let cleanHere = clean[name] ?? []
                  guard members.methods.keys.allSatisfy({ cleanHere.contains($0) }) else { continue }
-@@ -431,6 +431,8 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
+index c15a93f3..29852c8a 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
+@@ -158,6 +158,8 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
          /// contents is what constructing a different one means.
          let isSyntacticValue: Bool
  

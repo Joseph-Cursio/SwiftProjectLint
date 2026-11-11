@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -45,7 +46,7 @@ struct CouldAdoptProtocolVisitorTests {
                 let category: String
                 let extra: Int
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -68,7 +69,7 @@ struct CouldAdoptProtocolVisitorTests {
                 var category: String = ""
                 var extra: Int = 0
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -86,7 +87,7 @@ struct CouldAdoptProtocolVisitorTests {
                 var category: String = ""
                 var extra: Int = 0
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -103,7 +104,7 @@ struct CouldAdoptProtocolVisitorTests {
                 let name: String
                 let category: String
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -120,7 +121,7 @@ struct CouldAdoptProtocolVisitorTests {
                 let name: String
                 let category: String
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -136,7 +137,7 @@ struct CouldAdoptProtocolVisitorTests {
                 let rawKey: String
                 let name: String
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -158,7 +159,7 @@ struct CouldAdoptProtocolVisitorTests {
                 let name: String
                 let category: String
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -177,7 +178,7 @@ struct CouldAdoptProtocolVisitorTests {
                 let name: String
                 let id: String
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -195,7 +196,7 @@ struct CouldAdoptProtocolVisitorTests {
                 let category: String
                 var body: some View { EmptyView() }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)

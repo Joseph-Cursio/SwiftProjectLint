@@ -172,9 +172,9 @@ enum LargeStackWorkers {
         }
 
         func enqueue(_ job: consuming ExecutorJob) {
-            let job = UnownedJob(job)
+            let unownedJob = UnownedJob(job)
             let orphaned: Bool = condition.withLock {
-                jobs.append(job)
+                jobs.append(unownedJob)
                 condition.signal()
                 return finished
             }

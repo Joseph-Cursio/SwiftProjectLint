@@ -1,8 +1,4 @@
-@testable import Core
-import Foundation
-import SwiftParser
 @testable import SwiftProjectLintRules
-import SwiftSyntax
 import Testing
 
 /// `StateVariable.lineNumber` must be the line the declaration starts on, whatever
@@ -55,7 +51,7 @@ struct StateVariableVisitorLineNumberTests {
             "    @State private var count = 0",
             "    @State private var name = \"\"",
             "    var body: some View { Text(\"Test\") }",
-            "}"
+            "}",
         ].joined(separator: "\r\n")
 
         #expect(lineNumbers(in: source) == ["count": 2, "name": 3])

@@ -30,6 +30,7 @@ class MainActorMissingVisitorBase: CrossFileVisitorBase, CrossFilePatternVisitor
         let filePath: String
         let lineNumber: Int
     }
+
     private var candidates: [Candidate] = []
 
     /// Whether the class is one this rule should flag when it lacks `@MainActor`.

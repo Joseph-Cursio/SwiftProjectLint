@@ -1,0 +1,201 @@
+import SwiftEffectInference
+import SwiftProjectLintModels
+import SwiftProjectLintVisitors
+import SwiftSyntax
+
+/// Detects functions declared `/// @lint.context strict_replayable` whose
+/// body calls a function whose effect cannot be proven. The "strict" in
+/// `strict_replayable` flips the default for unannotated callees — under
+/// `replayable`, unannotated callees are silent; under
+/// `strict_replayable`, they fire this rule.
+///
+/// ## Firing condition
+///
+/// A callee fires the rule iff **none** of the following hold:
+///
+///   - Declared effect via the symbol table (any tier — even
+///     `non_idempotent` defers, because `nonIdempotentInRetryContext`
+///     already fires on that).
+///   - Upward-inferred effect (any tier, same rationale).
+///   - Heuristic effect inference returned a classification — either
+///     `nonIdempotent` (existing rule handles) or a positive tier
+///     (trusted as a prove-enough signal for strict mode, matching the
+///     round-5/6 precision profile).
+///   - Symbol-table collision (annotated with conflicting effects; no
+///     inference runs; no double-diagnostic).
+///
+/// Only callees that reach the fall-through "no evidence" branch fire
+/// this rule. That's the whole gap strict mode closes.
+///
+/// ## Relationship to `nonIdempotentInRetryContext`
+///
+/// This rule does not replicate the existing rule's diagnostic on
+/// `non_idempotent` callees in a strict_replayable body — that firing
+/// comes from the existing rule, which already treats
+/// `strict_replayable` as a retry-context caller (identical label
+/// plumbing). Strict mode only *adds* the unannotated-callee case.
+///
+/// Round-9 / phase-2 strict-replayable slice. See
+/// `docs/claude_phase_2_strict_replayable_plan.md`.
+final class UnannotatedStrictReplayableVisitor:
+    CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
+
+    private var symbolTable = EffectSymbolTable()
+    private var analysisSites: [AnalysisSite] = []
+
+    /// The `@lint.context` of every call in the file being walked.
+    private var callSiteContexts = CallSiteContextIndex()
+
+    private struct AnalysisSite {
+        let callerName: String
+        let body: Syntax
+        let location: CapturedSiteLocation
+        /// The call-site contexts of the site's file, to find the sites nested in this one.
+        let callSiteContexts: CallSiteContextIndex
+    }
+
+    override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
+        symbolTable.merge(source: node)
+        callSiteContexts = CallSiteContextIndex(node)
+        return .visitChildren
+    }
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        guard ContextAnnotationParser.parseContext(declaration: node) == .strictReplayable,
+              let body = node.body else {
+            return .visitChildren
+        }
+        analysisSites.append(
+            AnalysisSite(
+                callerName: node.name.text,
+                body: Syntax(body),
+                location: captureSiteLocation(rootedAt: node),
+                callSiteContexts: callSiteContexts
+            )
+        )
+        return .visitChildren
+    }
+
+    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        guard ContextAnnotationParser.parseContext(declaration: node) == .strictReplayable,
+              let closure = node.closureInitializer,
+              let name = node.firstBindingName else {
+            return .visitChildren
+        }
+        analysisSites.append(
+            AnalysisSite(
+                callerName: name,
+                body: Syntax(closure.statements),
+                location: captureSiteLocation(rootedAt: node),
+                callSiteContexts: callSiteContexts
+            )
+        )
+        return .visitChildren
+    }
+
+    /// Trailing-closure annotation (round-11 grammar extension). An
+    /// un-bound closure passed to a call with `/// @lint.context
+    /// strict_replayable` above it becomes an analysis site. Matches the
+    /// pattern in `NonIdempotentInRetryContextVisitor.visit(_:)`; see
+    /// that visitor's doc comment for the shape rationale and the TCA
+    /// adopter round for the prefix-statement gap this helper closes.
+    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        guard callSiteContexts.context(of: node) == .strictReplayable,
+              let closure = node.trailingClosure else {
+            return .visitChildren
+        }
+        analysisSites.append(
+            AnalysisSite(
+                callerName: "closure",
+                body: Syntax(closure.statements),
+                location: captureSiteLocation(rootedAt: node),
+                callSiteContexts: callSiteContexts
+            )
+        )
+        return .visitChildren
+    }
+
+    func finalizeAnalysis() {
+        symbolTable.applyImportAwareBodyInference(
+            to: orderedSources,
+            enabledFrameworks: enabledFrameworkAllowlists
+        )
+
+        for site in analysisSites {
+            analyzeBody(site.body, site: site)
+        }
+    }
+
+    private func analyzeBody(_ syntax: Syntax, site: AnalysisSite) {
+        let ownsContext = { AnalysisBodyWalk.carriesOwnContextAnnotation($0, contexts: site.callSiteContexts) }
+        AnalysisBodyWalk.walk(syntax, skipping: ownsContext) { call in
+            analyzeCall(call, site: site)
+        }
+    }
+
+    private func analyzeCall(_ call: FunctionCallExprSyntax, site: AnalysisSite) {
+        guard let calleeSignature = FunctionSignature.from(call: call) else { return }
+
+        // Structural-concurrency and SwiftUI task primitives — `Task { ... }`,
+        // `Task.detached { ... }`, `withTaskGroup`, `.task { }`, etc. These
+        // aren't effect-bearing calls; they're scoping primitives. The
+        // existing rule filters them implicitly because it only fires on
+        // declared/inferred `non_idempotent`; strict mode needs an
+        // explicit exclusion or it fires on every `Task { }` in a
+        // strict-replayable body.
+        if let bareName = EscapingClosurePolicy.directCalleeName(from: call.calledExpression),
+           EscapingClosurePolicy.calleeNames.contains(bareName) {
+            return
+        }
+
+        // Any declared effect — even non_idempotent — means the callee is
+        // classified. `nonIdempotentInRetryContext` handles the negative
+        // case; positive tiers pass silently.
+        // The lookup is by *call shape*, not bare signature: Swift drops a trailing closure's
+        // argument label, so `perform { }` against `func perform(action:)` cannot be found
+        // by name alone — and Swift is made of trailing closures.
+        let calleeCall = CallSiteShape.from(call: call) ?? CallSiteShape(signature: calleeSignature)
+        if symbolTable.effect(for: calleeCall) != nil { return }
+
+        // Collision-withdrawn: do not double-fire.
+        if symbolTable.isCollision(signature: calleeSignature) { return }
+
+        // Upward-inferred classification (from sub-graph analysis) also
+        // counts as "proven" for strict-mode purposes.
+        if symbolTable.upwardInference(for: calleeSignature) != nil { return }
+
+        // Heuristic inferrer returning any classification counts — either
+        // the existing rule handles it, or it's a positive signal.
+        if HeuristicEffectInferrer.infer(
+            call: call,
+            imports: siteImportCache.imports(forSiteFile: site.location.filePath),
+            enabledFrameworks: self.enabledFrameworkAllowlists
+        ) != nil { return }
+
+        // Fall through: no evidence of the callee's effect. Fire.
+        let callerName = site.callerName
+        let calleeName = calleeSignature.name
+        let line = site.location.line(of: call)
+
+        addIssue(
+            severity: pattern.severity,
+            message: "Unannotated call in strict_replayable context: '\(callerName)' is "
+                + "declared `@lint.context strict_replayable` but calls '\(calleeName)', "
+                + "whose effect is not declared and cannot be inferred from its body. "
+                + "Under strict mode, every callee must be provably idempotent, "
+                + "observational, or externally-keyed.",
+            filePath: site.location.filePath,
+            lineNumber: line,
+            suggestion: "Annotate '\(calleeName)' with `/// @lint.effect idempotent` if "
+                + "re-invocation produces no additional observable effects; `observational` "
+                + "for logging/metrics/tracing primitives; `externally_idempotent(by: <param>)` "
+                + "for calls routed through a caller-supplied deduplication key. Or use the "
+                + "attribute forms (`@Idempotent`, `@Observational`, "
+                + "`@ExternallyIdempotent(by:)`) from the `SwiftIdempotency` macros package.",
+            ruleName: .unannotatedInStrictReplayableContext
+        )
+    }
+
+    /// Per-file imports cache shared with the other idempotency visitors.
+    private lazy var siteImportCache = SiteImportCache(fileCache: fileCache)
+}

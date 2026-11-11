@@ -33,7 +33,7 @@ struct CandidateInventoryTests {
             issue(.missingEquatableOnPureResult),
             issue(.extractableTotalKernel),
             issue(.globalMutableState, severity: .warning),
-            issue(.idempotencyViolation, severity: .error)
+            issue(.idempotencyViolation, severity: .error),
         ]
     }
 
@@ -207,7 +207,7 @@ struct CandidateInventoryTests {
         let tally = CandidateInventory.tally(of: [
             issue(.pureClosureCandidate),
             issue(.pureFunctionCandidate),
-            issue(.pureFunctionCandidate)
+            issue(.pureFunctionCandidate),
         ])
         #expect(tally.map(\.rule) == [.pureFunctionCandidate, .pureClosureCandidate])
         #expect(tally.map(\.count) == [2, 1])

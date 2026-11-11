@@ -1,11 +1,10 @@
-import Foundation
 import SwiftProjectLintModels
 import SwiftSyntax
 
 /// Handles complex tree traversal logic for accessibility analysis.
 /// This class encapsulates the recursive logic for finding accessibility modifiers
 /// and other accessibility-related patterns in SwiftUI view hierarchies.
-class AccessibilityTreeTraverser {
+enum AccessibilityTreeTraverser {
 
     /// Set of all known accessibility modifiers.
     private static let accessibilityModifiers: Set<String> = [
@@ -21,7 +20,7 @@ class AccessibilityTreeTraverser {
         "accessibilityAction",
         "accessibilityAdjustableAction",
         "accessibilityCustomAction",
-        "accessibilityRespondsToUserInteraction"
+        "accessibilityRespondsToUserInteraction",
     ]
 
     /// Checks if the given modifier exists in the SwiftUI modifier chain

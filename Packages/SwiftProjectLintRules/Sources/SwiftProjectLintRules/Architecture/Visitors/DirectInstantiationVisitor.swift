@@ -9,7 +9,7 @@ class DirectInstantiationVisitor: BasePatternVisitor, PackagePurityConsumer {
 
     /// `isPureKernel`, the kernel exemption.
     static let packagePurityInputs: PackagePurityInputs = [.cleanInstanceMethods]
-    private var currentFilePath: String = ""
+    var currentFilePath: String = ""
     private var insideFunctionOrClosure = 0
 
     /// Depth inside a `#Preview` macro or an `#if DEBUG` block. A counter rather than a
@@ -24,7 +24,7 @@ class DirectInstantiationVisitor: BasePatternVisitor, PackagePurityConsumer {
     private var insideEntryPoint = 0
 
     /// Whether each type being visited, innermost last, is an entry type. See `isEntryType`.
-    private var entryTypeStack: [Bool] = []
+    var entryTypeStack: [Bool] = []
 
     /// Names of the types this file declares `private` or `fileprivate`, gathered in one
     /// pass over the file before any finding is reported. No project-wide prescan is needed
@@ -230,176 +230,6 @@ class DirectInstantiationVisitor: BasePatternVisitor, PackagePurityConsumer {
         node.modifiers.contains { $0.name.tokenKind == .keyword(.static) }
     }
 
-    // MARK: - Program entry point
-
-    /// `main.swift` holds top-level code, which Swift permits in no other file: it *is* the
-    /// program. Tracked by file name because there is no syntax to look at — the statements
-    /// are simply at the top of the file.
-    private var isMainSwiftFile: Bool {
-        (currentFilePath as NSString).lastPathComponent == "main.swift"
-    }
-
-    /// Protocols whose conformers the runtime constructs, leaving no initializer to inject
-    /// through.
-    ///
-    /// `ArgumentParser` builds a command out of argv and calls `run()`. The synthesized
-    /// initializer takes only the decoded `@Option`/`@Argument`/`@Flag` values, so there is no
-    /// parameter for a dependency, and the one remaining spelling — a stored property with an
-    /// inline default — is the shape this rule reports. Inside a command, every form of the
-    /// fix the rule recommends is either impossible or itself a finding, which is the
-    /// definition of advice with no reachable end state.
-    private static let runtimeConstructedProtocols: Set<String> = [
-        "ParsableCommand", "AsyncParsableCommand", "ParsableArguments"
-    ]
-
-    static func isRuntimeConstructed(_ inheritance: InheritanceClauseSyntax?) -> Bool {
-        guard let inheritance else { return false }
-        return inheritance.inheritedTypes.contains { inherited in
-            guard let name = inherited.type.as(IdentifierTypeSyntax.self)?.name.text
-            else { return false }
-            return runtimeConstructedProtocols.contains(name)
-        }
-    }
-
-    /// Whether a function declaration is the entry point of an entry type (see `isEntryType`).
-    ///
-    /// Both spellings. `static func main()` is the one `@main` calls, and a SwiftUI `App`\'s
-    /// `init()` is where its `@State` containers are seeded — the Explorer target\'s file
-    /// header describes exactly that as "its composition root injects the in-process SwiftLint
-    /// backend instead of the subprocess one".
-    func isEntryPointMember(named name: String, isStatic: Bool) -> Bool {
-        guard entryTypeStack.last == true else { return false }
-        return name == "main" && isStatic
-    }
-
-    /// Whether a member variable of an entry type runs on the runtime's own path into the
-    /// program, rather than being code the program calls.
-    ///
-    /// Two kinds. An instance stored property's initializer runs as part of every initializer,
-    /// and an entry type's `init()` is exempt — so `init() { store = CoreDataOrderStore() }` was
-    /// silent while `private let store = CoreDataOrderStore()`, the same construction at the same
-    /// moment, was reported. That is the Checkout sample app's `CheckoutApp`, and the way most
-    /// small SwiftUI apps are wired: one service in a stored property, short of the three a
-    /// composition root needs. And an `App`\'s `body` is read by the runtime; no caller could
-    /// pass it anything, so a model built there from the stored service is the wiring itself.
-    ///
-    /// A `static` stored property is neither. No initializer fills it: it is a global every file
-    /// can reach as `Server.store`, and building it in `main()` and passing it down is an
-    /// injection. Any other computed property is ordinary code the app calls, like its methods.
-    func isRuntimeDrivenMember(_ node: VariableDeclSyntax) -> Bool {
-        guard entryTypeStack.last == true,
-              node.parent?.is(MemberBlockItemSyntax.self) == true,
-              !node.modifiers.contains(where: { modifier in
-                  modifier.name.tokenKind == .keyword(.static) || modifier.name.tokenKind == .keyword(.class)
-              })
-        else { return false }
-        return node.bindings.allSatisfy { binding in
-            Self.isStored(binding) || Self.isBody(binding)
-        }
-    }
-
-    /// Whether a binding has storage: no accessors, or only `willSet`/`didSet` observing it.
-    private static func isStored(_ binding: PatternBindingSyntax) -> Bool {
-        guard let accessors = binding.accessorBlock?.accessors else { return true }
-        guard case .accessors(let list) = accessors else { return false }
-        return list.allSatisfy { accessor in
-            accessor.accessorSpecifier.tokenKind == .keyword(.willSet)
-                || accessor.accessorSpecifier.tokenKind == .keyword(.didSet)
-        }
-    }
-
-    private static func isBody(_ binding: PatternBindingSyntax) -> Bool {
-        binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text == "body"
-    }
-
-    /// Whether a type is one the runtime constructs and enters: it carries `@main`, or it is a
-    /// SwiftUI `App`.
-    ///
-    /// `App` without `@main` is the launcher spelling — an `@main enum` whose `main()` picks the
-    /// real `App` or a bare one for a unit-test host. The `App` it picks is still built by
-    /// `App.main()` through `init()`, so no caller reaches its initializer either. All fifteen
-    /// `App`s in the sibling corpus carry `@main`; this is here because the reason is the same,
-    /// not because a finding asked for it.
-    static func isEntryType(_ attributes: AttributeListSyntax, _ inheritance: InheritanceClauseSyntax?) -> Bool {
-        if carriesMainAttribute(attributes) { return true }
-        guard let inheritance else { return false }
-        return inheritance.inheritedTypes.contains { inherited in
-            if let identifier = inherited.type.as(IdentifierTypeSyntax.self) {
-                return identifier.name.text == "App"
-            }
-            if let member = inherited.type.as(MemberTypeSyntax.self) {
-                return member.name.text == "App"
-                    && member.baseType.as(IdentifierTypeSyntax.self)?.name.text == "SwiftUI"
-            }
-            return false
-        }
-    }
-
-    // MARK: - Composition roots
-
-    /// Whether `node` sits in a body that is assembling an object graph rather than reaching
-    /// for one dependency.
-    ///
-    /// Dependency injection has to bottom out. Somewhere a concrete graph is built, and that
-    /// place is allowed — required — to name every concrete type it wires together; the whole
-    /// benefit of injecting elsewhere is that there is exactly one such place. Reporting each
-    /// construction inside it turns one architectural fact into a warning per line.
-    ///
-    /// Two conditions, and the second is what keeps this from being a neighbour count. The
-    /// body must construct at least three distinct service-like types, **and** it must keep at
-    /// least one of them past its own return, by assigning to a stored property of the
-    /// enclosing type. That is what separates assembling a graph from using several tools.
-    ///
-    /// The condition was added after measuring the first version, which had only the count.
-    /// `ProjectAnalyzer.analyze(paths:)` builds four diagram generators, uses each once and
-    /// returns a summary; it went silent while an identical `ClassDiagramGenerator()` forty
-    /// lines below, in a function with fewer neighbours, kept reporting. A rule that answers
-    /// differently for the same construction depending on how many siblings it has is drawing
-    /// the line on syntax rather than substance — which is the fault this rule's own
-    /// documentation already records having corrected once, over defaulted parameters.
-    func insideCompositionRoot(_ node: Syntax) -> Bool {
-        guard let body = Self.enclosingBody(of: node) else { return false }
-        let counter = ServiceConstructionCounter(viewMode: .sourceAccurate)
-        counter.walk(body)
-        guard counter.typeNames.count >= Self.compositionRootThreshold else { return false }
-        return counter.retainsBeyondBody
-    }
-
-    /// How many *distinct* service-like types a body must construct before it can read as an
-    /// assembler.
-    ///
-    /// Three, chosen by looking at what each value removes rather than by taste. At two, a
-    /// function that reaches for a store and its index — the ordinary two-dependency case the
-    /// rule exists to catch — would go silent. At three, with the retention condition, the
-    /// corpus's roots are named and nothing else is: `AppState.constructCoreServices`,
-    /// `assignStatelessServices`, `constructHigherLayers`, `ExtensionServiceContainer`\'s
-    /// `commandHandler`, `KnowledgeGraph.init` — nine domain stores off one injected database
-    /// — and the sandboxed `App`\'s `init`, whose file header calls itself a composition root
-    /// in as many words.
-    private static let compositionRootThreshold = 3
-
-    /// The nearest enclosing function, initializer, or accessor body.
-    ///
-    /// Deliberately not the enclosing *type*: a type with ten service-typed stored properties
-    /// is a container too, but its properties are usually declared without initializers and
-    /// filled by one of these bodies, so the body is where the constructions actually are.
-    private static func enclosingBody(of node: Syntax) -> Syntax? {
-        var current: Syntax? = node.parent
-        while let candidate = current {
-            if let function = candidate.as(FunctionDeclSyntax.self) {
-                return function.body.map(Syntax.init)
-            }
-            if let initializer = candidate.as(InitializerDeclSyntax.self) {
-                return initializer.body.map(Syntax.init)
-            }
-            if let accessor = candidate.as(AccessorDeclSyntax.self) {
-                return accessor.body.map(Syntax.init)
-            }
-            current = candidate.parent
-        }
-        return nil
-    }
-
     // MARK: - Enclosing-type context tracking
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
@@ -552,72 +382,5 @@ class DirectInstantiationVisitor: BasePatternVisitor, PackagePurityConsumer {
     /// function rather than the condition written twice.
     static func isDebugBlock(_ node: IfConfigDeclSyntax) -> Bool {
         node.clauses.contains { $0.condition?.description.contains("DEBUG") == true }
-    }
-}
-
-/// Counts the distinct service-like types constructed anywhere inside one body, and notes
-/// whether the body keeps anything past its own return.
-///
-/// Every construction is counted, not only the ones the rule would report:
-/// `self.runner = SwiftLintRunner()` is an assignment rather than a variable declaration, and
-/// `try await BeadStore(path:)` wraps its call in two expressions, so a count of *findings*
-/// would read `assignStatelessServices` — six services wired in eight lines — as reaching for
-/// one.
-private final class ServiceConstructionCounter: SyntaxVisitor {
-
-    private(set) var typeNames: Set<String> = []
-
-    /// Whether the body assigns to something that outlives it.
-    ///
-    /// `self.chatSessionStore = store` is the obvious spelling. The bare form matters as much:
-    /// `handler = newHandler` inside `ExtensionServiceContainer`, `workspaceIndexer = indexer`
-    /// inside an `AppState` extension, and `_ruleRegistry = State(initialValue: registry)` in a
-    /// SwiftUI `App`\'s `init` all assign to a stored property without writing `self.`. Told
-    /// apart from a local reassignment by name: every `let`/`var` the body itself binds is
-    /// collected, and a target outside that set is a member.
-    var retainsBeyondBody: Bool {
-        assignedNames.contains { !locallyBoundNames.contains($0) } || assignsThroughSelf
-    }
-
-    private var locallyBoundNames: Set<String> = []
-    private var assignedNames: Set<String> = []
-    private var assignsThroughSelf = false
-
-    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        if let name = DirectInstantiationVisitor.constructedTypeName(of: node.calledExpression),
-           ServiceTypeSuffix.matches(name) {
-            typeNames.insert(name)
-        }
-        return .visitChildren
-    }
-
-    override func visit(_ node: PatternBindingSyntax) -> SyntaxVisitorContinueKind {
-        if let identifier = node.pattern.as(IdentifierPatternSyntax.self) {
-            locallyBoundNames.insert(identifier.identifier.text)
-        }
-        return .visitChildren
-    }
-
-    /// Assignment is read off `SequenceExprSyntax`, not `InfixOperatorExprSyntax`.
-    ///
-    /// An unfolded tree — which is what `Parser.parse` produces, and what every visitor here
-    /// walks — represents `self.store = store` as a three-element sequence whose middle
-    /// element is the `AssignmentExprSyntax`. `InfixOperatorExprSyntax` appears only after
-    /// operator folding, which needs an operator table the linter never builds. Written the
-    /// other way first, this gate compiled, its tests passed against hand-built trees, and it
-    /// removed exactly nothing from the corpus.
-    override func visit(_ node: SequenceExprSyntax) -> SyntaxVisitorContinueKind {
-        let elements = Array(node.elements)
-        guard elements.count >= 2,
-              elements[1].as(AssignmentExprSyntax.self) != nil else { return .visitChildren }
-        let target = elements[0]
-        if let member = target.as(MemberAccessExprSyntax.self),
-           member.base?.as(DeclReferenceExprSyntax.self)?.baseName.tokenKind == .keyword(.self) {
-            assignsThroughSelf = true
-        }
-        if let reference = target.as(DeclReferenceExprSyntax.self) {
-            assignedNames.insert(reference.baseName.text)
-        }
-        return .visitChildren
     }
 }

@@ -1,7 +1,5 @@
-@testable import Core
-import Foundation
-import SwiftParser
-import SwiftSyntax
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
 import Testing
 
 /// Tests for CrossFileAnalysisEngine paths not covered by existing tests:

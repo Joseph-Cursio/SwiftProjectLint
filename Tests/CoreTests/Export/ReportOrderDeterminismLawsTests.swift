@@ -1,4 +1,4 @@
-@testable import Core
+import Core
 import Foundation
 import PropertyBased
 import SwiftProjectLintModels
@@ -27,8 +27,10 @@ import Testing
 /// |---|---|---|
 /// | `severity` | no | **text**, JSON, CSV, HTML |
 /// | `locations[1...]` | no — only `locations.first`, via `filePath`/`lineNumber` | JSON, CSV |
-/// | `suggestion` / `symbol`, `nil` vs `""` | no — collapsed by `?? ""` | JSON (synthesized `Codable` omits a `nil` key and emits `""` for empty) |
+/// | `suggestion` / `symbol`, `nil` vs `""` | no — collapsed by `?? ""` | JSON¹ |
 /// | `role`, `effect`, `testReachability` | no | `pbt-seeds` |
+///
+/// ¹ Synthesized `Codable` omits a `nil` key and emits `""` for an empty one.
 ///
 /// The first row is the sharp one. The doc comment above enumerates what the text report prints as
 /// "rule, message, suggestion", but `TextFormatter` renders
@@ -65,7 +67,7 @@ struct ReportOrderDeterminismLawsTests {
     /// Two findings that tie under `precedes` and differ only in `severity`.
     private static let severityPair = [
         makeIssue(message: "same", severity: .error),
-        makeIssue(message: "same", severity: .warning)
+        makeIssue(message: "same", severity: .warning),
     ]
 
     /// Two findings that tie under `precedes` and differ only in their *second* location.
@@ -73,7 +75,7 @@ struct ReportOrderDeterminismLawsTests {
     /// and fully rendered by JSON and CSV.
     private static let locationTailPair = [
         makeIssue(message: "multi", locations: [("A.swift", 1), ("B.swift", 5)]),
-        makeIssue(message: "multi", locations: [("A.swift", 1), ("C.swift", 9)])
+        makeIssue(message: "multi", locations: [("A.swift", 1), ("C.swift", 9)]),
     ]
 
     /// Two findings that tie under `precedes` because it collapses `nil` and `""` through `?? ""`,
@@ -81,25 +83,33 @@ struct ReportOrderDeterminismLawsTests {
     /// emitted as `""`.
     private static let nilVersusEmptyPair = [
         makeIssue(message: "optional", suggestion: nil),
-        makeIssue(message: "optional", suggestion: "")
+        makeIssue(message: "optional", suggestion: ""),
     ]
 
     /// Two seed-bearing findings that tie under `precedes` and differ only in `role` — the field
     /// the linter exists to hand to `swift-infer`, and the one that says what law the symbol owes.
     private static let seedRolePair = [
         makeIssue(message: "seed", ruleName: .pureFunctionCandidate, symbol: "kernel", role: .comparator),
-        makeIssue(message: "seed", ruleName: .pureFunctionCandidate, symbol: "kernel", role: .predicate)
+        makeIssue(message: "seed", ruleName: .pureFunctionCandidate, symbol: "kernel", role: .predicate),
     ]
 
     /// A function rather than a stored `static let`: `any IssueFormatterProtocol` is not `Sendable`,
     /// and a global holding one is shared mutable state as far as the compiler is concerned.
-    private static func witnesses() -> [(name: String, pair: [LintIssue], formatter: any IssueFormatterProtocol)] {
+    private static func witnesses() -> [Witness] {
         [
-            ("severity", severityPair, JSONFormatter()),
-            ("locations tail", locationTailPair, JSONFormatter()),
-            ("suggestion nil vs \"\"", nilVersusEmptyPair, JSONFormatter()),
-            ("seed role", seedRolePair, PBTSeedsFormatter())
+            Witness(name: "severity", pair: severityPair, formatter: JSONFormatter()),
+            Witness(name: "locations tail", pair: locationTailPair, formatter: JSONFormatter()),
+            Witness(name: "suggestion nil vs \"\"", pair: nilVersusEmptyPair, formatter: JSONFormatter()),
+            Witness(name: "seed role", pair: seedRolePair, formatter: PBTSeedsFormatter()),
         ]
+    }
+
+    /// A pair of findings that tied under the old comparator, and a formatter that renders them
+    /// differently.
+    private struct Witness {
+        let name: String
+        let pair: [LintIssue]
+        let formatter: any IssueFormatterProtocol
     }
 
     /// The instant every `HTMLFormatter` in these laws reports as its generation time.
@@ -125,7 +135,9 @@ struct ReportOrderDeterminismLawsTests {
     /// that went blind, L2 names the format that observed it.
     @Test
     func everyRenderedFieldIsComparedByPrecedes() {
-        for (name, pair, _) in Self.witnesses() {
+        for witness in Self.witnesses() {
+            let name = witness.name
+            let pair = witness.pair
             let forward = LintIssue.precedes(pair[0], pair[1])
             let backward = LintIssue.precedes(pair[1], pair[0])
 
@@ -149,7 +161,10 @@ struct ReportOrderDeterminismLawsTests {
     /// equal elements, which is precisely what the ordering exists to remove.
     @Test
     func tiedFindingsAreIndistinguishableInEveryFormat() {
-        for (name, pair, formatter) in Self.witnesses() {
+        for witness in Self.witnesses() {
+            let name = witness.name
+            let pair = witness.pair
+            let formatter = witness.formatter
             let forward = formatter.format(issues: pair.sortedForReporting())
             let backward = formatter.format(issues: pair.reversed().sortedForReporting())
 
@@ -182,7 +197,7 @@ struct ReportOrderDeterminismLawsTests {
         let pool = Self.witnesses().flatMap(\.pair)
         let formatters: [any IssueFormatterProtocol] = [
             TextFormatter(), JSONFormatter(), CSVFormatter(),
-            HTMLFormatter { Self.generationTime }, PBTSeedsFormatter()
+            HTMLFormatter { Self.generationTime }, PBTSeedsFormatter(),
         ]
         let reference = formatters.map { $0.format(issues: pool.sortedForReporting()) }
 

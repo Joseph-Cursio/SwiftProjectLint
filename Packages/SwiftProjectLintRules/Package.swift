@@ -7,26 +7,26 @@ import PackageDescription
 // groups), so main-actor pinning would defeat their parallelism.
 let swiftSettings: [SwiftSetting] = [
     .swiftLanguageMode(.v6),
-    .enableUpcomingFeature("MemberImportVisibility")
+    .enableUpcomingFeature("MemberImportVisibility"),
 ]
 
 let package = Package(
     name: "SwiftProjectLintRules",
     platforms: [
         .macOS(.v26),
-        .iOS(.v26)
+        .iOS(.v26),
     ],
     products: [
         .library(
             name: "SwiftProjectLintRules",
             targets: ["SwiftProjectLintRules"]
-        )
+        ),
     ],
     dependencies: [
         .package(path: "../SwiftProjectLintModels"),
         .package(path: "../SwiftProjectLintVisitors"),
         .package(path: "../SwiftProjectLintRegistry"),
-        .package(url: "https://github.com/swiftlang/swift-syntax.git", exact: "603.0.2")
+        .package(url: "https://github.com/swiftlang/swift-syntax.git", exact: "603.0.2"),
     ],
     targets: [
         .target(
@@ -35,10 +35,10 @@ let package = Package(
                 "SwiftProjectLintModels",
                 "SwiftProjectLintVisitors",
                 "SwiftProjectLintRegistry",
-                .product(name: "SwiftSyntax", package: "swift-syntax")
+                .product(name: "SwiftSyntax", package: "swift-syntax"),
             ],
             path: "Sources/SwiftProjectLintRules",
             swiftSettings: swiftSettings
-        )
+        ),
     ]
 )

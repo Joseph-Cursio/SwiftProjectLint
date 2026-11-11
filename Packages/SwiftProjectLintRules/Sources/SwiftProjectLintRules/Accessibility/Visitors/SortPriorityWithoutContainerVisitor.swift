@@ -20,7 +20,7 @@ final class SortPriorityWithoutContainerVisitor: BasePatternVisitor {
     /// Stack view names to check for container modifier.
     private static let stackViews: Set<String> = [
         "VStack", "HStack", "ZStack",
-        "LazyVStack", "LazyHStack"
+        "LazyVStack", "LazyHStack",
     ]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

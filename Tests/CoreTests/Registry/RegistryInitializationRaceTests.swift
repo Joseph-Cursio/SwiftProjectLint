@@ -1,7 +1,9 @@
-@testable import Core
 import Foundation
-@testable import SwiftProjectLintIdempotencyRules
-@testable import SwiftProjectLintRules
+import SwiftProjectLintEngine
+import SwiftProjectLintIdempotencyRules
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
+import SwiftProjectLintRules
 import Testing
 
 /// Guards the invariant that a registry is *fully* populated when `initialize()` returns, even

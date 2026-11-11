@@ -17,7 +17,7 @@ public struct EquatableNearMiss: Sendable, Equatable {
     }
 }
 
-extension PropertyTestCandidacy {
+public extension PropertyTestCandidacy {
 
     /// A pure function that **every gate admits except the one on its result**, and the
     /// conformances that would admit it there too — or `nil`.
@@ -34,7 +34,7 @@ extension PropertyTestCandidacy {
     ///
     /// The syntactic checks run first and the purity oracle last, so the oracle is consulted only
     /// for a result the catalog can actually remedy.
-    public static func equatableNearMiss(
+    static func equatableNearMiss(
         of function: FunctionDeclSyntax,
         knownEquatableTypes: Set<String>,
         equatableRemedies: EquatableRemedyCatalog,

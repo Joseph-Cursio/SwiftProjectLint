@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintRegistry
 
 /// A registrar for all animation-related syntax patterns.
@@ -15,7 +14,7 @@ class Animation: BasePatternRegistrar {
             WithAnimation(),
             AnimationHierarchy(),
             MatchedGeometry(),
-            HardcodedAnimationValues()
+            HardcodedAnimationValues(),
         ])
     }
 }

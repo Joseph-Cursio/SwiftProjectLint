@@ -1,5 +1,4 @@
 import Foundation
-import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
@@ -35,7 +34,7 @@ final class UserDefaultsSensitiveDataVisitor: BasePatternVisitor {
         "secret",
         "credential", "credentials",
         "auth",
-        "passphrase"
+        "passphrase",
     ]
 
     /// Full-key matches (lowercased, underscores removed). These are always flagged,
@@ -47,7 +46,7 @@ final class UserDefaultsSensitiveDataVisitor: BasePatternVisitor {
         "privatekey",
         "sessiontoken",
         "authtoken",
-        "bearertoken"
+        "bearertoken",
     ]
 
     /// When the FIRST component of a key matches one of these, the key is suppressed
@@ -55,7 +54,7 @@ final class UserDefaultsSensitiveDataVisitor: BasePatternVisitor {
     private static let suppressingPrefixes: Set<String> = [
         "has", "is", "did", "show", "should", "will", "can",
         "needs", "use", "uses", "used", "enable", "enabled",
-        "disable", "disabled"
+        "disable", "disabled",
     ]
 
     /// When these immediately FOLLOW a sensitive component, the compound key is suppressed
@@ -65,7 +64,7 @@ final class UserDefaultsSensitiveDataVisitor: BasePatternVisitor {
         "count", "total", "list", "index", "label", "field",
         "screen", "view", "date", "type", "name", "id",
         "format", "placeholder", "number", "size", "length",
-        "max", "min", "limit"
+        "max", "min", "limit",
     ]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

@@ -11,7 +11,7 @@ final class LegacyRandomVisitor: BasePatternVisitor {
     private static let legacyFunctions: Set<String> = [
         "arc4random",
         "arc4random_uniform",
-        "drand48"
+        "drand48",
     ]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

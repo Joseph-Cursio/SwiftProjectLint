@@ -1,5 +1,3 @@
-import Foundation
-import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
@@ -68,7 +66,7 @@ class CustomModifierPerformanceVisitor: BasePatternVisitor {
                     node: Syntax(node),
                     variables: [
                         "modifierName": currentModifierName,
-                        "operation": methodName
+                        "operation": methodName,
                     ]
                 )
             }
@@ -82,7 +80,7 @@ class CustomModifierPerformanceVisitor: BasePatternVisitor {
                     node: Syntax(node),
                     variables: [
                         "modifierName": currentModifierName,
-                        "operation": functionName
+                        "operation": functionName,
                     ]
                 )
             }

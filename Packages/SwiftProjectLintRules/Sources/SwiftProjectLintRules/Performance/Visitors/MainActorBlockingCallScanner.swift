@@ -27,6 +27,91 @@ enum ExecutionContext {
     }
 }
 
+/// Where an API runs a closure handed to it.
+enum ClosureHandOff: Equatable {
+    /// Always on the main actor, whatever the caller: `MainActor.run`, `DispatchQueue.main.async`.
+    case mainActor(String)
+    /// Off the caller's actor: `Task.detached`, `DispatchQueue.global().async`, `addTask`.
+    case elsewhere
+    /// `Task { }`: the caller's actor, if it has one.
+    case task
+    /// Run in place, or nothing says otherwise: `map`, `withAnimation`, a `Button` action.
+    case inherits
+
+    private static let mainActorCallees: [String: String] = [
+        "MainActor.run": "inside MainActor.run",
+        "MainActor.assumeIsolated": "inside MainActor.assumeIsolated",
+        "DispatchQueue.main.async": "on DispatchQueue.main",
+        "DispatchQueue.main.asyncAfter": "on DispatchQueue.main",
+        "DispatchQueue.main.sync": "on DispatchQueue.main",
+        "DispatchQueue.main.asyncAndWait": "on DispatchQueue.main",
+        "OperationQueue.main.addOperation": "on OperationQueue.main",
+        "RunLoop.main.perform": "on RunLoop.main",
+    ]
+
+    /// Members that run their closure somewhere other than the caller. `queue.sync { }` is not
+    /// one: the caller waits for it, so blocking work inside still blocks the caller.
+    private static let elsewhereMembers: Set<String> = [
+        "detached", "detachNewThread", "addTask", "addTaskUnlessCancelled",
+        "async", "asyncAfter", "addOperation", "perform",
+        "dataTask", "downloadTask", "uploadTask",
+    ]
+
+    static func classify(_ closure: ClosureExprSyntax) -> Self {
+        guard let call = receivingCall(of: closure) else { return .inherits }
+        let callee = nameChain(call.calledExpression)
+        if let callee, let place = mainActorCallees[callee] {
+            return .mainActor(place)
+        }
+        if callee == "Task" {
+            return .task
+        }
+        if callee == "Thread" {
+            return .elsewhere
+        }
+        guard let member = call.calledExpression.as(MemberAccessExprSyntax.self) else { return .inherits }
+        return elsewhereMembers.contains(member.declName.baseName.text) ? .elsewhere : .inherits
+    }
+
+    /// `DispatchQueue.main.async` for a callee made only of names, `nil` for anything else.
+    ///
+    /// Never the callee's source text: in a modifier chain the callee of `.onAppear { }` is the
+    /// whole `VStack { … }.padding().onAppear`, and printing it for every closure in a large
+    /// `body` would cost the size of the body each time.
+    private static func nameChain(_ expression: ExprSyntax) -> String? {
+        var names: [String] = []
+        var current = expression
+        while true {
+            if let reference = current.as(DeclReferenceExprSyntax.self) {
+                names.append(reference.baseName.text)
+                return names.reversed().joined(separator: ".")
+            }
+            if let generic = current.as(GenericSpecializationExprSyntax.self) {
+                current = generic.expression
+                continue
+            }
+            guard let member = current.as(MemberAccessExprSyntax.self), let base = member.base else { return nil }
+            names.append(member.declName.baseName.text)
+            current = base
+        }
+    }
+
+    /// The call `closure` is an argument to, trailing or labeled. `nil` for a closure called in
+    /// place (`{ … }()`) or stored in a variable.
+    private static func receivingCall(of closure: ClosureExprSyntax) -> FunctionCallExprSyntax? {
+        if let call = closure.parent?.as(FunctionCallExprSyntax.self) {
+            return call.trailingClosure?.id == closure.id ? call : nil
+        }
+        if closure.parent?.is(MultipleTrailingClosureElementSyntax.self) == true {
+            return closure.parent?.parent?.parent?.as(FunctionCallExprSyntax.self)
+        }
+        if closure.parent?.is(LabeledExprSyntax.self) == true {
+            return closure.parent?.parent?.parent?.as(FunctionCallExprSyntax.self)
+        }
+        return nil
+    }
+}
+
 /// Walks one file, tracking where each scope runs, and collects the blocking calls made on the
 /// main actor.
 ///
@@ -74,14 +159,14 @@ final class MainActorBlockingCallScanner: SyntaxVisitor {
     /// `await reader.contents(atPath:)` suspends instead of blocking; only a synchronous call
     /// holds the thread.
     static func isAwaited(_ node: FunctionCallExprSyntax) -> Bool {
-        var current = Syntax(node)
-        while let parent = current.parent {
+        var cursor = Syntax(node)
+        while let parent = cursor.parent {
             if parent.is(AwaitExprSyntax.self) {
                 return true
             }
             guard parent.is(TryExprSyntax.self) || parent.is(OptionalChainingExprSyntax.self)
                 || parent.is(ForceUnwrapExprSyntax.self) else { return false }
-            current = parent
+            cursor = parent
         }
         return false
     }
@@ -242,90 +327,5 @@ final class MainActorBlockingCallScanner: SyntaxVisitor {
             return .elsewhere
         }
         return current
-    }
-}
-
-/// Where an API runs a closure handed to it.
-enum ClosureHandOff: Equatable {
-    /// Always on the main actor, whatever the caller: `MainActor.run`, `DispatchQueue.main.async`.
-    case mainActor(String)
-    /// Off the caller's actor: `Task.detached`, `DispatchQueue.global().async`, `addTask`.
-    case elsewhere
-    /// `Task { }`: the caller's actor, if it has one.
-    case task
-    /// Run in place, or nothing says otherwise: `map`, `withAnimation`, a `Button` action.
-    case inherits
-
-    private static let mainActorCallees: [String: String] = [
-        "MainActor.run": "inside MainActor.run",
-        "MainActor.assumeIsolated": "inside MainActor.assumeIsolated",
-        "DispatchQueue.main.async": "on DispatchQueue.main",
-        "DispatchQueue.main.asyncAfter": "on DispatchQueue.main",
-        "DispatchQueue.main.sync": "on DispatchQueue.main",
-        "DispatchQueue.main.asyncAndWait": "on DispatchQueue.main",
-        "OperationQueue.main.addOperation": "on OperationQueue.main",
-        "RunLoop.main.perform": "on RunLoop.main"
-    ]
-
-    /// Members that run their closure somewhere other than the caller. `queue.sync { }` is not
-    /// one: the caller waits for it, so blocking work inside still blocks the caller.
-    private static let elsewhereMembers: Set<String> = [
-        "detached", "detachNewThread", "addTask", "addTaskUnlessCancelled",
-        "async", "asyncAfter", "addOperation", "perform",
-        "dataTask", "downloadTask", "uploadTask"
-    ]
-
-    static func classify(_ closure: ClosureExprSyntax) -> Self {
-        guard let call = receivingCall(of: closure) else { return .inherits }
-        let callee = nameChain(call.calledExpression)
-        if let callee, let place = mainActorCallees[callee] {
-            return .mainActor(place)
-        }
-        if callee == "Task" {
-            return .task
-        }
-        if callee == "Thread" {
-            return .elsewhere
-        }
-        guard let member = call.calledExpression.as(MemberAccessExprSyntax.self) else { return .inherits }
-        return elsewhereMembers.contains(member.declName.baseName.text) ? .elsewhere : .inherits
-    }
-
-    /// `DispatchQueue.main.async` for a callee made only of names, `nil` for anything else.
-    ///
-    /// Never the callee's source text: in a modifier chain the callee of `.onAppear { }` is the
-    /// whole `VStack { … }.padding().onAppear`, and printing it for every closure in a large
-    /// `body` would cost the size of the body each time.
-    private static func nameChain(_ expression: ExprSyntax) -> String? {
-        var names: [String] = []
-        var current = expression
-        while true {
-            if let reference = current.as(DeclReferenceExprSyntax.self) {
-                names.append(reference.baseName.text)
-                return names.reversed().joined(separator: ".")
-            }
-            if let generic = current.as(GenericSpecializationExprSyntax.self) {
-                current = generic.expression
-                continue
-            }
-            guard let member = current.as(MemberAccessExprSyntax.self), let base = member.base else { return nil }
-            names.append(member.declName.baseName.text)
-            current = base
-        }
-    }
-
-    /// The call `closure` is an argument to, trailing or labeled. `nil` for a closure called in
-    /// place (`{ … }()`) or stored in a variable.
-    private static func receivingCall(of closure: ClosureExprSyntax) -> FunctionCallExprSyntax? {
-        if let call = closure.parent?.as(FunctionCallExprSyntax.self) {
-            return call.trailingClosure?.id == closure.id ? call : nil
-        }
-        if closure.parent?.is(MultipleTrailingClosureElementSyntax.self) == true {
-            return closure.parent?.parent?.parent?.as(FunctionCallExprSyntax.self)
-        }
-        if closure.parent?.is(LabeledExprSyntax.self) == true {
-            return closure.parent?.parent?.parent?.as(FunctionCallExprSyntax.self)
-        }
-        return nil
     }
 }

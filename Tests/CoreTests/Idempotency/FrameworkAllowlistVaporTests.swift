@@ -1,7 +1,5 @@
 import enum SwiftEffectInference.Effect
-import SwiftParser
-@testable import SwiftProjectLintVisitors
-import SwiftSyntax
+import SwiftProjectLintVisitors
 import Testing
 
 /// Vapor-framework allowlist coverage: routing DSL (slot 17 —
@@ -10,7 +8,7 @@ import Testing
 /// `FrameworkAllowlistGatingTests` so the base struct stays under
 /// SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkAllowlistVaporTests {
+struct FrameworkAllowlistVaporTests: FrameworkAllowlistTestSupport {
 
     // MARK: - Vapor routing DSL allowlist (slot 17)
 

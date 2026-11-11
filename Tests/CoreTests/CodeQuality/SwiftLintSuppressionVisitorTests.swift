@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -46,7 +47,7 @@ struct SwiftLintSuppressionVisitorTests {
         ("// swiftlint:disable:this line_length\nlet val = 1", "swiftlint:disable:this", "line_length"),
         ("// swiftlint:disable:previous line_length\nlet val = 1", "swiftlint:disable:previous", "line_length"),
         ("// swiftlint:disable force_unwrapping\nlet val = 1", "swiftlint:disable", "force_unwrapping"),
-        ("/* swiftlint:disable identifier_name */\nlet val = 1", "swiftlint:disable", "identifier_name")
+        ("/* swiftlint:disable identifier_name */\nlet val = 1", "swiftlint:disable", "identifier_name"),
     ])
     func detectsSuppressionComment(source: String, directive: String, rule: String) throws {
         let visitor = makeVisitor()
@@ -83,7 +84,7 @@ struct SwiftLintSuppressionVisitorTests {
         "// This is a normal comment\nlet value = 42",
         "// swiftprojectlint:disable force-try\nlet val = 1",
         "let disable = \"swiftlint:disable\"\nlet val = 1",
-        "// swiftlint:enable force_cast\nlet val = 1"
+        "// swiftlint:enable force_cast\nlet val = 1",
     ])
     func noIssueForNonSuppressionComment(source: String) {
         let visitor = makeVisitor()

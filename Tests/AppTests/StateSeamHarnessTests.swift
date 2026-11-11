@@ -91,6 +91,7 @@ struct StateSeamHarnessTests {
         @MainActor
         final class Selection {
             private(set) var chosen: Int?
+
             func clear() { chosen = nil }
             func choose(_ value: Int) { chosen = value }
         }
@@ -106,7 +107,9 @@ struct StateSeamHarnessTests {
 
     private struct BindingSubject: View {
         @Binding var flag: Bool
+
         func present() { flag = true }
+
         var body: some View { Button("go", action: present) }
     }
 
@@ -131,7 +134,9 @@ struct StateSeamHarnessTests {
         static let store = IsolatedDefaults()
         @AppStorage("uec.harness.flag", store: Self.store.defaults) private var flag = false
         var isOn: Bool { flag }
+
         func present() { flag = true }
+
         var body: some View { Button("go", action: present) }
     }
 
@@ -152,11 +157,14 @@ struct StateSeamHarnessTests {
         #expect(view.isOn == true)
     }
 
+    private enum Field: Hashable { case name }
+
     private struct FocusSubject: View {
-        private enum Field: Hashable { case name }
         @FocusState private var focus: Field?
         var isFocused: Bool { focus == .name }
+
         func focusName() { focus = .name }
+
         var body: some View { TextField("name", text: .constant("")).focused($focus, equals: .name) }
     }
 

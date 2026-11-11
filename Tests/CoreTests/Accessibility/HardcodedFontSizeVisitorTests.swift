@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -154,7 +155,7 @@ struct HardcodedFontSizeVisitorTests {
                     .font(.system(.body))
             }
         }
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

@@ -61,7 +61,7 @@
 /// manifests' `.package(path:)` values and the target `path:`s that hold it or lie in it, matched
 /// by canonical location; because the run reports on its files; or because the
 /// root gives no bound — no manifest, an Xcode project beside it, or doubt. See
-/// ``compiledNestedPackages(_:reported:rootHasManifest:rootPath:resolvingSymlinks:manifests:)``. A
+/// ``compiledNestedPackages(_:reported:rootHasManifest:in:)``. A
 /// symlinked file is classified where the link is, and two entries that are one file on disk are
 /// one entry. A file that does not decode as strict UTF-8 is out, since no compiler reads it. The
 /// shared spec's first amendment set these three; its third and fourth, the rest.

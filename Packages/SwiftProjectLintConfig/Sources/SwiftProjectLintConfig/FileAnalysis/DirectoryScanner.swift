@@ -1,10 +1,11 @@
 import Foundation
+import SwiftProjectLintModels
 
 /// Scans a project directory and builds a `DirectoryNode` tree.
 ///
 /// Only directories are included (not files). Skips the same build-artifact
 /// and VCS directories as `FileAnalysisUtils`, plus nested Swift packages.
-public struct DirectoryScanner {
+public enum DirectoryScanner {
 
     /// Additional directories to skip beyond FileAnalysisUtils.skippedDirectories.
     private static let extraSkippedDirectories: Set<String> = [
@@ -31,13 +32,9 @@ public struct DirectoryScanner {
     ) -> DirectoryNode {
         let fileManager = FileManager.default
         let root = ProjectRoot(rootPath)
-        let rootName = (rootPath as NSString).lastPathComponent
+        let rootName = PathString.lastComponent(of: rootPath)
 
-        let rootNode = DirectoryNode(
-            identifier: "",
-            name: rootName,
-            depth: 0
-        )
+        let rootNode = DirectoryNode(identifier: "", name: rootName, depth: 0)
 
         var lookup: [String: DirectoryNode] = ["": rootNode]
 
@@ -67,24 +64,13 @@ public struct DirectoryScanner {
             // layout, so a shallow placement is better than an omission -- the opposite call from
             // `FileAnalysisUtils`, which drives exclusion matching and must skip instead.
             let relative = root.relativePath(of: resolvedPath)
-                ?? RelativePath((resolvedPath as NSString).lastPathComponent)
+                ?? RelativePath(PathString.lastComponent(of: resolvedPath))
             let relativePath = relative.value
             let dirName = relative.lastComponent
 
-            // Skip build artifacts, VCS directories, and Xcode project bundles
-            if FileAnalysisUtils.skippedDirectories.contains(dirName)
-                || dirName.hasSuffix(".xcodeproj")
-                || dirName.hasSuffix(".xcworkspace")
-                || dirName.hasSuffix(".xcuserdatad")
-                || Self.extraSkippedDirectories.contains(dirName) {
-                enumerator.skipDescendants()
-                continue
-            }
-
-            // Skip nested Swift packages
-            let packagePath = itemURL
-                .appendingPathComponent("Package.swift").path
-            if fileManager.fileExists(atPath: packagePath) {
+            // Skip build artifacts, VCS directories, Xcode project bundles and nested Swift packages
+            let packagePath = itemURL.appendingPathComponent("Package.swift").path
+            if Self.isSkipped(directoryNamed: dirName) || fileManager.fileExists(atPath: packagePath) {
                 enumerator.skipDescendants()
                 continue
             }
@@ -95,11 +81,7 @@ public struct DirectoryScanner {
                 continue
             }
 
-            let node = DirectoryNode(
-                identifier: relativePath,
-                name: dirName,
-                depth: depth
-            )
+            let node = DirectoryNode(identifier: relativePath, name: dirName, depth: depth)
 
             // Find parent. `components` has no empty entries, so dropping the last one gives the
             // parent key directly -- and the "." that `deletingLastPathComponent` can return, which
@@ -117,6 +99,15 @@ public struct DirectoryScanner {
         sortChildren(of: rootNode)
 
         return rootNode
+    }
+
+    /// Build artifacts, VCS directories and Xcode bundles, which the tree never shows.
+    private static func isSkipped(directoryNamed dirName: String) -> Bool {
+        FileAnalysisUtils.skippedDirectories.contains(dirName)
+            || dirName.hasSuffix(".xcodeproj")
+            || dirName.hasSuffix(".xcworkspace")
+            || dirName.hasSuffix(".xcuserdatad")
+            || Self.extraSkippedDirectories.contains(dirName)
     }
 
     private static func sortChildren(of node: DirectoryNode) {

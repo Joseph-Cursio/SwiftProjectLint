@@ -1,5 +1,3 @@
-@testable import Core
-import Foundation
 import SwiftParser
 @testable import SwiftProjectLintRules
 import SwiftSyntax
@@ -16,6 +14,7 @@ struct AccessibilityTreeTraverserTests {
         class CallFinder: SyntaxVisitor {
             let target: String
             var found: FunctionCallExprSyntax?
+
             init(target: String) {
                 self.target = target
                 super.init(viewMode: .sourceAccurate)

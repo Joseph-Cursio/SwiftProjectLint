@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -37,7 +38,7 @@ struct SubclassedForMockingVisitorTests {
             class MockWorkspaceAnalyzer: WorkspaceAnalyzer {
                 override func analyze() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.count == 1)
@@ -60,7 +61,7 @@ struct SubclassedForMockingVisitorTests {
             class RecordingSimulator: ImpactSimulator {
                 override func simulate() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.contains { $0.message.contains("ImpactSimulator") })
@@ -79,7 +80,7 @@ struct SubclassedForMockingVisitorTests {
             class MockWorkspaceAnalyzer: WorkspaceAnalyzer {
                 override func analyze() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -98,7 +99,7 @@ struct SubclassedForMockingVisitorTests {
             class MockWorkspaceAnalyzer: WorkspaceAnalyzer {
                 override func analyze() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -116,7 +117,7 @@ struct SubclassedForMockingVisitorTests {
             class FancyRow: BaseRow {
                 override func render() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -137,7 +138,7 @@ struct SubclassedForMockingVisitorTests {
             class MockingbirdController: ChartController {
                 override func render() { }
             }
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -152,7 +153,7 @@ struct SubclassedForMockingVisitorTests {
             }
             """,
             "MockA.swift": "class MockSimulatorA: ImpactSimulator { override func simulate() { } }",
-            "MockB.swift": "class MockSimulatorB: ImpactSimulator { override func simulate() { } }"
+            "MockB.swift": "class MockSimulatorB: ImpactSimulator { override func simulate() { } }",
         ])
 
         let simulatorIssues = issues.filter { $0.message.contains("ImpactSimulator") }

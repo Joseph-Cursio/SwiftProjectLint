@@ -1,7 +1,8 @@
-@testable import Core
 import Foundation
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -21,15 +22,15 @@ struct AccessibilityTextColorTests {
         let visitor = makeAccessibilityVisitor()
 
         // Given
-        // swiftlint:disable line_length
+        let longText = "This is a very long text that should have accessibility features "
+            + "for better screen reader support and user experience"
         let sourceCode = """
         struct ContentView: View {
             var body: some View {
-                Text("This is a very long text that should have accessibility features for better screen reader support and user experience")
+                Text("\(longText)")
             }
         }
         """
-        // swiftlint:enable line_length
         // When
         let sourceFile = Parser.parse(source: sourceCode)
         visitor.walk(sourceFile)

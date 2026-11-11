@@ -1,9 +1,76 @@
-@testable import Core
 import Foundation
 import SwiftParser
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
+
+/// End to end: the setting is read from the manifest and reaches both rules.
+@Suite
+struct MainActorDefaultIsolationEndToEndTests {
+
+    @Test
+    func modelsInATargetWithDefaultIsolationInItsManifestAreNotReported() async {
+        let root = PathString.appending(
+            "MainActorMissingDefault-\(UUID().uuidString)",
+            to: FileManager.default.temporaryDirectory.path
+        )
+        write("""
+        // swift-tools-version:6.2
+        import PackageDescription
+
+        let package = Package(
+            name: "Demo",
+            targets: [
+                .target(name: "Core"),
+                .executableTarget(
+                    name: "App",
+                    dependencies: ["Core"],
+                    swiftSettings: [.defaultIsolation(MainActor.self)]
+                )
+            ]
+        )
+        """, to: "\(root)/Package.swift")
+        let models = """
+        import Combine
+        import Observation
+
+        class CounterViewModel: ObservableObject {
+            @Published var count = 0
+        }
+
+        @Observable
+        class CounterModel {
+            var count = 0
+        }
+        """
+        write(models, to: "\(root)/Sources/App/Models.swift")
+        write(models, to: "\(root)/Sources/Core/Models.swift")
+        defer { try? FileManager.default.removeItem(atPath: root) }
+
+        let system = PatternRegistryFactory.createConfiguredSystem()
+        let issues = await ProjectLinter().analyzeProject(at: root, detector: system.detector)
+        let reported = issues
+            .filter { [.mainActorMissingOnUICode, .observableMainActorMissing].contains($0.ruleName) }
+            .map { "\($0.ruleName.rawValue) @ \($0.filePath)" }
+            .sorted()
+
+        #expect(reported == [
+            "Main Actor Missing On UI Code @ Sources/Core/Models.swift",
+            "Observable Main Actor Missing @ Sources/Core/Models.swift",
+        ])
+    }
+
+    private func write(_ content: String, to path: String) {
+        try? FileManager.default.createDirectory(
+            atPath: PathString.deletingLastComponent(of: path),
+            withIntermediateDirectories: true
+        )
+        try? content.write(toFile: path, atomically: true, encoding: .utf8)
+    }
+}
 
 /// In a target built with default MainActor isolation (SE-0466) an unannotated class already is
 /// `@MainActor`, so neither missing-`@MainActor` rule has anything to report there. The build
@@ -66,7 +133,7 @@ struct MainActorMissingDefaultIsolationTests {
             rule,
             [
                 "Sources/App/Model.swift": rule.model(),
-                "Sources/Core/Model.swift": rule.model()
+                "Sources/Core/Model.swift": rule.model(),
             ],
             defaultPaths: ["Sources/App/"]
         )
@@ -83,68 +150,5 @@ struct MainActorMissingDefaultIsolationTests {
         )
 
         #expect(found.map(\.filePath) == ["Sources/App/Model.swift"])
-    }
-}
-
-/// End to end: the setting is read from the manifest and reaches both rules.
-@Suite
-struct MainActorMissingDefaultIsolationEndToEndTests {
-
-    @Test
-    func modelsInATargetWithDefaultIsolationInItsManifestAreNotReported() async {
-        let root = (FileManager.default.temporaryDirectory.path as NSString)
-            .appendingPathComponent("MainActorMissingDefault-\(UUID().uuidString)")
-        write("""
-        // swift-tools-version:6.2
-        import PackageDescription
-
-        let package = Package(
-            name: "Demo",
-            targets: [
-                .target(name: "Core"),
-                .executableTarget(
-                    name: "App",
-                    dependencies: ["Core"],
-                    swiftSettings: [.defaultIsolation(MainActor.self)]
-                )
-            ]
-        )
-        """, to: "\(root)/Package.swift")
-        let models = """
-        import Combine
-        import Observation
-
-        class CounterViewModel: ObservableObject {
-            @Published var count = 0
-        }
-
-        @Observable
-        class CounterModel {
-            var count = 0
-        }
-        """
-        write(models, to: "\(root)/Sources/App/Models.swift")
-        write(models, to: "\(root)/Sources/Core/Models.swift")
-        defer { try? FileManager.default.removeItem(atPath: root) }
-
-        let system = PatternRegistryFactory.createConfiguredSystem()
-        let issues = await ProjectLinter().analyzeProject(at: root, detector: system.detector)
-        let reported = issues
-            .filter { [.mainActorMissingOnUICode, .observableMainActorMissing].contains($0.ruleName) }
-            .map { "\($0.ruleName.rawValue) @ \($0.filePath)" }
-            .sorted()
-
-        #expect(reported == [
-            "Main Actor Missing On UI Code @ Sources/Core/Models.swift",
-            "Observable Main Actor Missing @ Sources/Core/Models.swift"
-        ])
-    }
-
-    private func write(_ content: String, to path: String) {
-        try? FileManager.default.createDirectory(
-            atPath: (path as NSString).deletingLastPathComponent,
-            withIntermediateDirectories: true
-        )
-        try? content.write(toFile: path, atomically: true, encoding: .utf8)
     }
 }

@@ -1,6 +1,7 @@
-@testable import Core
 import Foundation
 import enum SwiftEffectInference.Effect
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
 import Testing
 
 /// Regression tests for the cross-file-rule inline-suppression bug
@@ -23,15 +24,13 @@ struct CrossFileInlineSuppressionTests {
         _ files: [(name: String, content: String)]
     ) -> String {
         let tempDir = FileManager.default.temporaryDirectory.path
-        let path = (tempDir as NSString).appendingPathComponent(
-            "CrossFileSuppressionProject-\(UUID().uuidString)"
-        )
+        let path = PathString.appending("CrossFileSuppressionProject-\(UUID().uuidString)", to: tempDir)
         try? FileManager.default.createDirectory(
             atPath: path,
             withIntermediateDirectories: true
         )
         for (name, content) in files {
-            let filePath = (path as NSString).appendingPathComponent(name)
+            let filePath = PathString.appending(name, to: path)
             try? content.write(toFile: filePath, atomically: true, encoding: .utf8)
         }
         return path

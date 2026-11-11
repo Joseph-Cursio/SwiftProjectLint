@@ -16,11 +16,11 @@ index cb764e6e..f1fa6184 100644
      override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
          // Test/fixture files aren't property-test subjects — a global `var` in a
          // test is not what this rule is about. Exempt them, as the sibling
-diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy.swift
-index cae06d94..5ab85a9f 100644
---- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy.swift
-+++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy.swift
-@@ -441,6 +441,12 @@ public enum PropertyTestCandidacy {
+diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy+DeclarationShape.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy+DeclarationShape.swift
+index 38488f29..2ea0607d 100644
+--- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy+DeclarationShape.swift
++++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PropertyTestCandidacy+DeclarationShape.swift
+@@ -101,4 +101,10 @@ extension PropertyTestCandidacy {
              storedProperties: collector.properties
          )
      }
@@ -31,5 +31,3 @@ index cae06d94..5ab85a9f 100644
 +        return oracle.isPure(node)
 +    }
  }
- 
- /// Gathers the stored properties a named type declares anywhere in one file — in its primary

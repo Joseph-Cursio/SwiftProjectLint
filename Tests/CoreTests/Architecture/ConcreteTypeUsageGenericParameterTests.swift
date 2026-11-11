@@ -1,6 +1,6 @@
-@testable import Core
 import Foundation
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
 import SwiftProjectLintVisitors
 import SwiftSyntax
@@ -215,7 +215,7 @@ struct ConcreteTypeUsageGenericParameterTests {
         "a type or typealias nested between the use and the clause shadows the parameter",
         arguments: [
             "final class Provider { }",
-            "typealias Provider = LocalFileProvider"
+            "typealias Provider = LocalFileProvider",
         ]
     )
     func nestedDeclarationShadowsOuterParameter(shadow: String) throws {

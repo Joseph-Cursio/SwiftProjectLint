@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -76,7 +77,7 @@ struct ScrollViewReaderDeprecatedVisitorTests {
         .scrollPosition(id: $scrolledID)
         """,
         // Other view types
-        "List { Text(\"Hello\") }"
+        "List { Text(\"Hello\") }",
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

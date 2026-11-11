@@ -25,7 +25,7 @@ class Networking: BasePatternRegistrar {
                 messageTemplate: "Synchronous network call detected",
                 suggestion: "Use async/await or completion handlers for network calls",
                 description: "Detects synchronous network calls that could block the UI"
-            )
+            ),
         ]
         registry.register(patterns: patterns)
         registry.register(registrars: [URLSessionUnhandledError()])

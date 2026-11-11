@@ -109,7 +109,7 @@ class CodeQuality: BasePatternRegistrar {
                 suggestion: "Use == false instead for better failure diagnostics",
                 description: "Detects #expect(!expr) and #require(!expr) which defeat "
                     + "Swift Testing's sub-expression capture"
-            )
+            ),
         ]
     }
 
@@ -161,7 +161,7 @@ class CodeQuality: BasePatternRegistrar {
             SwallowedInjectionDowncast(),
             DiscardableResultMisuse(),
             EffectCycle(),
-            ImplicitCodableRawValue()
+            ImplicitCodableRawValue(),
         ])
     }
 }

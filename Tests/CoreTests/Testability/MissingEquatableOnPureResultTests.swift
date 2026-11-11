@@ -1,10 +1,26 @@
-@testable import Core
+import Core
 import Foundation
 import SwiftParser
 import SwiftProjectLintModels
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
+
+/// The first function declaration named `name`, wherever it is nested.
+private final class FunctionFinder: SyntaxVisitor {
+    let name: String
+    var found: FunctionDeclSyntax?
+
+    init(name: String, viewMode: SyntaxTreeViewMode) {
+        self.name = name
+        super.init(viewMode: viewMode)
+    }
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        if found == nil, node.name.text == name { found = node }
+        return .visitChildren
+    }
+}
 
 /// **A pure function one `: Equatable` away from a property test is reported, and seeded with the
 /// conformance it is waiting on.**
@@ -131,7 +147,7 @@ struct MissingEquatableOnPureResultTests {
         "actor Subject { let n: Int = 0 }",
         "enum Subject { case failed(any Error) }",
         "struct Subject { let other: Unknown }",
-        "struct Subject { let n: Int }\nenum Outer { struct Subject { let s: String } }"
+        "struct Subject { let n: Int }\nenum Outer { struct Subject { let s: String } }",
     ])
     func unsynthesizableIsNeverRemedied(source: String) throws {
         #expect(try remedy("Subject", in: source) == nil)
@@ -244,7 +260,7 @@ struct MissingEquatableOnPureResultTests {
             }
             private func hidden(_ ids: [String]) -> MigrationPlan { MigrationPlan(steps: []) }
         }
-        """
+        """,
     ]
 
     private func analyse() async -> [LintIssue] {
@@ -293,21 +309,5 @@ struct MissingEquatableOnPureResultTests {
             ruleName: .pureFunctionCandidate, symbol: "f"
         )
         #expect(PBTSeedsFormatter().format(issues: [issue]).contains("requires") == false)
-    }
-}
-
-/// The first function declaration named `name`, wherever it is nested.
-private final class FunctionFinder: SyntaxVisitor {
-    let name: String
-    var found: FunctionDeclSyntax?
-
-    init(name: String, viewMode: SyntaxTreeViewMode) {
-        self.name = name
-        super.init(viewMode: viewMode)
-    }
-
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        if found == nil, node.name.text == name { found = node }
-        return .visitChildren
     }
 }

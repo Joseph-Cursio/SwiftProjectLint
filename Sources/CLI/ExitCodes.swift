@@ -1,7 +1,7 @@
-import Core
+import SwiftProjectLintModels
 
 /// Determines the appropriate exit code based on detected issues and the configured threshold.
-struct ExitCodes {
+enum ExitCodes {
     /// Exit code: no issues at or above the threshold severity.
     private static let clean: Int32 = 0
     /// Exit code: warnings found at or above threshold.

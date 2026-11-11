@@ -35,6 +35,7 @@ struct RestrictedSeedTests {
         let syntax = Parser.parse(source: source)
         final class Finder: SyntaxVisitor {
             var found: FunctionDeclSyntax?
+
             override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
                 if found == nil { found = node }
                 return .visitChildren
@@ -132,7 +133,7 @@ struct RestrictedSeedTests {
         let manifest = PBTSeedManifest(seeds: [
             PBTSeed(file: "A.swift", line: 1, symbol: "open", rule: "r", kind: .pureFunction),
             PBTSeed(file: "A.swift", line: 9, symbol: "hidden", rule: "r", kind: .restrictedFunction),
-            PBTSeed(file: "A.swift", line: 20, symbol: "trapped", rule: "r", kind: .extractableKernel)
+            PBTSeed(file: "A.swift", line: 20, symbol: "trapped", rule: "r", kind: .extractableKernel),
         ])
         #expect(manifest.seeds.count == 3)
         #expect(manifest.analysableSeeds.map(\.symbol) == ["open", "hidden"])

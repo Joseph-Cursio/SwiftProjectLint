@@ -1,5 +1,3 @@
-import Foundation
-import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
@@ -42,7 +40,7 @@ class ModifierOrderVisitor: BasePatternVisitor {
             before: "shadow",
             after: ["clipShape", "cornerRadius"],
             reason: "the shadow is clipped away — apply it after the clip so it follows the shape"
-        )
+        ),
     ]
 
     /// Tracks which top-level chains we've already analyzed to avoid duplicate reports.
@@ -112,7 +110,7 @@ class ModifierOrderVisitor: BasePatternVisitor {
                     variables: [
                         "before": rule.before,
                         "after": chain[idx].name,
-                        "reason": rule.reason
+                        "reason": rule.reason,
                     ]
                 )
                 break

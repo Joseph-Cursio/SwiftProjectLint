@@ -1,13 +1,11 @@
 import enum SwiftEffectInference.Effect
-import SwiftParser
-@testable import SwiftProjectLintVisitors
-import SwiftSyntax
+import SwiftProjectLintVisitors
 import Testing
 
 /// Receiver-type gating fixtures for the heuristic inferrer: stdlib
 /// collection exclusions and user-defined receiver anchors.
 @Suite
-struct HeuristicInferenceReceiverGatingTests {
+struct HeuristicInferenceReceiverGatingTests: FrameworkAllowlistTestSupport {
 
     // MARK: - Receiver-type gating (Phase 2 second slice)
 

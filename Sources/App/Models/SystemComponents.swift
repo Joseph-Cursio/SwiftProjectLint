@@ -1,6 +1,6 @@
 import Combine
-import Core
-import SwiftUI
+import SwiftProjectLintEngine
+import SwiftProjectLintRegistry
 
 /// ObservableObject that holds the pattern detection system components.
 /// Injected into views via `@EnvironmentObject` for ViewInspector test compatibility.

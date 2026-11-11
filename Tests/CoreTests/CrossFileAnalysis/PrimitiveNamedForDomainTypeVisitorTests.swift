@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -36,7 +37,7 @@ struct PrimitiveNamedForDomainTypeVisitorTests {
     func parameterNamedForWrapperFlags() throws {
         let issues = analyze(files: [
             "Key.swift": "struct IdempotencyKey { let value: String }",
-            "Handler.swift": "func process(idempotencyKey: String) {}"
+            "Handler.swift": "func process(idempotencyKey: String) {}",
         ])
 
         #expect(issues.count == 1)
@@ -55,7 +56,7 @@ struct PrimitiveNamedForDomainTypeVisitorTests {
         let issues = analyze(files: [
             "A.swift": "struct UserID { let value: String }",
             "B.swift": "struct UserId { let value: String }",
-            "C.swift": "struct Session { let userId: String }"
+            "C.swift": "struct Session { let userId: String }",
         ])
 
         #expect(issues.count == 1)
@@ -72,7 +73,7 @@ struct PrimitiveNamedForDomainTypeVisitorTests {
     func aSingleWrapperIsStillNamedAlone() throws {
         let issues = analyze(files: [
             "ID.swift": "struct UserID { let raw: UUID }",
-            "Session.swift": "struct Session { let userID: UUID }"
+            "Session.swift": "struct Session { let userID: UUID }",
         ])
 
         let issue = try #require(issues.first)
@@ -86,7 +87,7 @@ struct PrimitiveNamedForDomainTypeVisitorTests {
     func propertyNamedForWrapperFlags() {
         let issues = analyze(files: [
             "ID.swift": "struct UserID { let raw: UUID }",
-            "Session.swift": "struct Session { let userID: UUID }"
+            "Session.swift": "struct Session { let userID: UUID }",
         ])
 
         #expect(issues.count == 1)
@@ -98,7 +99,7 @@ struct PrimitiveNamedForDomainTypeVisitorTests {
     func alreadyTypedAsWrapperClean() {
         let issues = analyze(files: [
             "Key.swift": "struct IdempotencyKey { let value: String }",
-            "Handler.swift": "func process(idempotencyKey: IdempotencyKey) {}"
+            "Handler.swift": "func process(idempotencyKey: IdempotencyKey) {}",
         ])
 
         #expect(issues.isEmpty)
@@ -109,7 +110,7 @@ struct PrimitiveNamedForDomainTypeVisitorTests {
     func unrelatedNameClean() {
         let issues = analyze(files: [
             "Key.swift": "struct IdempotencyKey { let value: String }",
-            "Cache.swift": "func cache(key: String) {}"
+            "Cache.swift": "func cache(key: String) {}",
         ])
 
         #expect(issues.isEmpty)
@@ -120,7 +121,7 @@ struct PrimitiveNamedForDomainTypeVisitorTests {
     func nameMatchDifferentCarrierClean() {
         let issues = analyze(files: [
             "Key.swift": "struct IdempotencyKey { let value: String }",
-            "Odd.swift": "func f(idempotencyKey: Int) {}"
+            "Odd.swift": "func f(idempotencyKey: Int) {}",
         ])
 
         #expect(issues.isEmpty)
@@ -144,7 +145,7 @@ struct PrimitiveNamedForDomainTypeVisitorTests {
     func genericWrapperNameSuppressed() {
         let issues = analyze(files: [
             "Name.swift": "struct Name { let value: String }",
-            "User.swift": "func create(name: String) {}"
+            "User.swift": "func create(name: String) {}",
         ])
 
         #expect(issues.isEmpty)
@@ -155,7 +156,7 @@ struct PrimitiveNamedForDomainTypeVisitorTests {
     func distinctiveWrapperStillFires() {
         let issues = analyze(files: [
             "Key.swift": "struct SessionID { let value: String }",
-            "Use.swift": "func track(sessionID: String) {}"
+            "Use.swift": "func track(sessionID: String) {}",
         ])
 
         #expect(issues.count == 1)
@@ -167,7 +168,7 @@ struct PrimitiveNamedForDomainTypeVisitorTests {
     func rawValueEnumNamedFlags() {
         let issues = analyze(files: [
             "Currency.swift": "enum Currency: String { case usd, eur }",
-            "Money.swift": "func convert(currency: String) {}"
+            "Money.swift": "func convert(currency: String) {}",
         ])
 
         #expect(issues.count == 1)
@@ -180,7 +181,7 @@ struct PrimitiveNamedForDomainTypeVisitorTests {
     func genericRawValueEnumSuppressed() {
         let issues = analyze(files: [
             "Status.swift": "enum Status: String { case ok, bad }",
-            "Use.swift": "func set(status: String) {}"
+            "Use.swift": "func set(status: String) {}",
         ])
 
         #expect(issues.isEmpty)
@@ -191,7 +192,7 @@ struct PrimitiveNamedForDomainTypeVisitorTests {
     func caseInsensitiveNameMatchFlags() {
         let issues = analyze(files: [
             "Key.swift": "struct IdempotencyKey { let value: String }",
-            "Use.swift": "struct Box { let IdempotencyKey: String }"
+            "Use.swift": "struct Box { let IdempotencyKey: String }",
         ])
 
         #expect(issues.count == 1)

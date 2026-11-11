@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -212,7 +213,7 @@ struct MainActorMissingVisitorTests {
         let derivedFile = Parser.parse(source: derivedSource)
         let fileCache: [String: SourceFileSyntax] = [
             "Base.swift": baseFile,
-            "Derived.swift": derivedFile
+            "Derived.swift": derivedFile,
         ]
 
         let pattern = MainActorMissing().pattern
@@ -246,7 +247,7 @@ struct MainActorMissingVisitorTests {
         let derivedFile = Parser.parse(source: derivedSource)
         let fileCache: [String: SourceFileSyntax] = [
             "Base.swift": baseFile,
-            "Derived.swift": derivedFile
+            "Derived.swift": derivedFile,
         ]
 
         let pattern = MainActorMissing().pattern

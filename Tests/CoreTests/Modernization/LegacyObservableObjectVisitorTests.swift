@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -39,7 +40,7 @@ struct LegacyObservableObjectVisitorTests {
         class ViewModel {
             @Published var count = 0
         }
-        """, "Published", "remove")
+        """, "Published", "remove"),
     ])
     func detectsLegacyAttribute(source: String, expectedAttribute: String, expectedSuggestion: String) throws {
         let visitor = makeVisitor()
@@ -173,7 +174,7 @@ struct LegacyObservableObjectVisitorTests {
         class MyService {
             var count = 0
         }
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

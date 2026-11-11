@@ -1,4 +1,3 @@
-@testable import Core
 import Testing
 
 /// How a client reaches a requirement, and what counts as reaching it.

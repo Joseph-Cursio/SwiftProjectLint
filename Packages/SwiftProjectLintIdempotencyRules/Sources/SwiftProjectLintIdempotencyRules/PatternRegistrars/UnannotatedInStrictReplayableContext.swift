@@ -13,7 +13,7 @@ struct UnannotatedInStrictReplayableContext: PatternRegistrarProtocol {
     var pattern: SyntaxPattern {
         SyntaxPattern(
             name: .unannotatedInStrictReplayableContext,
-            visitor: UnannotatedInStrictReplayableContextVisitor.self,
+            visitor: UnannotatedStrictReplayableVisitor.self,
             severity: .error,
             category: .idempotency,
             messageTemplate: "Unannotated call inside a strict_replayable context.",

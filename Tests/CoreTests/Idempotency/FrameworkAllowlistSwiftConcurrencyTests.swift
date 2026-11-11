@@ -1,7 +1,5 @@
 import enum SwiftEffectInference.Effect
-import SwiftParser
-@testable import SwiftProjectLintVisitors
-import SwiftSyntax
+import SwiftProjectLintVisitors
 import Testing
 
 /// Slot 22 — `Task.sleep` under the SwiftConcurrency always-active gate.
@@ -10,7 +8,7 @@ import Testing
 /// `imports` set. Split off from `FrameworkAllowlistGatingTests` so the
 /// base struct stays under SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkAllowlistSwiftConcurrencyTests {
+struct FrameworkAllowlistSwiftConcurrencyTests: FrameworkAllowlistTestSupport {
 
     // MARK: - Swift Concurrency Task.sleep allowlist (slot 22)
 

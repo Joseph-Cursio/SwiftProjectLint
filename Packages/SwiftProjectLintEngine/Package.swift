@@ -7,20 +7,20 @@ import PackageDescription
 // groups), so main-actor pinning would serialize it on the main thread.
 let swiftSettings: [SwiftSetting] = [
     .swiftLanguageMode(.v6),
-    .enableUpcomingFeature("MemberImportVisibility")
+    .enableUpcomingFeature("MemberImportVisibility"),
 ]
 
 let package = Package(
     name: "SwiftProjectLintEngine",
     platforms: [
         .macOS(.v26),
-        .iOS(.v26)
+        .iOS(.v26),
     ],
     products: [
         .library(
             name: "SwiftProjectLintEngine",
             targets: ["SwiftProjectLintEngine"]
-        )
+        ),
     ],
     dependencies: [
         .package(path: "../SwiftProjectLintModels"),
@@ -29,7 +29,7 @@ let package = Package(
         .package(path: "../SwiftProjectLintRules"),
         .package(path: "../SwiftProjectLintIdempotencyRules"),
         .package(path: "../SwiftProjectLintConfig"),
-        .package(url: "https://github.com/swiftlang/swift-syntax.git", exact: "603.0.2")
+        .package(url: "https://github.com/swiftlang/swift-syntax.git", exact: "603.0.2"),
     ],
     targets: [
         .target(
@@ -42,10 +42,10 @@ let package = Package(
                 "SwiftProjectLintIdempotencyRules",
                 "SwiftProjectLintConfig",
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
-                .product(name: "SwiftParser", package: "swift-syntax")
+                .product(name: "SwiftParser", package: "swift-syntax"),
             ],
             path: "Sources/SwiftProjectLintEngine",
             swiftSettings: swiftSettings
-        )
+        ),
     ]
 )

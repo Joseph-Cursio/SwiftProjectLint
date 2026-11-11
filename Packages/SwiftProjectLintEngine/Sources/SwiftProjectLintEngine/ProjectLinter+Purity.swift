@@ -97,6 +97,21 @@ extension ProjectLinter {
         return shared
     }
 
+    /// What the shared parse returns: the package purity, the analysable files' sources, and the
+    /// files on disk the purity was built from (`nil` exactly when it is withheld).
+    struct SharedParse {
+        let purity: PackagePurity
+        let analysable: [String: SharedSource]
+        let judged: Set<String>?
+    }
+
+    /// One universe entry for `PackagePurity.build`: its universe path, its file on disk, its tree.
+    struct ConstructionSource {
+        let relativePath: String
+        let file: String
+        let tree: SourceFileSyntax
+    }
+
     /// Parses every file once and builds the run's package purity from those trees.
     ///
     /// Returns the analysable files' sources only. The universe-only trees the facts need stay
@@ -113,17 +128,17 @@ extension ProjectLinter {
         _ files: DiscoveredFiles,
         projectRoot: String,
         withholdingBy tripwire: PurityTripwire
-    ) async -> (purity: PackagePurity, analysable: [String: SharedSource], judged: Set<String>?) {
+    ) async -> SharedParse {
         let shared = await parseOnce(files, projectRoot: projectRoot)
         let analysable = shared.filter { $0.value.content != nil }
         guard let universe = files.constructionUniverse else {
-            return (.withheld(by: tripwire), analysable, nil)
+            return SharedParse(purity: .withheld(by: tripwire), analysable: analysable, judged: nil)
         }
         let sources = constructionSources(universe, in: shared)
         let trees = sources.map { (relativePath: $0.relativePath, tree: $0.tree) }
         // The build walks every tree, as deep as it nests, so it gets the parse's stack.
         let purity = await LargeStackWorkers.run { PackagePurity.build(from: trees) }
-        return (purity, analysable, Set(sources.map(\.file)))
+        return SharedParse(purity: purity, analysable: analysable, judged: Set(sources.map(\.file)))
     }
 
     /// The universe's `(path, file, tree)` entries for `PackagePurity.build`, which sorts them: production
@@ -145,14 +160,14 @@ extension ProjectLinter {
     static func constructionSources(
         _ universe: [String],
         in shared: [String: SharedSource]
-    ) -> [(relativePath: String, file: String, tree: SourceFileSyntax)] {
-        var kept: [(relativePath: String, file: String, tree: SourceFileSyntax)] = []
+    ) -> [ConstructionSource] {
+        var kept: [ConstructionSource] = []
         var slotOfFile: [String: Int] = [:]
         for filePath in universe {
             guard let source = shared[filePath], let universePath = source.universePath,
                   ConstructionUniverse.isProductionSource(relativePath: universePath) else { continue }
             let file = URL(fileURLWithPath: filePath).resolvingSymlinksInPath().path
-            let entry = (relativePath: universePath, file: file, tree: source.tree)
+            let entry = ConstructionSource(relativePath: universePath, file: file, tree: source.tree)
             if let slot = slotOfFile[file] {
                 if universePath < kept[slot].relativePath { kept[slot] = entry }
             } else {
@@ -240,16 +255,20 @@ extension ProjectLinter {
             nestedPackages,
             reported: reportedPackages,
             rootHasManifest: isPackage("") && !ConstructionUniverse.holdsXcodeProject(directory: root.path),
-            rootPath: root.path,
-            // `realpath(3)`: links resolved and the on-disk letter case, so a reference and a
-            // package match by location (the shared spec's amendments H and Q).
-            resolvingSymlinks: { ProjectRoot($0).path },
-            manifests: { ConstructionUniverse.manifests(inDirectory: absolutePath($0)) }
+            in: ConstructionUniverse.PackageTree(
+                rootPath: root.path,
+                // `realpath(3)`: links resolved and the on-disk letter case, so a reference and a
+                // package match by location (the shared spec's amendments H and Q).
+                resolvingSymlinks: { ProjectRoot($0).path },
+                manifests: { ConstructionUniverse.manifests(inDirectory: absolutePath($0)) }
+            )
         )
-        return located.filter { file in
-            ConstructionUniverse.owningPackage(of: file.universePath, among: nestedPackages)
-                .map(compiled.contains) ?? true
-        }.map(\.filePath)
+        return located
+            .filter { file in
+                ConstructionUniverse.owningPackage(of: file.universePath, among: nestedPackages)
+                    .map(compiled.contains) ?? true
+            }
+            .map(\.filePath)
     }
 
     private struct ParseJob: Sendable {

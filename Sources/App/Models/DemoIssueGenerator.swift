@@ -5,15 +5,14 @@
 //  Created by Joseph Cursio on 7/1/25.
 //
 
-import Core
-import Foundation
+import SwiftProjectLintModels
 
 /// Generates demo lint issues for illustration purposes.
 ///
 /// This class creates demo `LintIssue` objects based on the currently enabled rules,
 /// simulating typical linter findings for the selected categories. Each demo issue includes
 /// severity, a message, file path, line number, and a suggested fix.
-struct DemoIssueGenerator {
+enum DemoIssueGenerator {
 
     /// Creates a set of demo lint issues for illustration purposes.
     ///
@@ -44,7 +43,7 @@ struct DemoIssueGenerator {
                 suggestion: "Consider if these variables represent the same concept and should be shared " +
                             "via a common ObservableObject.",
                 ruleName: .unrelatedDuplicateStateVariable
-            )
+            ),
         ],
         .performance: [
             LintIssue(
@@ -62,7 +61,7 @@ struct DemoIssueGenerator {
                 lineNumber: 25,
                 suggestion: "Break down large view into smaller, focused components.",
                 ruleName: .largeViewBody
-            )
+            ),
         ],
         .architecture: [
             LintIssue(
@@ -72,7 +71,7 @@ struct DemoIssueGenerator {
                 lineNumber: 15,
                 suggestion: "Extract business logic into a dedicated ViewModel class.",
                 ruleName: .fatViewDetection
-            )
+            ),
         ],
         .codeQuality: [
             LintIssue(
@@ -82,7 +81,7 @@ struct DemoIssueGenerator {
                 lineNumber: 7,
                 suggestion: "Define constants for magic numbers to improve code readability.",
                 ruleName: .magicNumber
-            )
+            ),
         ],
         .security: [
             LintIssue(
@@ -92,7 +91,7 @@ struct DemoIssueGenerator {
                 lineNumber: 10,
                 suggestion: "Move sensitive data to secure configuration files or environment variables.",
                 ruleName: .hardcodedSecret
-            )
+            ),
         ],
         .accessibility: [
             LintIssue(
@@ -102,7 +101,7 @@ struct DemoIssueGenerator {
                 lineNumber: 8,
                 suggestion: "Add accessibilityLabel to improve screen reader support.",
                 ruleName: .missingAccessibilityLabel
-            )
+            ),
         ],
         .memoryManagement: [
             LintIssue(
@@ -112,7 +111,7 @@ struct DemoIssueGenerator {
                 lineNumber: 14,
                 suggestion: "Use weak self in closures to prevent retain cycles.",
                 ruleName: .potentialRetainCycle
-            )
+            ),
         ],
         .networking: [
             LintIssue(
@@ -122,7 +121,7 @@ struct DemoIssueGenerator {
                 lineNumber: 22,
                 suggestion: "Add proper error handling to network requests.",
                 ruleName: .missingErrorHandling
-            )
+            ),
         ],
         .animation: [
             LintIssue(
@@ -133,7 +132,7 @@ struct DemoIssueGenerator {
                 suggestion: "Reduce the number of spring animations or combine them using a single " +
                             "withAnimation(.spring()) block.",
                 ruleName: .excessiveSpringAnimations
-            )
+            ),
         ],
         .uiPatterns: [
             LintIssue(
@@ -143,7 +142,7 @@ struct DemoIssueGenerator {
                 lineNumber: 5,
                 suggestion: "Use NavigationStack or NavigationSplitView instead of nested NavigationView.",
                 ruleName: .nestedNavigationView
-            )
-        ]
+            ),
+        ],
     ]
 }

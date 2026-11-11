@@ -1,5 +1,15 @@
 import SwiftSyntax
 
+/// Collects import declarations at any depth, including inside `#if` blocks.
+private final class ImportDeclarationCollector: SyntaxVisitor {
+    private(set) var imports: [ImportDeclSyntax] = []
+
+    override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
+        imports.append(node)
+        return .skipChildren
+    }
+}
+
 /// The imports each target of one package makes.
 ///
 /// Both halves of the manifest-versus-source comparison need the same facts about which modules a
@@ -48,24 +58,13 @@ struct PackageTargetImports {
         targetsByModule = Dictionary(targets.map { ($0.moduleName, $0) }) { first, _ in first }
         targetsByName = Dictionary(targets.map { ($0.name, $0) }) { first, _ in first }
 
-        var sitesByTarget: [String: [Site]] = [:]
+        var sites: [String: [Site]] = [:]
         for target in targets {
-            sitesByTarget[target.name] = Self.imports(
+            sites[target.name] = Self.imports(
                 in: package.filesByTarget[target.name] ?? [], fileCache: fileCache
             )
         }
-        self.sitesByTarget = sitesByTarget
-    }
-
-    /// The module names of the same-package targets `target` declares; `nil` when its dependency
-    /// list could not be read.
-    func declaredLocalModules(of target: PackageManifest.Target) -> Set<String>? {
-        guard let dependencies = target.dependencies else { return nil }
-        return Set(
-            dependencies
-                .filter { $0.isPackageProduct == false }
-                .compactMap { targetsByName[$0.name]?.moduleName }
-        )
+        self.sitesByTarget = sites
     }
 
     private static func imports(in files: [String], fileCache: [String: SourceFileSyntax]) -> [Site] {
@@ -77,15 +76,5 @@ struct PackageTargetImports {
                 node.path.first.map { Site(file: file, node: node, module: $0.name.text) }
             }
         }
-    }
-}
-
-/// Collects import declarations at any depth, including inside `#if` blocks.
-private final class ImportDeclarationCollector: SyntaxVisitor {
-    private(set) var imports: [ImportDeclSyntax] = []
-
-    override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
-        imports.append(node)
-        return .skipChildren
     }
 }

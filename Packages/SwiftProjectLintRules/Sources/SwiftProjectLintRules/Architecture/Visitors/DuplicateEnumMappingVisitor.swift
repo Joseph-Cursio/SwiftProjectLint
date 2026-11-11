@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
@@ -303,6 +302,6 @@ final class DuplicateEnumMappingVisitor: CrossFileVisitorBase, CrossFilePatternV
     }
 
     private func shortName(_ path: String) -> String {
-        (path as NSString).lastPathComponent
+        PathString.lastComponent(of: path)
     }
 }

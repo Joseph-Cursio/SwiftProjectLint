@@ -1,4 +1,5 @@
-@testable import Core
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
 import Testing
 
 @Suite
@@ -137,7 +138,7 @@ struct InlineSuppressionFilterTests {
         let issues = [
             issue(rule: .forceTry, line: 3),
             issue(rule: .forceTry, line: 4),
-            issue(rule: .forceTry, line: 6)
+            issue(rule: .forceTry, line: 6),
         ]
         let result = InlineSuppressionFilter.filter(issues, fileContent: source)
         #expect(result.count == 1)
@@ -153,7 +154,7 @@ struct InlineSuppressionFilterTests {
         """
         let issues = [
             issue(rule: .forceTry, line: 3),
-            issue(rule: .forceTry, line: 4)
+            issue(rule: .forceTry, line: 4),
         ]
         let result = InlineSuppressionFilter.filter(issues, fileContent: source)
         #expect(result.isEmpty)
@@ -165,7 +166,7 @@ struct InlineSuppressionFilterTests {
         let source = "// swiftprojectlint:disable:next force-try"
         let issues = [
             issue(rule: .forceTry, line: 2),
-            issue(rule: .forceUnwrap, line: 2)
+            issue(rule: .forceUnwrap, line: 2),
         ]
         let result = InlineSuppressionFilter.filter(issues, fileContent: source)
         #expect(result.count == 1)
@@ -182,7 +183,7 @@ struct InlineSuppressionFilterTests {
         """
         let issues = [
             issue(rule: .forceTry, line: 2),
-            issue(rule: .forceUnwrap, line: 3)
+            issue(rule: .forceUnwrap, line: 3),
         ]
         let result = InlineSuppressionFilter.filter(issues, fileContent: source)
         #expect(result.isEmpty)
@@ -197,7 +198,7 @@ struct InlineSuppressionFilterTests {
         """
         let issues = [
             issue(rule: .forceTry, line: 2),
-            issue(rule: .forceTry, line: 4)
+            issue(rule: .forceTry, line: 4),
         ]
         let result = InlineSuppressionFilter.filter(issues, fileContent: source)
         #expect(result.count == 1)

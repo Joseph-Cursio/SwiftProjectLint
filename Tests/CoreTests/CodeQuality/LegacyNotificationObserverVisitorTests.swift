@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -50,7 +51,7 @@ struct LegacyNotificationObserverVisitorTests {
             name: NSNotification.Name("DataChanged"),
             object: nil
         )
-        """
+        """,
     ])
     func detectsVariant(source: String) {
         let visitor = makeVisitor()
@@ -86,7 +87,7 @@ struct LegacyNotificationObserverVisitorTests {
         // Unrelated addObserver method
         """
         observerList.addObserver(myObserver)
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

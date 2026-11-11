@@ -1,5 +1,4 @@
 import SwiftProjectLintConfig
-import SwiftProjectLintModels
 import SwiftProjectLintRegistry
 import SwiftProjectLintVisitors
 
@@ -73,6 +72,25 @@ extension ProjectLinter {
         /// tried: 377 candidate symbols dropped out.
         let impurePackageFunctions: ImpurePackageFunctions
 
+        /// The dependency types among `remedies`' unresolved names that a resolved checkout
+        /// under `projectRoot` vouches `Equatable` for; none without a root.
+        private static func dependencyEquatableNames(
+            for remedies: EquatableRemedyCatalog,
+            in filePaths: [String],
+            projectRoot: String?,
+            sources: [String: SharedSource]
+        ) -> Set<String> {
+            projectRoot.map { root in
+                DependencyConformances.equatableNames(
+                    among: remedies.unresolvedNames,
+                    root: root,
+                    importedModules: DependencyConformances.importedModules(
+                        in: filePaths.compactMap { sources[$0]?.content }
+                    )
+                )
+            } ?? []
+        }
+
         /// Runs inside the run's `PackagePurity` binding, which is what makes the two
         /// purity-judging catalogs below — `CleanInstanceMethodCatalog` and
         /// `PackagePurityJoin` — construction-aware: each creates its `PurityInferrer()` here.
@@ -99,20 +117,14 @@ extension ProjectLinter {
             let declaredProtocols = collectTypes(ProtocolTypeCollector.self, in: parsed)
             let aliases = CompositionAliasCatalog.build(from: parsed)
             let remedies = EquatableRemedyCatalog.build(from: parsed)
-            let dependencyEquatable = projectRoot.map { root in
-                DependencyConformances.equatableNames(
-                    among: remedies.unresolvedNames,
-                    root: root,
-                    importedModules: DependencyConformances.importedModules(
-                        in: filePaths.compactMap { sources[$0]?.content }
-                    )
-                )
-            } ?? []
-            let identifiable = collectTypes(IdentifiableTypeCollector.self, in: parsed)
+            let dependencyEquatable = dependencyEquatableNames(
+                for: remedies, in: filePaths, projectRoot: projectRoot, sources: sources
+            )
+            let identifiableTypes = collectTypes(IdentifiableTypeCollector.self, in: parsed)
             return Self(
-                identifiable: identifiable,
+                identifiable: identifiableTypes,
                 identifiableCollectionProperties: IdentifiableCollectionPropertyCatalog.build(
-                    from: parsed, identifiable: identifiable
+                    from: parsed, identifiable: identifiableTypes
                 ),
                 enums: collectTypes(EnumTypeCollector.self, in: parsed),
                 actors: ActorTypeCatalog.build(from: parsed, aliases: aliases),
@@ -189,17 +201,19 @@ extension ProjectLinter {
         return resolved
     }
 
-    /// Spreads the bundled catalogs back into the flat per-file environment.
+    /// Spreads the bundled catalogs back into the flat per-file environment for `project`. The
+    /// rules a run selects narrow it by rule when there are any, else by category.
     static func makeEnvironment(
-        projectRoot: String,
+        for project: DiscoveredProject,
         registry: PatternVisitorRegistry,
-        categories: [PatternCategory]?,
-        ruleIdentifiers: [RuleIdentifier]?,
-        collected: CollectedTypes,
-        configuration: LintConfiguration,
-        shared: [String: SharedSource] = [:]
+        collected: CollectedTypes
     ) -> FileAnalysisEnvironment {
-        FileAnalysisEnvironment(
+        let projectRoot = project.path
+        let ruleIdentifiers = project.effectiveRules
+        let categories = ruleIdentifiers != nil ? nil : project.categories
+        let configuration = project.configuration
+        let shared = project.shared
+        return FileAnalysisEnvironment(
             projectRoot: projectRoot,
             registry: registry,
             categories: categories,

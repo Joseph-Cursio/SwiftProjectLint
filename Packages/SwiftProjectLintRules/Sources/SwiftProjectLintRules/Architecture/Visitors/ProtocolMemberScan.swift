@@ -30,6 +30,21 @@ struct CallableSignature {
     }
 }
 
+/// A property declared without a type annotation, settled after every file is scanned.
+struct PendingInferredMember {
+    let name: String
+    let typeName: String?
+    let initializer: ExprSyntax?
+    /// `store` for `@Environment(\.store) var …` — the key path's last component.
+    let keyPathMemberName: String?
+    let filePath: String
+    let line: Int
+
+    var displayName: String {
+        typeName.map { "\($0).\(name)" } ?? name
+    }
+}
+
 /// Pass two of `ProtocolClientIndex`: every declaration that is visible by name from elsewhere —
 /// properties, functions, initializers, protocol-extension members — resolved against the
 /// protocols pass one found.
@@ -152,20 +167,5 @@ struct ProtocolMemberScan {
             return .clients([identifier])
         }
         return .other
-    }
-}
-
-/// A property declared without a type annotation, settled after every file is scanned.
-struct PendingInferredMember {
-    let name: String
-    let typeName: String?
-    let initializer: ExprSyntax?
-    /// `store` for `@Environment(\.store) var …` — the key path's last component.
-    let keyPathMemberName: String?
-    let filePath: String
-    let line: Int
-
-    var displayName: String {
-        typeName.map { "\($0).\(name)" } ?? name
     }
 }

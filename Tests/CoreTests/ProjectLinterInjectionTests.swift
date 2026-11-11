@@ -1,5 +1,7 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
 import SwiftSyntax
 import Testing
 
@@ -15,15 +17,15 @@ struct ProjectLinterInjectionTests {
 
     // MARK: - Fakes
 
+    struct Call {
+        let directory: String
+        let excludedPaths: [String]
+        let excludedFilenames: [String]
+        let includeNestedPackages: Bool
+    }
+
     /// Returns a fixed file list and records the arguments it was asked for.
     private final class FakeFileDiscovery: FileDiscoveryProtocol, @unchecked Sendable {
-        struct Call {
-            let directory: String
-            let excludedPaths: [String]
-            let excludedFilenames: [String]
-            let includeNestedPackages: Bool
-        }
-
         let files: [String]
         private let lock = NSLock()
         private var calls: [Call] = []

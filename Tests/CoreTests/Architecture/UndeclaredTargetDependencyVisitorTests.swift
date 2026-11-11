@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -60,7 +61,7 @@ struct UndeclaredTargetDependencyVisitorTests {
             import Persistence
 
             final class CheckoutViewModel {}
-            """
+            """,
         ])
 
         let issue = try #require(issues.first)
@@ -79,7 +80,7 @@ struct UndeclaredTargetDependencyVisitorTests {
             "Tests/CheckoutTests/CheckoutTests.swift": """
             @testable import Checkout
             @testable import Domain
-            """
+            """,
         ])
 
         let issue = try #require(issues.first)
@@ -94,7 +95,7 @@ struct UndeclaredTargetDependencyVisitorTests {
             "Sources/Persistence/Store.swift": "import Domain",
             "Sources/Checkout/B.swift": "import Persistence",
             "Sources/Checkout/A.swift": "import Persistence",
-            "Sources/Checkout/C.swift": "import Persistence"
+            "Sources/Checkout/C.swift": "import Persistence",
         ])
 
         let issue = try #require(issues.first)
@@ -115,7 +116,7 @@ struct UndeclaredTargetDependencyVisitorTests {
             )
             """,
             "Sources/tool-core/Core.swift": "struct Core {}",
-            "Sources/tool/main.swift": "import tool_core"
+            "Sources/tool/main.swift": "import tool_core",
         ])
 
         #expect(issues.count == 1)
@@ -134,7 +135,7 @@ struct UndeclaredTargetDependencyVisitorTests {
             )
             """,
             "Code/Models/Model.swift": "struct Model {}",
-            "Code/Features/Feature.swift": "import Models"
+            "Code/Features/Feature.swift": "import Models",
         ])
 
         #expect(issues.map(\.filePath) == ["Code/Features/Feature.swift"])
@@ -149,7 +150,7 @@ struct UndeclaredTargetDependencyVisitorTests {
             )
             """,
             "Packages/Kit/Sources/KitCore/Core.swift": "struct Core {}",
-            "Packages/Kit/Sources/KitUI/View.swift": "import KitCore"
+            "Packages/Kit/Sources/KitUI/View.swift": "import KitCore",
         ])
 
         #expect(issues.map(\.filePath) == ["Packages/Kit/Sources/KitUI/View.swift"])
@@ -181,7 +182,7 @@ struct UndeclaredTargetDependencyVisitorTests {
             import Alpha
             import Beta
             import Gamma
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -204,7 +205,7 @@ struct UndeclaredTargetDependencyVisitorTests {
             import Foundation
             import ArgumentParser
             import SomethingElseEntirely
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -213,7 +214,7 @@ struct UndeclaredTargetDependencyVisitorTests {
     @Test func aTargetImportingItsOwnModuleIsNotAFinding() {
         let issues = analyze(files: [
             "Package.swift": #"let package = Package(name: "A", targets: [.target(name: "Feature")])"#,
-            "Sources/Feature/Feature.swift": "import Feature"
+            "Sources/Feature/Feature.swift": "import Feature",
         ])
 
         #expect(issues.isEmpty)
@@ -240,7 +241,7 @@ struct UndeclaredTargetDependencyVisitorTests {
             "Sources/Feature/Feature.swift": """
             import Core
             import Models
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -260,7 +261,7 @@ struct UndeclaredTargetDependencyVisitorTests {
             """,
             "Sources/Models/Model.swift": "struct Model {}",
             "Sources/Core/Core.swift": "import Models",
-            "Sources/Feature/Feature.swift": "import Models"
+            "Sources/Feature/Feature.swift": "import Models",
         ])
 
         #expect(issues.map(\.filePath) == ["Sources/Feature/Feature.swift"])
@@ -273,7 +274,7 @@ struct UndeclaredTargetDependencyVisitorTests {
             #if canImport(Persistence)
             import Persistence
             #endif
-            """
+            """,
         ])
 
         #expect(issues.isEmpty)
@@ -286,7 +287,7 @@ struct UndeclaredTargetDependencyVisitorTests {
             #if canImport(PersistenceKit)
             import Persistence
             #endif
-            """
+            """,
         ])
 
         #expect(issues.count == 1)

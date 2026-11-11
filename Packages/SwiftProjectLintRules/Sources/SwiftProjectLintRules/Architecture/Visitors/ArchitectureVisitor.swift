@@ -199,7 +199,8 @@ class ArchitectureVisitor: BasePatternVisitor {
     }
 
     /**
-     Checks if a class declaration matches any of the service-type suffixes defined in ``ServiceTypeSuffix`` and, if it also conforms to ObservableObject, suggests defining a protocol for better testability.
+     Checks if a class declaration matches any of the service-type suffixes defined in ``ServiceTypeSuffix`` and, if it
+     also conforms to ObservableObject, suggests defining a protocol for better testability.
      */
     private func detectMissingProtocols(_ node: ClassDeclSyntax) {
         let className = node.name.text

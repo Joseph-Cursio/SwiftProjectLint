@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -55,7 +56,7 @@ struct FireAndForgetTaskVisitorTests {
             Task { await step1() }
             Task { await step2() }
         }
-        """
+        """,
     ])
     func detectsVariant(source: String) {
         let visitor = makeVisitor()
@@ -93,7 +94,7 @@ struct FireAndForgetTaskVisitorTests {
         func start() {
             self.analysisTask = Task { await doWork() }
         }
-        """
+        """,
     ])
     func noIssueWhenResultCaptured(source: String) {
         let visitor = makeVisitor()

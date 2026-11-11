@@ -1,4 +1,3 @@
-import Foundation
 import LintStudioCore
 import SwiftProjectLintModels
 
@@ -14,7 +13,7 @@ public struct CSVFormatter: IssueFormatterProtocol {
             "Line",
             "Severity",
             "Message",
-            "Suggestion"
+            "Suggestion",
         ].joined(separator: ",")
 
         var csv = "\(header)\n"
@@ -28,7 +27,7 @@ public struct CSVFormatter: IssueFormatterProtocol {
                     "\(location.lineNumber)",
                     issue.severity.rawValue,
                     CSVEscaping.escape(issue.message),
-                    issue.suggestion.map { CSVEscaping.escape($0) } ?? ""
+                    issue.suggestion.map { CSVEscaping.escape($0) } ?? "",
                 ].joined(separator: ",")
                 csv += row + "\n"
             }

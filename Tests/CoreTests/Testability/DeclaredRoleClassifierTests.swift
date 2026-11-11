@@ -1,7 +1,6 @@
-@testable import Core
 import SwiftParser
 import SwiftProjectLintModels
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -110,7 +109,7 @@ struct DeclaredRoleClassifierTests {
         let claimed: [PBTSeedRole?] = [
             role("func isValid(_ name: String) -> Bool { true }"),
             role("func compare(_ lhs: Rule, _ rhs: Rule) -> Bool { true }"),
-            role("func normalize(_ path: String) -> String { path }")
+            role("func normalize(_ path: String) -> String { path }"),
         ]
         for case let entailed? in claimed where entailed.impliesEntailedLaw {
             #expect([.comparator, .predicate, .partition].contains(entailed))

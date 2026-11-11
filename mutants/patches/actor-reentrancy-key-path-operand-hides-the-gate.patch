@@ -1,8 +1,8 @@
-diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor.swift
-index a85c8b7a..63827541 100644
---- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor.swift
-+++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor.swift
-@@ -195,9 +195,7 @@ final class ActorReentrancyVisitor: BasePatternVisitor {
+diff --git a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor+AwaitRelatedNameCollection.swift b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor+AwaitRelatedNameCollection.swift
+index 33f1948d..eb427057 100644
+--- a/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor+AwaitRelatedNameCollection.swift
++++ b/Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/CodeQuality/Visitors/ActorReentrancyVisitor+AwaitRelatedNameCollection.swift
+@@ -44,9 +44,7 @@ extension ActorReentrancyVisitor {
      /// actor's, so it must not mark the actor's `isLoading` as a resource the await consumes. It
      /// used to, and the plain-condition filter then dropped a true `guard !isLoading` finding.
      private func collectDeclRefNames(in syntax: Syntax, into names: inout Set<String>) {

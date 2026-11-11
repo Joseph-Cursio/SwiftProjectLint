@@ -1,10 +1,88 @@
 @testable import CLI
-import Core
 import Foundation
 import SwiftParser
+import SwiftProjectLintConfig
 @testable import SwiftProjectLintEngine
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
+
+/// Creates an oracle with every instance, and declares nothing.
+private final class UndeclaredOracleCreator: BasePatternVisitor {
+    private let oracle = PurityInferrer()
+
+    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+        if oracle.refutation(for: node) != nil { addIssue(node: Syntax(node)) }
+        return .visitChildren
+    }
+}
+
+/// Where the CLI names `ProjectLinter`, and what it calls `analyzeProject` or `lint` on.
+///
+/// A call counts as bound when it is made in `run()` on a constant initialized there by a
+/// `makeLinter` call whose argument passes `printToStandardError`.
+private final class LinterUseFinder: SyntaxVisitor {
+
+    private(set) var linterNamedOutsideMakeLinter: [String] = []
+    private(set) var unboundAnalyses: [String] = []
+    private(set) var boundAnalyses = 0
+    private var function: String?
+    /// The constants `run()` binds to a linter from `makeLinter` that warns on standard error.
+    private var linters: Set<String> = []
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        function = node.name.text
+        linters = []
+        return .visitChildren
+    }
+
+    override func visitPost(_: FunctionDeclSyntax) {
+        function = nil
+    }
+
+    override func visit(_ token: TokenSyntax) -> SyntaxVisitorContinueKind {
+        if token.tokenKind == .identifier("ProjectLinter"), function != "makeLinter" {
+            let use = token.parent?.trimmedDescription ?? ""
+            linterNamedOutsideMakeLinter.append("\(function ?? "file scope"): \(use)")
+        }
+        return .visitChildren
+    }
+
+    override func visit(_ node: PatternBindingSyntax) -> SyntaxVisitorContinueKind {
+        guard function == "run", let call = node.initializer?.value.as(FunctionCallExprSyntax.self) else {
+            return .visitChildren
+        }
+        let callee = call.calledExpression.trimmedDescription
+        let warnsOnStandardError = call.tokens(viewMode: .sourceAccurate).contains { $0.text == "printToStandardError" }
+        if callee == "Self.makeLinter" || callee == "makeLinter", warnsOnStandardError {
+            linters.insert(node.pattern.trimmedDescription)
+        }
+        return .visitChildren
+    }
+
+    override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
+        guard ["analyzeProject", "lint"].contains(node.declName.baseName.text) else { return .visitChildren }
+        if function == "run", let base = node.base?.trimmedDescription, linters.contains(base) {
+            boundAnalyses += 1
+        } else {
+            unboundAnalyses.append("\(function ?? "file scope"): \(node.trimmedDescription)")
+        }
+        return .visitChildren
+    }
+}
+
+/// Collects warnings from a `@Sendable` closure.
+private final class WarningBox: @unchecked Sendable {
+    // Safety: `@unchecked Sendable` — every access to `warnings` holds `lock`.
+    private let lock = NSLock()
+    private var warnings: [String] = []
+
+    func append(_ warning: String) { lock.withLock { warnings.append(warning) } }
+
+    var all: [String] { lock.withLock { warnings } }
+}
 
 /// The CLI's half of the purity gate's rerun report.
 ///
@@ -76,77 +154,4 @@ struct PurityRerunWarningTests {
         ))
         return SourcePatternDetector(registry: registry)
     }
-}
-
-/// Creates an oracle with every instance, and declares nothing.
-private final class UndeclaredOracleCreator: BasePatternVisitor {
-    private let oracle = PurityInferrer()
-
-    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
-        if oracle.refutation(for: node) != nil { addIssue(node: Syntax(node)) }
-        return .visitChildren
-    }
-}
-
-/// Where the CLI names `ProjectLinter`, and what it calls `analyzeProject` or `lint` on.
-///
-/// A call counts as bound when it is made in `run()` on a constant initialized there by a
-/// `makeLinter` call whose argument passes `printToStandardError`.
-private final class LinterUseFinder: SyntaxVisitor {
-
-    private(set) var linterNamedOutsideMakeLinter: [String] = []
-    private(set) var unboundAnalyses: [String] = []
-    private(set) var boundAnalyses = 0
-    private var function: String?
-    /// The constants `run()` binds to a linter from `makeLinter` that warns on standard error.
-    private var linters: Set<String> = []
-
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        function = node.name.text
-        linters = []
-        return .visitChildren
-    }
-
-    override func visitPost(_: FunctionDeclSyntax) {
-        function = nil
-    }
-
-    override func visit(_ token: TokenSyntax) -> SyntaxVisitorContinueKind {
-        if token.tokenKind == .identifier("ProjectLinter"), function != "makeLinter" {
-            let use = token.parent?.trimmedDescription ?? ""
-            linterNamedOutsideMakeLinter.append("\(function ?? "file scope"): \(use)")
-        }
-        return .visitChildren
-    }
-
-    override func visit(_ node: PatternBindingSyntax) -> SyntaxVisitorContinueKind {
-        guard function == "run", let call = node.initializer?.value.as(FunctionCallExprSyntax.self) else {
-            return .visitChildren
-        }
-        let callee = call.calledExpression.trimmedDescription
-        let warnsOnStandardError = call.tokens(viewMode: .sourceAccurate).contains { $0.text == "printToStandardError" }
-        if callee == "Self.makeLinter" || callee == "makeLinter", warnsOnStandardError {
-            linters.insert(node.pattern.trimmedDescription)
-        }
-        return .visitChildren
-    }
-
-    override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
-        guard ["analyzeProject", "lint"].contains(node.declName.baseName.text) else { return .visitChildren }
-        if function == "run", let base = node.base?.trimmedDescription, linters.contains(base) {
-            boundAnalyses += 1
-        } else {
-            unboundAnalyses.append("\(function ?? "file scope"): \(node.trimmedDescription)")
-        }
-        return .visitChildren
-    }
-}
-
-/// Collects warnings from a `@Sendable` closure.
-private final class WarningBox: @unchecked Sendable {
-    // Safety: `@unchecked Sendable` — every access to `warnings` holds `lock`.
-    private let lock = NSLock()
-    private var warnings: [String] = []
-    func append(_ warning: String) { lock.withLock { warnings.append(warning) } }
-    var all: [String] { lock.withLock { warnings } }
 }

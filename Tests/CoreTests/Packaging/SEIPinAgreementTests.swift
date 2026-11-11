@@ -33,7 +33,7 @@ struct SEIPinAgreementTests {
     private static let manifests = [
         "Package.swift",
         "Packages/SwiftProjectLintVisitors/Package.swift",
-        "Packages/SwiftProjectLintIdempotencyRules/Package.swift"
+        "Packages/SwiftProjectLintIdempotencyRules/Package.swift",
     ]
 
     private static var repositoryRoot: URL {

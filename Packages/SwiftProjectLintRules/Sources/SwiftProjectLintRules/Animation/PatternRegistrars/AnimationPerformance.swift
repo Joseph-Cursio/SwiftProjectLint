@@ -47,7 +47,7 @@ struct AnimationPerformance: PatternRegistrarProtocol {
                     "for a more responsive user experience.",
                 description: "Detects animation factory calls with duration parameters " +
                     "exceeding 2.0 seconds."
-            )
+            ),
         ]
     }
 

@@ -54,7 +54,7 @@ struct CSVFormatterTests {
             message: "Duplicate state",
             locations: [
                 (filePath: "A.swift", lineNumber: 10),
-                (filePath: "B.swift", lineNumber: 20)
+                (filePath: "B.swift", lineNumber: 20),
             ],
             suggestion: nil,
             ruleName: .relatedDuplicateStateVariable

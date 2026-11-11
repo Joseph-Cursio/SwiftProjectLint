@@ -1,5 +1,6 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintEngine
 import Testing
 
 /// Files the construction universe must skip or survive. The universe reaches files no run used
@@ -10,7 +11,7 @@ struct PackagePurityRobustnessTests {
 
     @Test("a file that is not UTF-8 is not in the universe, though the lenient read decodes it", arguments: [
         (path: "Sources/Lib/Item.generated.swift", excluded: [String]()),   // in the universe only
-        (path: "Vendor/Item.swift", excluded: ["Vendor/"])                    // evidence only
+        (path: "Vendor/Item.swift", excluded: ["Vendor/"]),                    // evidence only
     ])
     func nonUTF8FileIsNotInTheUniverse(path: String, excluded: [String]) async throws {
         // `swiftc` rejects a UTF-16 source, so no target compiles this `Item`; SwiftInferProperties
@@ -56,7 +57,10 @@ struct PackagePurityRobustnessTests {
     /// By name, so a failure prints the shape rather than 20 KB of `.b`.
     static let deepSources = ["else-if chain": elseIfChain, "member chain": memberChain]
 
-    @Test("a deep file in a dependency package does not take the run down", arguments: ["else-if chain", "member chain"])
+    @Test(
+        "a deep file in a dependency package does not take the run down",
+        arguments: ["else-if chain", "member chain"]
+    )
     func deepDependencyFileIsSurvived(name: String) async throws {
         let source = try #require(Self.deepSources[name])
         // The run never reports on `Sub/`, yet parses it and walks it into the facts. Both used to
@@ -71,13 +75,16 @@ struct PackagePurityRobustnessTests {
             """,
             "Sub/Package.swift": "// swift-tools-version:6.0\n",
             "Sub/Sources/Sub/Deep.swift": PackagePurityFixtures.refutingItem + "\n" + source,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         #expect(found.contains("sentinelAdd"), "\(name): the rule produced nothing")
         #expect(found.contains("countOf") == false, "\(name): the deep file did not reach the facts")
     }
 
-    @Test("a deep manifest in a dependency package does not take the run down", arguments: ["else-if chain", "member chain"])
+    @Test(
+        "a deep manifest in a dependency package does not take the run down",
+        arguments: ["else-if chain", "member chain"]
+    )
     func deepDependencyManifestIsSurvived(name: String) async throws {
         let source = try #require(Self.deepSources[name])
         // The bound parses every manifest its closure reads, and that parse ran on the cooperative
@@ -97,7 +104,7 @@ struct PackagePurityRobustnessTests {
 
             """ + source,
             "Packages/Dep/Sources/Dep/Item.swift": PackagePurityFixtures.refutingItem,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         #expect(found.contains("sentinelAdd"), "\(name): the rule produced nothing")
         #expect(found.contains("countOf") == false, "\(name): the dependency left the table")

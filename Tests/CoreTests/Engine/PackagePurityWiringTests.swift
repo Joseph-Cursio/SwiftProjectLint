@@ -1,6 +1,7 @@
-@testable import Core
 import Foundation
 import SwiftParser
+import SwiftProjectLintModels
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -27,11 +28,11 @@ struct PackagePurityWiringTests {
     func constructionRefutesThroughProjectLinter() async throws {
         let refuting = try await PackagePurityFixtures.candidates(in: [
             "Sources/Lib/Item.swift": PackagePurityFixtures.refutingItem,
-            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
         ])
         let control = try await PackagePurityFixtures.candidates(in: [
             "Sources/Lib/Item.swift": PackagePurityFixtures.plainItem,
-            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
         ])
 
         // Each subject is a candidate when `Item` is plain, so its absence below is the facts'.
@@ -87,11 +88,11 @@ struct PackagePurityWiringTests {
     func crossFileCaveatAgreesWithPerFileVerdict() async throws {
         let refuting = try await PackagePurityFixtures.lint([
             "Sources/Lib/Item.swift": PackagePurityFixtures.refutingItem,
-            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
         ])
         let control = try await PackagePurityFixtures.lint([
             "Sources/Lib/Item.swift": PackagePurityFixtures.plainItem,
-            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
         ])
         let caveat = "property-based-test candidate"
 
@@ -202,11 +203,11 @@ struct PackagePurityWiringTests {
     func concurrentRunsAreIsolated() async throws {
         let refutingPath = try PackagePurityFixtures.makeProject([
             "Sources/Lib/Item.swift": PackagePurityFixtures.refutingItem,
-            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
         ])
         let controlPath = try PackagePurityFixtures.makeProject([
             "Sources/Lib/Item.swift": PackagePurityFixtures.plainItem,
-            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
         ])
         defer {
             try? FileManager.default.removeItem(atPath: refutingPath)

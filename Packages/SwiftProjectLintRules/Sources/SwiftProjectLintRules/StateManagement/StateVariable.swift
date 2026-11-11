@@ -1,5 +1,3 @@
-import Foundation
-
 /// Represents a state-related property declared within a SwiftUI view.
 ///
 /// `StateVariable` encapsulates information about a property that uses a SwiftUI property wrapper
@@ -12,7 +10,8 @@ import Foundation
 ///   - filePath: The absolute or relative path to the file where the state variable is declared.
 ///   - lineNumber: The 1-based line number in the file where the state variable appears.
 ///   - viewName: The name of the containing SwiftUI view (typically the struct name, inferred from the file name).
-///   - propertyWrapper: The property wrapper used (e.g., `@State`, `@StateObject`, `@ObservedObject`, or `@EnvironmentObject`).
+///   - propertyWrapper: The property wrapper used (e.g., `@State`, `@StateObject`, `@ObservedObject`, or
+///     `@EnvironmentObject`).
 ///
 struct StateVariable: Sendable {
     let name: String

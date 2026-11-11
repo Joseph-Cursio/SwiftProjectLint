@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
@@ -28,7 +27,7 @@ final class PrimitiveNamedForDomainTypeVisitor: CrossFileVisitorBase, CrossFileP
         "Int", "Int8", "Int16", "Int32", "Int64",
         "UInt", "UInt8", "UInt16", "UInt32", "UInt64",
         "Double", "Float", "Bool",
-        "UUID", "URL", "Data", "Decimal"
+        "UUID", "URL", "Data", "Decimal",
     ]
 
     /// Wrapper names too generic to trust the name-correspondence signal. A project may well
@@ -49,7 +48,7 @@ final class PrimitiveNamedForDomainTypeVisitor: CrossFileVisitorBase, CrossFileP
         "element", "node", "tag", "path", "description", "source", "target",
         "input", "output", "body", "header", "token", "action", "event",
         "view", "context", "option", "config", "mode", "format", "unit",
-        "group", "number", "flag", "point", "line", "page", "row", "column"
+        "group", "number", "flag", "point", "line", "page", "row", "column",
     ]
 
     private struct NamedPosition {

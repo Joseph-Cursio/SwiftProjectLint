@@ -34,10 +34,9 @@ public struct HTMLFormatter: IssueFormatterProtocol {
         var body = ""
 
         body += summarySection(
-            total: issues.count,
-            errors: errorCount,
-            warnings: warningCount,
-            infos: infoCount,
+            ReportSummary(
+                totalIssues: issues.count, errorCount: errorCount, warningCount: warningCount, infoCount: infoCount
+            ),
             files: fileCount,
             rules: ruleCount
         )
@@ -54,15 +53,12 @@ public struct HTMLFormatter: IssueFormatterProtocol {
 
     // MARK: - Sections
 
-    private func summarySection(
-        total: Int,
-        errors: Int,
-        warnings: Int,
-        infos: Int,
-        files: Int,
-        rules: Int
-    ) -> String {
-        """
+    private func summarySection(_ counts: ReportSummary, files: Int, rules: Int) -> String {
+        let total = counts.totalIssues
+        let errors = counts.errorCount
+        let warnings = counts.warningCount
+        let infos = counts.infoCount
+        return """
         <section class="summary">
           <h2>Summary</h2>
           <div class="cards">

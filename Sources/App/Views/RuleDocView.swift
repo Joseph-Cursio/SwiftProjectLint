@@ -5,7 +5,7 @@
 //  Created by Joseph Cursio on 3/18/26.
 //
 
-import Core
+import SwiftProjectLintModels
 import SwiftUI
 
 // swiftprojectlint:disable:next large-view-body

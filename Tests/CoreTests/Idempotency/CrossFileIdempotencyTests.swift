@@ -65,7 +65,7 @@ struct CrossFileIdempotencyTests {
             "Database.swift": """
             /// @lint.effect non_idempotent
             func insert(_ id: Int) async throws {}
-            """
+            """,
         ]
 
         let visitor = runCrossFileEffect(files: files)
@@ -89,7 +89,7 @@ struct CrossFileIdempotencyTests {
             "Database.swift": """
             /// @lint.effect idempotent
             func upsert(_ id: Int) async throws {}
-            """
+            """,
         ]
 
         #expect(runCrossFileEffect(files: files).detectedIssues.isEmpty)
@@ -107,7 +107,7 @@ struct CrossFileIdempotencyTests {
             "Database.swift": """
             /// @lint.effect non_idempotent
             func insert(_ id: Int) async throws {}
-            """
+            """,
         ]
 
         let visitor = runCrossFileContext(files: files)
@@ -140,7 +140,7 @@ struct CrossFileIdempotencyTests {
             "DatabaseB.swift": """
             /// @lint.effect idempotent
             func insert(_ id: Int) async throws {}
-            """
+            """,
         ]
 
         #expect(runCrossFileEffect(files: files).detectedIssues.isEmpty)
@@ -165,7 +165,7 @@ struct CrossFileIdempotencyTests {
             "DatabaseB.swift": """
             /// @lint.effect non_idempotent
             func insert(_ id: Int) async throws {}
-            """
+            """,
         ]
 
         let issues = runCrossFileEffect(files: files).detectedIssues
@@ -198,7 +198,7 @@ struct CrossFileIdempotencyTests {
             """,
             "OtherModule.swift": """
             func insert(_ x: String) async throws {}
-            """
+            """,
         ]
 
         let issues = runCrossFileEffect(files: files).detectedIssues
@@ -243,7 +243,7 @@ struct CrossFileIdempotencyTests {
             func handle() async throws {
                 try await insert(1)
             }
-            """
+            """,
         ]
 
         let issues = runCrossFileContext(files: files).detectedIssues

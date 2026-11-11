@@ -1,12 +1,11 @@
-import SwiftEffectInference
 import SwiftParser
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
 /// Parsing-level coverage for `/// @lint.context strict_replayable`. The
 /// visitor-level behaviour (new diagnostic firing on unannotated callees)
-/// is covered by `UnannotatedInStrictReplayableContextVisitorTests`.
+/// is covered by `UnannotatedStrictReplayableVisitorTests`.
 ///
 /// Round-9 / phase-2 strict-replayable slice. See
 /// `docs/claude_phase_2_strict_replayable_plan.md`.
@@ -16,6 +15,7 @@ struct StrictReplayableContextParsingTests {
     private func firstFunctionDecl(in source: String) throws -> FunctionDeclSyntax {
         final class Finder: SyntaxVisitor {
             var decl: FunctionDeclSyntax?
+
             init() { super.init(viewMode: .sourceAccurate) }
             override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
                 if decl == nil { decl = node }
@@ -30,6 +30,7 @@ struct StrictReplayableContextParsingTests {
     private func allFunctionDecls(in source: String) -> [FunctionDeclSyntax] {
         final class Finder: SyntaxVisitor {
             var decls: [FunctionDeclSyntax] = []
+
             init() { super.init(viewMode: .sourceAccurate) }
             override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
                 decls.append(node)
@@ -44,6 +45,7 @@ struct StrictReplayableContextParsingTests {
     private func firstVariableDecl(in source: String) throws -> VariableDeclSyntax {
         final class Finder: SyntaxVisitor {
             var decl: VariableDeclSyntax?
+
             init() { super.init(viewMode: .sourceAccurate) }
             override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
                 if decl == nil { decl = node }

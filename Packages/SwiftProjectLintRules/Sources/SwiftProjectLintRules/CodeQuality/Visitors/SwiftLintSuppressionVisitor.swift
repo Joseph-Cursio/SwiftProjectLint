@@ -12,7 +12,7 @@ final class SwiftLintSuppressionVisitor: SuppressionVisitorBase {
             "swiftlint:disable:next",
             "swiftlint:disable:this",
             "swiftlint:disable:previous",
-            "swiftlint:disable"
+            "swiftlint:disable",
         ]
     }
 

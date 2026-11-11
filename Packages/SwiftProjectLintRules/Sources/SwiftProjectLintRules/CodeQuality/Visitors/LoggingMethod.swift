@@ -17,7 +17,7 @@ enum LoggingMethod {
     /// `os.Logger`'s logging methods. Closed: this is an API surface, not a convention.
     static let osLogger: Set<String> = [
         "log", "trace", "debug", "info",
-        "notice", "warning", "error", "critical", "fault"
+        "notice", "warning", "error", "critical", "fault",
     ]
 
     /// Spellings that are *not* on `os.Logger` but are what other logging libraries call

@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// A conformance written through a composition `typealias` is a conformance to every protocol
@@ -41,7 +41,7 @@ struct SingleImplementationProtocolAliasTests {
                 private let store: any OrderSaving
                 init(store: any OrderSaving) { self.store = store }
             }
-            """
+            """,
         ]
     }
 
@@ -61,7 +61,7 @@ struct SingleImplementationProtocolAliasTests {
             "Protocol 'OrderAdministration' has only one conformer ('CoreDataOrderStore') — "
                 + "consider removing the abstraction.",
             "Protocol 'OrderHistory' has only one conformer ('CoreDataOrderStore') — "
-                + "consider removing the abstraction."
+                + "consider removing the abstraction.",
         ])
     }
 
@@ -78,7 +78,7 @@ struct SingleImplementationProtocolAliasTests {
         "any OrderStore",
         "OrderStore",
         "(any OrderStore)?",
-        "any OrderSaving & OrderHistory & OrderAdministration & AnalyticsRecording"
+        "any OrderSaving & OrderHistory & OrderAdministration & AnalyticsRecording",
     ])
     func aDependencyTypedWithTheCompositionConsumesEveryRole(dependency: String) {
         var files = checkout(conformance: "OrderStore")
@@ -115,7 +115,7 @@ struct SingleImplementationProtocolAliasTests {
             """,
             "Disk.swift": "struct DiskStorage {}",
             "Disk+Storage.swift": "extension DiskStorage: Storage {}",
-            "Memory.swift": "struct MemoryStorage: Storage {}"
+            "Memory.swift": "struct MemoryStorage: Storage {}",
         ])
         #expect(issues.isEmpty)
     }
@@ -130,7 +130,7 @@ struct SingleImplementationProtocolAliasTests {
             typealias Storage = ReadOnly & Writing
             """,
             "Disk.swift": "struct DiskStorage: Storage {}",
-            "Memory.swift": "struct MemoryStorage: Storage {}"
+            "Memory.swift": "struct MemoryStorage: Storage {}",
         ])
         #expect(issues.isEmpty)
     }
@@ -144,7 +144,7 @@ struct SingleImplementationProtocolAliasTests {
             typealias Storage = Reading & Writing
             """,
             "Disk.swift": "struct DiskStorage: Storage {}",
-            "Tests/MockStorage.swift": "struct MockStorage: Storage {}"
+            "Tests/MockStorage.swift": "struct MockStorage: Storage {}",
         ])
         #expect(issues.isEmpty)
     }

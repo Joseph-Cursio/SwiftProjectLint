@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -43,7 +44,7 @@ struct TaskDetachedVisitorTests {
         Task.detached(priority: .background) {
             await work()
         }
-        """
+        """,
     ])
     func detectsVariant(source: String) {
         let visitor = makeVisitor()
@@ -69,7 +70,7 @@ struct TaskDetachedVisitorTests {
         // Unrelated member access
         """
         let result = SomeClass.detached()
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

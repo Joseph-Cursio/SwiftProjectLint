@@ -1,8 +1,8 @@
 import SwiftSyntax
 
-extension FunctionDeclSyntax {
+public extension FunctionDeclSyntax {
     /// Direct accessor for the parameter list, avoiding deep signature navigation.
-    public var parameterList: FunctionParameterListSyntax {
+    var parameterList: FunctionParameterListSyntax {
         signature.parameterClause.parameters
     }
 }

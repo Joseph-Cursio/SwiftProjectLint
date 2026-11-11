@@ -56,10 +56,11 @@ enum DependencyConformances {
         return vouched(declarations)
     }
 
+    enum DeclarationKind: Equatable { case primary, unconditionalExtension, conditionalExtension }
+
     /// One declaration header, as the scan read it.
     struct Declaration: Equatable {
-        enum Kind: Equatable { case primary, unconditionalExtension, conditionalExtension }
-        let kind: Kind
+        let kind: DeclarationKind
         /// The simple name: the last component of `Outer.Inner`.
         let name: String
         let isGeneric: Bool
@@ -91,7 +92,7 @@ enum DependencyConformances {
             let generic = capture(3, of: match, in: source) != nil
             let clause = capture(4, of: match, in: source) ?? ""
             let (inherited, isConditional) = inheritance(clause)
-            let kind: Declaration.Kind = keyword == "extension"
+            let kind: DeclarationKind = keyword == "extension"
                 ? (isConditional ? .conditionalExtension : .unconditionalExtension)
                 : .primary
             return Declaration(kind: kind, name: name, isGeneric: generic, conformances: inherited)
@@ -104,9 +105,7 @@ enum DependencyConformances {
         let pattern = #"(?m)^[ \t]*(?:@[\w.]+(?:\([^)\n]*\))?\s+)*"#
             + #"(?:(?:public|open|internal|package|fileprivate|private|final|indirect|nonisolated)\s+)*"#
             + #"(struct|enum|class|actor|extension)\s+([A-Za-z_][\w.]*)\s*(<[^>{]*>)?\s*(?::([^{]*))?\{"#
-        // A literal pattern that does not compile is a programming error, caught by the tests.
-        // swiftlint:disable:next force_try
-        return try! NSRegularExpression(pattern: pattern)
+        return Self.compiled(pattern)
     }()
 
     /// The inherited names in an inheritance clause, and whether a `where` makes it conditional.
@@ -180,9 +179,18 @@ enum DependencyConformances {
         let pattern = #"(?m)^[ \t]*(?:@[\w]+(?:\([^)\n]*\))?\s+)*"#
             + #"(?:(?:public|internal|package|fileprivate|private)\s+)?"#
             + #"import\s+(?:(?:struct|class|enum|protocol|typealias|func|var|let|actor)\s+)?([A-Za-z_]\w*)"#
-        // swiftlint:disable:next force_try
-        return try! NSRegularExpression(pattern: pattern)
+        return Self.compiled(pattern)
     }()
+
+    /// `pattern`, compiled. Every caller passes a literal, and a literal that does not compile is a
+    /// programming error, caught by the tests.
+    private static func compiled(_ pattern: String) -> NSRegularExpression {
+        do {
+            return try NSRegularExpression(pattern: pattern)
+        } catch {
+            fatalError("DependencyConformances: invalid literal pattern \(pattern): \(error)")
+        }
+    }
 
     private static func swiftFiles(under directory: URL, fileManager: FileManager) -> [URL] {
         guard let walker = fileManager.enumerator(

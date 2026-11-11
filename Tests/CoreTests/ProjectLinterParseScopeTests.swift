@@ -1,5 +1,6 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintEngine
 import Testing
 
 /// How many files a run parses: the deterministic stand-in for a wall-clock bound.
@@ -41,7 +42,7 @@ struct ProjectLinterParseScopeTests {
         struct Item {
             let title: String
         }
-        """)
+        """),
     ]
 
     /// A run parses each of the project's Swift files once, and nothing else.

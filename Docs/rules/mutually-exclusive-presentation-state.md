@@ -38,7 +38,7 @@ unreachable in the running app. Because the code is correct, this rule is an
 "make illegal states unrepresentable" improvement, not a defect.
 
 ### Discussion
-`MutuallyExclusivePresentationStateVisitor` visits each `struct` declaration and
+`ExclusivePresentationStateVisitor` visits each `struct` declaration and
 counts stored properties that are **both** (a) annotated with `@Presents` or
 `@PresentationState` **and** (b) of Optional type (`T?`). When the count is ≥ 2,
 the struct is flagged. Detection is purely structural — the `@Presents` /

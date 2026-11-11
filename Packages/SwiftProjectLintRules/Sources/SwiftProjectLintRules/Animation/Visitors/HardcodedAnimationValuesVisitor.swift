@@ -11,7 +11,7 @@ final class HardcodedAnimationValuesVisitor: BasePatternVisitor {
 
     private static let parameterLabels: Set<String> = [
         "duration", "response", "dampingFraction", "bounce",
-        "blendDuration", "speed", "repeatCount"
+        "blendDuration", "speed", "repeatCount",
     ]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

@@ -1,8 +1,8 @@
-@testable import Core
-import Foundation
-import SwiftParser
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 @testable import SwiftProjectLintRules
-import SwiftSyntax
+import SwiftProjectLintVisitors
 import Testing
 
 // MARK: - Tests targeting uncovered cross-file visitor loop paths
@@ -204,26 +204,8 @@ struct CoverageTests {
 
         let engine = CrossFileAnalysisEngine(registry: registry)
 
-        let fileA = ProjectFile(
-            name: "Alpha.swift",
-            content: """
-            import SwiftUI
-            struct AlphaView: View {
-                @State private var score = 0
-                var body: some View { Text("\\(score)") }
-            }
-            """
-        )
-        let fileB = ProjectFile(
-            name: "Beta.swift",
-            content: """
-            import SwiftUI
-            struct BetaView: View {
-                @State private var score = 0
-                var body: some View { Text("\\(score)") }
-            }
-            """
-        )
+        let fileA = Self.scoreView("AlphaView", in: "Alpha.swift")
+        let fileB = Self.scoreView("BetaView", in: "Beta.swift")
 
         let catIssues = engine.detectCrossFilePatterns(
             projectFiles: [fileA, fileB],
@@ -236,5 +218,20 @@ struct CoverageTests {
             ruleIdentifiers: [.relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable]
         )
         #expect(ruleIssues.isEmpty)
+    }
+
+    /// A view named `view` in `file` holding `@State private var score`: the duplicate the two
+    /// state-variable patterns read.
+    private static func scoreView(_ view: String, in file: String) -> ProjectFile {
+        ProjectFile(
+            name: file,
+            content: """
+            import SwiftUI
+            struct \(view): View {
+                @State private var score = 0
+                var body: some View { Text("\\(score)") }
+            }
+            """
+        )
     }
 }

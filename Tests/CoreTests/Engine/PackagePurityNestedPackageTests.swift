@@ -1,5 +1,6 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
 import Testing
 
 /// A nested package's types are in the table only when the root compiles that package — the
@@ -99,7 +100,7 @@ struct PackagePurityNestedPackageTests {
             "\(middle)/Sources/Support/Support.swift": "struct SupportOnly { let n: Int }\n",
             "Shared/Package.swift": "// swift-tools-version:6.0\n",
             "Shared/Sources/Shared/Item.swift": PackagePurityFixtures.refutingItem,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         defer { try? FileManager.default.removeItem(atPath: root) }
         #expect(await PackagePurityFixtures.universe(at: root) == [
@@ -120,7 +121,10 @@ struct PackagePurityNestedPackageTests {
         case resolved
     }
 
-    @Test("a dependency path is read for its value and matched where it resolves", arguments: DependencySpelling.allCases)
+    @Test(
+        "a dependency path is read for its value and matched where it resolves",
+        arguments: DependencySpelling.allCases
+    )
     func dependencyPathIsReadAsSwiftPMReadsIt(spelling: DependencySpelling) async throws {
         // Read as source text, the escape named no package; compared lexically against the
         // resolved root, a path through a link was outside it. Either way `Util` left the table
@@ -128,7 +132,7 @@ struct PackagePurityNestedPackageTests {
         let root = try PackagePurityFixtures.makeProject([
             "Packages/Util/Package.swift": "// swift-tools-version:6.0\n",
             "Packages/Util/Sources/Util/Item.swift": PackagePurityFixtures.refutingItem,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         let alias = root + "-alias"
         try FileManager.default.createSymbolicLink(atPath: alias, withDestinationPath: root)
@@ -177,7 +181,7 @@ struct PackagePurityNestedPackageTests {
             import PackageDescription
             let package = Package(name: "Demo", targets: [.target(name: "Demo")])
             """,
-            "Demo/Sources/Demo/Row.swift": "import Foundation\nstruct Row { let id = UUID(); let n: Int }\n"
+            "Demo/Sources/Demo/Row.swift": "import Foundation\nstruct Row { let id = UUID(); let n: Int }\n",
         ]
         if let manifest { files["Package.swift"] = manifest }
         return files

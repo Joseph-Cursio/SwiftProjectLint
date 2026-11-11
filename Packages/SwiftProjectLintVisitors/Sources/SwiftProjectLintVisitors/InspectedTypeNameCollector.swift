@@ -3,7 +3,7 @@ import SwiftSyntax
 /// Type names referenced from a file that imports ViewInspector — the project-wide answer to
 /// "is anybody trying to inspect this view?"
 ///
-/// `ObservableEnvironmentViewMissingInspectionHook` asks a view to carry test scaffolding: a
+/// `ObservableViewMissingInspectionHook` asks a view to carry test scaffolding: a
 /// stored `Inspection<Self>()` and an `.onReceive` relay in its body. That is production code
 /// added for a test, and the rule's own documentation says when it is worth it — *"a view nobody
 /// inspects needs no hook."* This catalog is how the rule can tell.

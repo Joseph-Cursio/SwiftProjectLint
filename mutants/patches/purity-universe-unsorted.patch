@@ -1,13 +1,13 @@
 diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PackagePurity.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PackagePurity.swift
-index a9cb9d0c..c74949be 100644
+index 1e2bb649..e18cb422 100644
 --- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PackagePurity.swift
 +++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/PackagePurity.swift
-@@ -82,7 +82,7 @@ public struct PackagePurity: Sendable {
+@@ -111,7 +111,7 @@ public struct PackagePurity: Sendable {
          // The shared order, not a sort of this type's own: `buildOrder` is what both consumers
          // agreed on. Each path then takes its tree back; a path given twice, its trees in the
          // order they came.
--        let universe = ConstructionUniverse.buildOrder(kept.map(\.relativePath))
-+        let universe = kept.map(\.relativePath)
+-        let buildOrder = ConstructionUniverse.buildOrder(kept.map(\.relativePath))
++        let buildOrder = kept.map(\.relativePath)
          var treesByPath: [String: [SourceFileSyntax]] = [:]
          for file in kept { treesByPath[file.relativePath, default: []].append(file.tree) }
          var taken: [String: Int] = [:]

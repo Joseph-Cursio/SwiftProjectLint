@@ -1,8 +1,47 @@
 import Foundation
-import SwiftParser
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
+
+// MARK: - Supporting Types
+
+/// Information about a state variable detected during analysis.
+struct StateVariableInfo {
+    let name: String
+    let type: String
+    let propertyWrapper: PropertyWrapper
+    let viewName: String
+    let filePath: String
+    let lineNumber: Int
+    let hasInitialValue: Bool
+    let node: VariableDeclSyntax? // Store the node (optional for tests)
+}
+
+private class StateVariableCounter: SyntaxVisitor {
+    var stateVariableCount = 0
+
+    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        // Check for @State, @StateObject, etc.
+        let propertyWrappers = node.attributes.compactMap { attribute -> String? in
+            guard let attributeSyntax = attribute.as(AttributeSyntax.self),
+                  let identifier = attributeSyntax.attributeName.as(IdentifierTypeSyntax.self) else {
+                return nil
+            }
+            return identifier.name.text
+        }
+
+        let wrappers = propertyWrappers.compactMap { PropertyWrapper(rawValue: $0) }
+        if wrappers.contains(.state) ||
+           wrappers.contains(.stateObject) ||
+           wrappers.contains(.observedObject) ||
+           wrappers.contains(.environmentObject) ||
+           wrappers.contains(.binding) {
+            stateVariableCount += 1
+        }
+
+        return .skipChildren
+    }
+}
 
 // MARK: - SwiftUI Management Visitor
 
@@ -291,45 +330,5 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         visitor.walk(node)
         count = visitor.stateVariableCount
         return count
-    }
-}
-
-// MARK: - Supporting Types
-
-/// Information about a state variable detected during analysis.
-struct StateVariableInfo {
-    let name: String
-    let type: String
-    let propertyWrapper: PropertyWrapper
-    let viewName: String
-    let filePath: String
-    let lineNumber: Int
-    let hasInitialValue: Bool
-    let node: VariableDeclSyntax? // Store the node (optional for tests)
-}
-
-private class StateVariableCounter: SyntaxVisitor {
-    var stateVariableCount = 0
-
-    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        // Check for @State, @StateObject, etc.
-        let propertyWrappers = node.attributes.compactMap { attribute -> String? in
-            guard let attribute = attribute.as(AttributeSyntax.self),
-                  let identifier = attribute.attributeName.as(IdentifierTypeSyntax.self) else {
-                return nil
-            }
-            return identifier.name.text
-        }
-
-        let wrappers = propertyWrappers.compactMap { PropertyWrapper(rawValue: $0) }
-        if wrappers.contains(.state) ||
-           wrappers.contains(.stateObject) ||
-           wrappers.contains(.observedObject) ||
-           wrappers.contains(.environmentObject) ||
-           wrappers.contains(.binding) {
-            stateVariableCount += 1
-        }
-
-        return .skipChildren
     }
 }

@@ -1,6 +1,22 @@
 import SwiftEffectInference
 import SwiftSyntax
 
+/// The witness type, re-exported under this package's own name.
+///
+/// Same reasoning as the forwarder above: `MemberImportVisibility` requires the *using* module to
+/// import the member's defining module, and a consumer naming `PurityRefutation` in a signature
+/// would otherwise need a direct `SwiftEffectInference` dependency it does not have.
+///
+/// **A typealias is enough to name the type and NOT enough to match on it**, which is worth knowing
+/// before the next consumer arrives. Measured while building this: a `switch` over the cases from a
+/// module that imports only this package fails with *"enum case 'noBody' is not available due to
+/// missing import of defining module 'SwiftEffectInference'"* — the same feature, reaching one level
+/// deeper than the forwarder pattern anticipated. `PackagePurityJoin` is unaffected because it lives
+/// in this module. A rule in `SwiftProjectLintRules` that wants to group findings by cause will need
+/// either its own SEI dependency or a rendering this package exposes; that decision belongs with the
+/// rule (SwiftProjectLint#186), not pre-empted here.
+public typealias PurityRefutation = SwiftEffectInference.PurityRefutation
+
 /// Thin forwarder onto the canonical purity oracle, which now lives in the
 /// shared leaf `SwiftEffectInference` (Idea #4 — relocate the purity
 /// *inference*, not just the `Effect` *type*, so SwiftProjectLint and
@@ -126,19 +142,3 @@ public struct PurityInferrer: Sendable {
         underlying.refutation(for: closure)
     }
 }
-
-/// The witness type, re-exported under this package's own name.
-///
-/// Same reasoning as the forwarder above: `MemberImportVisibility` requires the *using* module to
-/// import the member's defining module, and a consumer naming `PurityRefutation` in a signature
-/// would otherwise need a direct `SwiftEffectInference` dependency it does not have.
-///
-/// **A typealias is enough to name the type and NOT enough to match on it**, which is worth knowing
-/// before the next consumer arrives. Measured while building this: a `switch` over the cases from a
-/// module that imports only this package fails with *"enum case 'noBody' is not available due to
-/// missing import of defining module 'SwiftEffectInference'"* — the same feature, reaching one level
-/// deeper than the forwarder pattern anticipated. `PackagePurityJoin` is unaffected because it lives
-/// in this module. A rule in `SwiftProjectLintRules` that wants to group findings by cause will need
-/// either its own SEI dependency or a rendering this package exposes; that decision belongs with the
-/// rule (SwiftProjectLint#186), not pre-empted here.
-public typealias PurityRefutation = SwiftEffectInference.PurityRefutation

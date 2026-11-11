@@ -34,7 +34,7 @@ struct WithAnimation: PatternRegistrarProtocol {
                     "or remove the withAnimation wrapper if no animation is needed.",
                 description: "Detects withAnimation closures that contain no assignments, " +
                     "compound assignments, or toggle() calls."
-            )
+            ),
         ]
     }
 

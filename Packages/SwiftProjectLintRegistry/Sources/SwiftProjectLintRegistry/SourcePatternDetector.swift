@@ -1,4 +1,3 @@
-import Foundation
 import SwiftParser
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
@@ -172,7 +171,7 @@ public final class SourcePatternDetector: SourcePatternDetectorProtocol, @unchec
         .taskYieldOffload,
         .printStatement,
         .publicInAppTarget,
-        .multipleTypesPerFile
+        .multipleTypesPerFile,
     ]
 
     /// Groups patterns by visitor type, runs each visitor once, and filters

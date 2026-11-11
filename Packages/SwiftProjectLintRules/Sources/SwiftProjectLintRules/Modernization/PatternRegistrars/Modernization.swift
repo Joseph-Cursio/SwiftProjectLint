@@ -32,7 +32,7 @@ class Modernization: BasePatternRegistrar {
             LegacyArrayInit(),
             LegacyClosureSyntax(),
             IOS17ObservationMigration(),
-            MemberImportVisibilityNotEnabled()
+            MemberImportVisibilityNotEnabled(),
         ])
     }
 }

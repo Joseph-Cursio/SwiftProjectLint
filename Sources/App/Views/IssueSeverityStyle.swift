@@ -1,4 +1,4 @@
-import Core
+import SwiftProjectLintModels
 import SwiftUI
 
 /// How a severity is drawn: an icon, a colour, and the label VoiceOver reads.

@@ -107,7 +107,9 @@ let package = Package(
             name: "CLI",
             dependencies: [
                 "Core",
-                .product(name: "ArgumentParser", package: "swift-argument-parser")
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                "SwiftProjectLintEngine",
+                "SwiftProjectLintModels",
             ],
             path: "Sources/CLI",
             swiftSettings: engineSwiftSettings
@@ -115,8 +117,13 @@ let package = Package(
         .executableTarget(
             name: "App",
             dependencies: [
-                "Core",
-                .product(name: "LintStudioUI", package: "LintStudioUI")
+                .product(name: "LintStudioUI", package: "LintStudioUI"),
+                .product(name: "LintStudioCore", package: "LintStudioUI"),
+                "SwiftProjectLintConfig",
+                "SwiftProjectLintEngine",
+                "SwiftProjectLintModels",
+                "SwiftProjectLintRegistry",
+                "SwiftProjectLintVisitors",
             ],
             path: "Sources/App",
             resources: [
@@ -127,7 +134,15 @@ let package = Package(
         ),
         .testTarget(
             name: "CLITests",
-            dependencies: ["Core", "CLI"],
+            dependencies: [
+                "Core",
+                "CLI",
+                "SwiftProjectLintConfig",
+                "SwiftProjectLintEngine",
+                "SwiftProjectLintModels",
+                "SwiftProjectLintRegistry",
+                "SwiftProjectLintVisitors",
+            ],
             path: "Tests/CLITests",
             swiftSettings: engineSwiftSettings
         ),
@@ -138,7 +153,13 @@ let package = Package(
                 "SwiftProjectLintIdempotencyRules",
                 .product(name: "PropertyBased", package: "swift-property-based"),
                 .product(name: "PropertyLawKit", package: "SwiftPropertyLaws"),
-                .product(name: "SwiftEffectInference", package: "SwiftEffectInference")
+                .product(name: "SwiftEffectInference", package: "SwiftEffectInference"),
+                "SwiftProjectLintConfig",
+                "SwiftProjectLintEngine",
+                "SwiftProjectLintModels",
+                "SwiftProjectLintRegistry",
+                "SwiftProjectLintRules",
+                "SwiftProjectLintVisitors",
             ],
             path: "Tests/CoreTests",
             swiftSettings: engineSwiftSettings
@@ -146,8 +167,13 @@ let package = Package(
         .testTarget(
             name: "AppTests",
             dependencies: [
-                "Core", "App", "ViewInspector",
-                .product(name: "LintStudioUI", package: "LintStudioUI")
+                "App", "ViewInspector",
+                .product(name: "LintStudioUI", package: "LintStudioUI"),
+                "SwiftProjectLintConfig",
+                "SwiftProjectLintEngine",
+                "SwiftProjectLintModels",
+                "SwiftProjectLintRegistry",
+                "SwiftProjectLintVisitors",
             ],
             path: "Tests/AppTests",
             swiftSettings: engineSwiftSettings

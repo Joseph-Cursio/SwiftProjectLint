@@ -111,16 +111,16 @@ public struct PackagePurity: Sendable {
         // The shared order, not a sort of this type's own: `buildOrder` is what both consumers
         // agreed on. Each path then takes its tree back; a path given twice, its trees in the
         // order they came.
-        let universe = ConstructionUniverse.buildOrder(kept.map(\.relativePath))
+        let buildOrder = ConstructionUniverse.buildOrder(kept.map(\.relativePath))
         var treesByPath: [String: [SourceFileSyntax]] = [:]
         for file in kept { treesByPath[file.relativePath, default: []].append(file.tree) }
         var taken: [String: Int] = [:]
-        let trees = universe.compactMap { path -> SourceFileSyntax? in
+        let trees = buildOrder.compactMap { path -> SourceFileSyntax? in
             let index = taken[path, default: 0]
             taken[path] = index + 1
             return treesByPath[path]?[index]
         }
-        return Self(universe: universe, constructionFacts: .build(from: trees))
+        return Self(universe: buildOrder, constructionFacts: .build(from: trees))
     }
 
     /// Whether the table refutes nothing — the oracle then answers exactly as unconfigured.

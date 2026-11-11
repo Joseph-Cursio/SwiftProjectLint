@@ -12,11 +12,11 @@ extension InspectionChainEvaluator {
     /// or an iterating closure's parameter, holds an element of what it iterates.
     func subjectType(of subject: ExprSyntax, depth: Int) -> String? {
         guard depth < Self.maxDepth else { return nil }
-        let subject = Self.unwrapped(subject)
-        if let call = subject.as(FunctionCallExprSyntax.self) {
+        let unwrappedSubject = Self.unwrapped(subject)
+        if let call = unwrappedSubject.as(FunctionCallExprSyntax.self) {
             return subjectType(ofCall: call, depth: depth)
         }
-        switch binding(named: subject) {
+        switch binding(named: unwrappedSubject) {
         case let .value(value, annotation):
             return subjectType(of: value, depth: depth + 1) ?? annotation.flatMap(Self.typeName(of:))
 
@@ -35,13 +35,13 @@ extension InspectionChainEvaluator {
     /// when they all have the same one.
     private func elementType(of sequence: ExprSyntax, depth: Int) -> String? {
         guard depth < Self.maxDepth else { return nil }
-        let sequence = Self.unwrapped(sequence)
-        if let array = sequence.as(ArrayExprSyntax.self) {
+        let unwrappedSequence = Self.unwrapped(sequence)
+        if let array = unwrappedSequence.as(ArrayExprSyntax.self) {
             let types = Set(array.elements.map { subjectType(of: $0.expression, depth: depth + 1) })
             guard types.count == 1, let only = types.first else { return nil }
             return only
         }
-        switch binding(named: sequence) {
+        switch binding(named: unwrappedSequence) {
         case let .value(value, annotation):
             return elementType(of: value, depth: depth + 1) ?? annotation.flatMap(Self.arrayElementTypeName(of:))
 
@@ -213,8 +213,12 @@ extension InspectionChainEvaluator {
                 let requirement = extensionDecl.genericWhereClause?.requirements.lazy.compactMap { requirement in
                     requirement.requirement.as(SameTypeRequirementSyntax.self).flatMap(Self.viewTypeRequirement)
                 }.first
-                let (kind, viewType, subjectType) = InspectableViewType.read(viewTypeArgument: requirement ?? "")
-                return .root(kind, ownership: ownership(subjectType), after: viewType)
+                let argumentType = InspectableViewType.read(viewTypeArgument: requirement ?? "")
+                return .root(
+                    argumentType.kind,
+                    ownership: ownership(argumentType.subjectType),
+                    after: argumentType.viewType
+                )
             }
             if scope.is(StructDeclSyntax.self) || scope.is(ClassDeclSyntax.self)
                 || scope.is(EnumDeclSyntax.self) || scope.is(ActorDeclSyntax.self) {

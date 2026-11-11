@@ -1,5 +1,6 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
 import Testing
 
 @Suite
@@ -62,14 +63,14 @@ struct ActorReentrancyEndToEndTests {
 
     private func makeTempPackageRoot(named: String) -> String {
         let base = FileManager.default.temporaryDirectory.path
-        let root = (base as NSString).appendingPathComponent("\(named)-\(UUID().uuidString)")
+        let root = PathString.appending("\(named)-\(UUID().uuidString)", to: base)
         writeFile(at: "\(root)/Package.swift", "// swift-tools-version:6.0\n")
         return root
     }
 
     private func writeFile(at path: String, _ content: String) {
         try? FileManager.default.createDirectory(
-            atPath: (path as NSString).deletingLastPathComponent,
+            atPath: PathString.deletingLastComponent(of: path),
             withIntermediateDirectories: true
         )
         try? content.write(toFile: path, atomically: true, encoding: .utf8)

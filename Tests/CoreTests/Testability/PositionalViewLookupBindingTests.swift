@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// Where a name used in a chain was bound, and where it was not: the scopes a second review

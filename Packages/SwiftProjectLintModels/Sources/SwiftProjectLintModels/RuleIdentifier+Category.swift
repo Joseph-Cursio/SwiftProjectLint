@@ -6,12 +6,11 @@
 //  together with every new rule, and together they pushed the enum body past the
 //  type_body_length limit. Keeping the switch here lets both halves grow freely.
 //
-import Foundation
 
-extension RuleIdentifier {
+public extension RuleIdentifier {
 
     /// Returns the category this rule belongs to
-    public var category: PatternCategory {
+    var category: PatternCategory {
         switch self {
         // State Management Rules
         case .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable,

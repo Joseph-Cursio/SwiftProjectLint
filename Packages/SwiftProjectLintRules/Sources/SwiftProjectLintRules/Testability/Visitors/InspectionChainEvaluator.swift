@@ -27,17 +27,17 @@ final class InspectionChainEvaluator {
 
     private func evaluate(_ expr: ExprSyntax, depth: Int) -> ChainEvaluation {
         guard depth < Self.maxDepth else { return .unrelated }
-        let expr = Self.unwrapped(expr)
-        if let call = expr.as(FunctionCallExprSyntax.self) {
+        let unwrappedExpr = Self.unwrapped(expr)
+        if let call = unwrappedExpr.as(FunctionCallExprSyntax.self) {
             return evaluateCall(call, depth: depth)
         }
-        if let subscriptCall = expr.as(SubscriptCallExprSyntax.self) {
+        if let subscriptCall = unwrappedExpr.as(SubscriptCallExprSyntax.self) {
             return evaluateSubscript(subscriptCall, depth: depth)
         }
-        if let member = expr.as(MemberAccessExprSyntax.self), let base = member.base {
+        if let member = unwrappedExpr.as(MemberAccessExprSyntax.self), let base = member.base {
             return evaluateProperty(member, of: base, depth: depth)
         }
-        if let reference = expr.as(DeclReferenceExprSyntax.self) {
+        if let reference = unwrappedExpr.as(DeclReferenceExprSyntax.self) {
             return ChainEvaluation(state: state(of: reference, depth: depth))
         }
         return .unrelated
@@ -113,7 +113,7 @@ final class InspectionChainEvaluator {
         // A toolbar's only child. On a custom view's body `[0]` is the first of its views, below.
         if state.kind == .singleChild, index == "0" {
             return receiver.then(InspectionStep.oneLevelDown(
-                from: state, to: .found, ownership: state.ownership, step: "[0]", written: "[0]", node: step.node
+                from: state, to: .found, step: "[0]", written: "[0]", node: step.node
             ))
         }
         if key.map(isLoopOverEveryPosition) == true {
@@ -133,7 +133,11 @@ final class InspectionChainEvaluator {
     /// container — a custom view's body among them — both are children by position, except a
     /// `ForEach`'s rows and a found view, whose only child is itself, and a toolbar's only child.
     /// `self.x` reads a property. Any other property ends the chain.
-    private func evaluateProperty(_ member: MemberAccessExprSyntax, of base: ExprSyntax, depth: Int) -> ChainEvaluation {
+    private func evaluateProperty(
+        _ member: MemberAccessExprSyntax,
+        of base: ExprSyntax,
+        depth: Int
+    ) -> ChainEvaluation {
         let name = member.declName.baseName.text
         if Self.namesEnclosingType(Self.unwrapped(base), from: Syntax(member)) {
             let binding = resolver.resolveProperty(name, from: Syntax(member))
@@ -154,7 +158,7 @@ final class InspectionChainEvaluator {
         }
         if state.kind == .singleChild, name == "first" {
             return receiver.then(InspectionStep.oneLevelDown(
-                from: state, to: .found, ownership: state.ownership, step: ".first", written: ".first", node: node
+                from: state, to: .found, step: ".first", written: ".first", node: node
             ))
         }
         guard state.isDataReceiver == false else { return receiver.then(ChainEvaluation(state: state.element)) }

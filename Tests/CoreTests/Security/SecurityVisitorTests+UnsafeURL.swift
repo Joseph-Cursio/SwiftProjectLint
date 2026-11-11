@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// Unsafe URL's reading of the `string:` argument: which parts of it are the URL's text, and when

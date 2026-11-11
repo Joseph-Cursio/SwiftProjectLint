@@ -11,6 +11,108 @@ public struct OnceReachInference: Sendable, Equatable {
     }
 }
 
+// MARK: - Collectors
+
+/// Every `FunctionDeclSyntax` in a file. Descent stops at closures: a function declared inside
+/// a closure body cannot be called by name from outside it.
+final class ContextAnnotatedDeclCollector: SyntaxVisitor {
+    var functions: [FunctionDeclSyntax] = []
+
+    init() {
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        functions.append(node)
+        return .visitChildren
+    }
+
+    override func visit(_: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+        .skipChildren
+    }
+}
+
+/// Every closure-typed property declaration in a file, which the pseudo-method registration
+/// path treats as callable by name.
+final class ContextAnnotatedPropertyCollector: SyntaxVisitor {
+    var properties: [VariableDeclSyntax] = []
+
+    init() {
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        properties.append(node)
+        return .visitChildren
+    }
+
+    override func visit(_: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+        .skipChildren
+    }
+}
+
+/// Every `FunctionDeclSyntax` that does *not* carry a `@lint.context` annotation. Once-reach
+/// only infers through un-annotated functions — an annotated one states its own contract and
+/// is not overridden by what it happens to call.
+final class ContextUnannotatedFunctionCollector: SyntaxVisitor {
+    var functions: [FunctionDeclSyntax] = []
+
+    init() {
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        if ContextAnnotationParser.parseContext(declaration: node) == nil {
+            functions.append(node)
+        }
+        return .visitChildren
+    }
+
+    override func visit(_: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
+        .skipChildren
+    }
+}
+
+/// Closure-escape policy used by once-reach inference. The same set as the idempotency rule
+/// visitors, so reach inference and direct-call detection agree on what counts as a retry
+/// boundary.
+enum OnceReachClosurePolicy {
+    static func isEscaping(_ closure: ClosureExprSyntax) -> Bool {
+        var node = Syntax(closure).parent
+        while let current = node {
+            if let call = current.as(FunctionCallExprSyntax.self) {
+                if let name = directCalleeName(of: call.calledExpression),
+                   escapingCalleeNames.contains(name) {
+                    return true
+                }
+                return false
+            }
+            node = current.parent
+        }
+        return false
+    }
+
+    private static func directCalleeName(of expr: ExprSyntax) -> String? {
+        if let ref = expr.as(DeclReferenceExprSyntax.self) {
+            return ref.baseName.text
+        }
+        if let member = expr.as(MemberAccessExprSyntax.self) {
+            return member.declName.baseName.text
+        }
+        return nil
+    }
+
+    private static let escapingCalleeNames: Set<String> = [
+        "Task",
+        "detached",
+        "withTaskGroup",
+        "withThrowingTaskGroup",
+        "withDiscardingTaskGroup",
+        "withThrowingDiscardingTaskGroup",
+        "task",
+    ]
+}
+
 /// Cross-file lookup for the **execution-context** axis: `@lint.context replayable`,
 /// `retry_safe`, `once`, `strict_replayable`.
 ///
@@ -216,106 +318,4 @@ public struct ContextSymbolTable: Sendable {
             collectOnceReachDepths(in: child, accumulator: &accumulator)
         }
     }
-}
-
-// MARK: - Collectors
-
-/// Every `FunctionDeclSyntax` in a file. Descent stops at closures: a function declared inside
-/// a closure body cannot be called by name from outside it.
-final class ContextAnnotatedDeclCollector: SyntaxVisitor {
-    var functions: [FunctionDeclSyntax] = []
-
-    init() {
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        functions.append(node)
-        return .visitChildren
-    }
-
-    override func visit(_: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
-        .skipChildren
-    }
-}
-
-/// Every closure-typed property declaration in a file, which the pseudo-method registration
-/// path treats as callable by name.
-final class ContextAnnotatedPropertyCollector: SyntaxVisitor {
-    var properties: [VariableDeclSyntax] = []
-
-    init() {
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        properties.append(node)
-        return .visitChildren
-    }
-
-    override func visit(_: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
-        .skipChildren
-    }
-}
-
-/// Every `FunctionDeclSyntax` that does *not* carry a `@lint.context` annotation. Once-reach
-/// only infers through un-annotated functions — an annotated one states its own contract and
-/// is not overridden by what it happens to call.
-final class ContextUnannotatedFunctionCollector: SyntaxVisitor {
-    var functions: [FunctionDeclSyntax] = []
-
-    init() {
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        if ContextAnnotationParser.parseContext(declaration: node) == nil {
-            functions.append(node)
-        }
-        return .visitChildren
-    }
-
-    override func visit(_: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
-        .skipChildren
-    }
-}
-
-/// Closure-escape policy used by once-reach inference. The same set as the idempotency rule
-/// visitors, so reach inference and direct-call detection agree on what counts as a retry
-/// boundary.
-enum OnceReachClosurePolicy {
-    static func isEscaping(_ closure: ClosureExprSyntax) -> Bool {
-        var node = Syntax(closure).parent
-        while let current = node {
-            if let call = current.as(FunctionCallExprSyntax.self) {
-                if let name = directCalleeName(of: call.calledExpression),
-                   escapingCalleeNames.contains(name) {
-                    return true
-                }
-                return false
-            }
-            node = current.parent
-        }
-        return false
-    }
-
-    private static func directCalleeName(of expr: ExprSyntax) -> String? {
-        if let ref = expr.as(DeclReferenceExprSyntax.self) {
-            return ref.baseName.text
-        }
-        if let member = expr.as(MemberAccessExprSyntax.self) {
-            return member.declName.baseName.text
-        }
-        return nil
-    }
-
-    private static let escapingCalleeNames: Set<String> = [
-        "Task",
-        "detached",
-        "withTaskGroup",
-        "withThrowingTaskGroup",
-        "withDiscardingTaskGroup",
-        "withThrowingDiscardingTaskGroup",
-        "task"
-    ]
 }

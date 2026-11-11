@@ -1,6 +1,5 @@
 import SwiftEffectInference
 import SwiftParser
-@testable import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -17,6 +16,7 @@ struct AttributeFormAnnotationTests {
     private func firstFunction(in source: String) throws -> FunctionDeclSyntax {
         final class Finder: SyntaxVisitor {
             var decl: FunctionDeclSyntax?
+
             init() { super.init(viewMode: .sourceAccurate) }
             override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
                 if decl == nil { decl = node }
@@ -31,6 +31,7 @@ struct AttributeFormAnnotationTests {
     private func firstVariable(in source: String) throws -> VariableDeclSyntax {
         final class Finder: SyntaxVisitor {
             var decl: VariableDeclSyntax?
+
             init() { super.init(viewMode: .sourceAccurate) }
             override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
                 if decl == nil { decl = node }

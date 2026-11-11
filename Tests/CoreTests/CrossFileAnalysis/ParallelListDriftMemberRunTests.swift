@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -84,7 +85,7 @@ struct ParallelListDriftMemberRunTests {
         let issues = analyze(files: [
             "Assistant.swift": Self.compactCollector,
             "Checker.swift": Self.spreadCollector,
-            "Importer.swift": Self.validation
+            "Importer.swift": Self.validation,
         ])
         #expect(issues.count == 1)
         let issue = try #require(issues.first)
@@ -110,7 +111,7 @@ struct ParallelListDriftMemberRunTests {
                 func lists(_ after: Config) -> [[String]?] {
                     [after.rules, after.disabledRules, after.optInRules, after.analyzerRules]
                 }
-                """
+                """,
         ])
         let issue = try #require(issues.first)
         #expect(issue.message.contains("`after in lists`"))
@@ -149,7 +150,7 @@ struct ParallelListDriftMemberRunTests {
         let issues = analyze(files: [
             "A.swift": setup("first", "label.isSelectable = false"),
             "B.swift": setup("second", "label.isSelectable = false"),
-            "C.swift": setup("third", "")
+            "C.swift": setup("third", ""),
         ])
         #expect(issues.isEmpty)
     }
@@ -167,7 +168,7 @@ struct ParallelListDriftMemberRunTests {
             // Missing `parameters`, read beside the flags: silent.
             "C.swift": gate("isInvolution", flags),
             // Missing `isMutating`, one of the flags: reported.
-            "D.swift": gate("isComparator", ["summary.parameters.count == 1"] + flags.dropLast())
+            "D.swift": gate("isComparator", ["summary.parameters.count == 1"] + flags.dropLast()),
         ])
         let issue = try #require(issues.first)
         #expect(issues.count == 1)
@@ -185,7 +186,7 @@ struct ParallelListDriftMemberRunTests {
         let issues = analyze(files: [
             "A.swift": gate("isMeasure", ["isStatic", "isAsync", "isThrows", "isMutating"]),
             "B.swift": gate("isPredicate", ["isStatic", "isAsync", "isThrows", "isMutating"]),
-            "C.swift": gate("isComparator", ["isStatic", "isAsync", "isThrows", "isOptional"])
+            "C.swift": gate("isComparator", ["isStatic", "isAsync", "isThrows", "isOptional"]),
         ])
         #expect(issues.isEmpty)
     }

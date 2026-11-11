@@ -1,5 +1,50 @@
 import SwiftSyntax
 
+/// Gathers the member names an `extension` block declares, keyed by the extended type.
+///
+/// The key is the extended type's leading identifier, so `extension Array<Int>` and
+/// `extension Array` both key on `Array`. Nested spellings (`extension Outer.Inner`) key on the
+/// last component, which is what a per-file visitor visiting `Inner` has to match against.
+public final class ExtensionMemberCollector: SyntaxVisitor {
+    private(set) var membersByType: [String: Set<String>] = [:]
+
+    override public func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
+        guard let name = Self.extendedTypeName(node.extendedType) else { return .visitChildren }
+        membersByType[name, default: []].formUnion(Self.memberNames(in: node.memberBlock))
+        return .visitChildren
+    }
+
+    /// The name an extension extends, or `nil` for a spelling this cannot read.
+    public static func extendedTypeName(_ type: TypeSyntax) -> String? {
+        if let identifier = type.as(IdentifierTypeSyntax.self) {
+            return identifier.name.text
+        }
+        if let member = type.as(MemberTypeSyntax.self) {
+            return member.name.text
+        }
+        return nil
+    }
+
+    /// The `var` and `func` names an extension's body declares. Nested types are not descended
+    /// into: their members belong to the nested type, not to the extended one.
+    public static func memberNames(in memberBlock: MemberBlockSyntax) -> Set<String> {
+        var names: Set<String> = []
+        for member in memberBlock.members {
+            if let function = member.decl.as(FunctionDeclSyntax.self) {
+                names.insert(function.name.text)
+            }
+            if let variable = member.decl.as(VariableDeclSyntax.self) {
+                for binding in variable.bindings {
+                    if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) {
+                        names.insert(identifier.identifier.text)
+                    }
+                }
+            }
+        }
+        return names
+    }
+}
+
 /// Per type, the member names declared in `extension` blocks anywhere in the project.
 ///
 /// ## Why this exists
@@ -67,50 +112,5 @@ public struct ExtensionMemberCatalog: Sendable, Equatable {
             collector.walk(source)
             return collector.membersByType
         })
-    }
-}
-
-/// Gathers the member names an `extension` block declares, keyed by the extended type.
-///
-/// The key is the extended type's leading identifier, so `extension Array<Int>` and
-/// `extension Array` both key on `Array`. Nested spellings (`extension Outer.Inner`) key on the
-/// last component, which is what a per-file visitor visiting `Inner` has to match against.
-public final class ExtensionMemberCollector: SyntaxVisitor {
-    private(set) var membersByType: [String: Set<String>] = [:]
-
-    override public func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard let name = Self.extendedTypeName(node.extendedType) else { return .visitChildren }
-        membersByType[name, default: []].formUnion(Self.memberNames(in: node.memberBlock))
-        return .visitChildren
-    }
-
-    /// The name an extension extends, or `nil` for a spelling this cannot read.
-    public static func extendedTypeName(_ type: TypeSyntax) -> String? {
-        if let identifier = type.as(IdentifierTypeSyntax.self) {
-            return identifier.name.text
-        }
-        if let member = type.as(MemberTypeSyntax.self) {
-            return member.name.text
-        }
-        return nil
-    }
-
-    /// The `var` and `func` names an extension's body declares. Nested types are not descended
-    /// into: their members belong to the nested type, not to the extended one.
-    public static func memberNames(in memberBlock: MemberBlockSyntax) -> Set<String> {
-        var names: Set<String> = []
-        for member in memberBlock.members {
-            if let function = member.decl.as(FunctionDeclSyntax.self) {
-                names.insert(function.name.text)
-            }
-            if let variable = member.decl.as(VariableDeclSyntax.self) {
-                for binding in variable.bindings {
-                    if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) {
-                        names.insert(identifier.identifier.text)
-                    }
-                }
-            }
-        }
-        return names
     }
 }

@@ -1,6 +1,6 @@
-import Core
 import Foundation
 import LintStudioCore
+import SwiftProjectLintModels
 
 extension IssueSeverity: @retroactive LintSeverity {
     public var displayName: String { rawValue.capitalized }

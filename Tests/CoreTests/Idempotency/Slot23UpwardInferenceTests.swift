@@ -1,7 +1,6 @@
 import SwiftEffectInference
 import SwiftParser
-@testable import SwiftProjectLintVisitors
-import SwiftSyntax
+import SwiftProjectLintVisitors
 import Testing
 
 /// Tests the slot-23 fix: upward inference must populate `upwardInferredEffects`

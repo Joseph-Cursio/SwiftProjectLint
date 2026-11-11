@@ -1,4 +1,11 @@
-import Foundation
+enum RelationshipType: Sendable {
+    case directChild
+    case navigationDestination
+    case sheet
+    case fullScreenCover
+    case popover
+    case alert
+}
 
 // MARK: - Advanced Analysis Models
 
@@ -36,13 +43,4 @@ struct ViewRelationship: Sendable {
     let relationshipType: RelationshipType
     let lineNumber: Int
     let filePath: String
-}
-
-enum RelationshipType: Sendable {
-    case directChild
-    case navigationDestination
-    case sheet
-    case fullScreenCover
-    case popover
-    case alert
 }

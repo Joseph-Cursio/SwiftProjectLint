@@ -10,6 +10,8 @@ public enum BuiltInRules {
     private static let lock = NSLock()
     nonisolated(unsafe) private static var registered = false
 
+    /// Registers every built-in category factory once; later calls return after the first
+    /// has finished.
     public static func registerAll() {
         // The lock is held for the whole of registration, not just the flag
         // check. Setting `registered` and *then* registering outside the lock
@@ -79,13 +81,6 @@ public enum BuiltInRules {
         }
         SourcePatternRegistry.registerFactory { registry, visitorRegistry in
             Testability(registry: registry, visitorRegistry: visitorRegistry)
-        }
-    }
-
-    /// Resets registration state. Used by tests to ensure a clean slate.
-    static func reset() {
-        lock.withLock {
-            registered = false
         }
     }
 }

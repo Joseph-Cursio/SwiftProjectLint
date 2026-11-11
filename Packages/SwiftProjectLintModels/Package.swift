@@ -6,26 +6,26 @@ import PackageDescription
 // applied here — this package feeds the background AST-analysis engine.
 let swiftSettings: [SwiftSetting] = [
     .swiftLanguageMode(.v6),
-    .enableUpcomingFeature("MemberImportVisibility")
+    .enableUpcomingFeature("MemberImportVisibility"),
 ]
 
 let package = Package(
     name: "SwiftProjectLintModels",
     platforms: [
         .macOS(.v26),
-        .iOS(.v26)
+        .iOS(.v26),
     ],
     products: [
         .library(
             name: "SwiftProjectLintModels",
             targets: ["SwiftProjectLintModels"]
-        )
+        ),
     ],
     targets: [
         .target(
             name: "SwiftProjectLintModels",
             path: "Sources/SwiftProjectLintModels",
             swiftSettings: swiftSettings
-        )
+        ),
     ]
 )

@@ -37,7 +37,7 @@ class MemoryManagement: BasePatternRegistrar {
                 description: "Surfaces raw-pointer types, unsafeBitCast/unsafeDowncast, the "
                     + "withUnsafe… APIs, manual memory rebinding, and Unmanaged — escape "
                     + "hatches out of Swift's memory safety that should be audited."
-            )
+            ),
         ]
         registry.register(patterns: patterns)
     }

@@ -1,7 +1,5 @@
 import enum SwiftEffectInference.Effect
-import SwiftParser
-@testable import SwiftProjectLintVisitors
-import SwiftSyntax
+import SwiftProjectLintVisitors
 import Testing
 
 /// ComposableArchitecture (TCA) `send` closure-parameter override — when
@@ -11,7 +9,7 @@ import Testing
 /// `FrameworkAllowlistGatingTests` so the base struct stays under SwiftLint's
 /// `type_body_length` threshold.
 @Suite
-struct FrameworkAllowlistTCATests {
+struct FrameworkAllowlistTCATests: FrameworkAllowlistTestSupport {
 
     // MARK: - ComposableArchitecture (TCA) send-closure-parameter override
 

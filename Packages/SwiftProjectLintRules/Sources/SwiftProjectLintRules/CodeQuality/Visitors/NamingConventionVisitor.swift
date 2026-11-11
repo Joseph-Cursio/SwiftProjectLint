@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
@@ -42,7 +41,7 @@ class NamingConventionVisitor: BasePatternVisitor {
         "Validator", "Reporter", "Visitor",
         "Handler", "Delegate", "DataSource",
         "Factory", "Builder", "Context",
-        "Comparable", "Convertible"
+        "Comparable", "Convertible",
     ]
 
     override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
@@ -150,7 +149,7 @@ class NamingConventionVisitor: BasePatternVisitor {
     private static let swiftUIComponentProtocols: Set<String> = [
         "View", "ViewModifier", "ToolbarContent", "CustomizableToolbarContent",
         "Commands", "Scene", "App", "Shape", "InsettableShape",
-        "PreviewProvider", "LibraryContentProvider"
+        "PreviewProvider", "LibraryContentProvider",
     ]
 
     private func checkNonActorAgentSuffix(

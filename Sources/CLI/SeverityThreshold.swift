@@ -1,5 +1,5 @@
 import ArgumentParser
-import Core
+import SwiftProjectLintModels
 
 /// The minimum severity level that triggers a non-zero exit code.
 enum SeverityThreshold: String, ExpressibleByArgument, CaseIterable {

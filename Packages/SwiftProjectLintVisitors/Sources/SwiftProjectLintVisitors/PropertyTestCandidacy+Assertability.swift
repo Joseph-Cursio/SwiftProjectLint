@@ -61,10 +61,10 @@ extension PropertyTestCandidacy {
         knownEquatableTypes: Set<String>,
         isPartial: Bool
     ) -> Bool {
-        let type = unparenthesized(type)
-        guard let tuple = type.as(TupleTypeSyntax.self) else {
+        let bareType = unparenthesized(type)
+        guard let tuple = bareType.as(TupleTypeSyntax.self) else {
             return nominalIsAssertable(
-                type,
+                bareType,
                 enclosingTypeName: enclosingTypeName,
                 knownEquatableTypes: knownEquatableTypes
             )
@@ -145,15 +145,15 @@ extension PropertyTestCandidacy {
         enclosingTypeName: String?,
         knownEquatableTypes: Set<String>
     ) -> Bool {
-        let type = unparenthesized(type)
+        let bareType = unparenthesized(type)
         let inner: TypeSyntax
-        if let optional = type.as(OptionalTypeSyntax.self) {
+        if let optional = bareType.as(OptionalTypeSyntax.self) {
             inner = optional.wrappedType
-        } else if let implicit = type.as(ImplicitlyUnwrappedOptionalTypeSyntax.self) {
+        } else if let implicit = bareType.as(ImplicitlyUnwrappedOptionalTypeSyntax.self) {
             inner = implicit.wrappedType
-        } else if let array = type.as(ArrayTypeSyntax.self) {
+        } else if let array = bareType.as(ArrayTypeSyntax.self) {
             inner = array.element
-        } else if let compared = comparedArgument(of: type) {
+        } else if let compared = comparedArgument(of: bareType) {
             // A value `==` compares directly must pass the nominal check as well.
             return elementIsAssertable(
                 compared,
@@ -207,16 +207,16 @@ extension PropertyTestCandidacy {
     /// Local to this check on purpose: `baseTypeName` also names extended types and enclosing
     /// containers, and widening it would move those answers too.
     static func comparedNominalName(_ type: TypeSyntax) -> String? {
-        let type = unparenthesized(type)
-        if let optional = type.as(OptionalTypeSyntax.self) { return comparedNominalName(optional.wrappedType) }
-        if let implicit = type.as(ImplicitlyUnwrappedOptionalTypeSyntax.self) {
+        let bareType = unparenthesized(type)
+        if let optional = bareType.as(OptionalTypeSyntax.self) { return comparedNominalName(optional.wrappedType) }
+        if let implicit = bareType.as(ImplicitlyUnwrappedOptionalTypeSyntax.self) {
             return comparedNominalName(implicit.wrappedType)
         }
-        if let array = type.as(ArrayTypeSyntax.self) { return comparedNominalName(array.element) }
-        if let member = type.as(MemberTypeSyntax.self) {
+        if let array = bareType.as(ArrayTypeSyntax.self) { return comparedNominalName(array.element) }
+        if let member = bareType.as(MemberTypeSyntax.self) {
             return member.genericArgumentClause == nil ? member.name.text : nil
         }
-        return baseTypeName(type)
+        return baseTypeName(bareType)
     }
 
     /// A type assertable by name: a stdlib `Equatable` type or a project type the conformance index

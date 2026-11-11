@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -111,7 +112,7 @@ struct AnyViewUsageVisitorTests {
         }
         """,
         // Type containing "AnyView" in name but not the type itself
-        "let label = \"AnyViewExample\""
+        "let label = \"AnyViewExample\"",
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

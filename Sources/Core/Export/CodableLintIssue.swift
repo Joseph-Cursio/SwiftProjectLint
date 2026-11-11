@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintModels
 
 /// A Codable-friendly location for lint issues.

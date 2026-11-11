@@ -13,7 +13,7 @@ final class DecorativeImageMissingTraitVisitor: BasePatternVisitor {
 
     private static let decorativeNamePatterns: Set<String> = [
         "background", "divider", "pattern", "gradient", "separator",
-        "overlay", "decoration", "ornament", "flourish", "texture"
+        "overlay", "decoration", "ornament", "flourish", "texture",
     ]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
@@ -76,9 +76,11 @@ final class DecorativeImageMissingTraitVisitor: BasePatternVisitor {
               let stringLit = firstArg.expression.as(StringLiteralExprSyntax.self) else {
             return nil
         }
-        return stringLit.segments.compactMap { segment -> String? in
-            segment.as(StringSegmentSyntax.self)?.content.text
-        }.joined()
+        return stringLit.segments
+            .compactMap { segment -> String? in
+                segment.as(StringSegmentSyntax.self)?.content.text
+            }
+            .joined()
     }
 
     /// Heuristic: is this image likely decorative?

@@ -1,5 +1,6 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
 import Testing
 
 @Suite("LintConfigurationWriter")
@@ -83,7 +84,7 @@ struct LintConfigurationWriterTests {
           arguments: [
               (IssueSeverity.error, "error"),
               (IssueSeverity.warning, "warning"),
-              (IssueSeverity.info, "info")
+              (IssueSeverity.info, "info"),
           ])
     func writesSeverityValues(severity: IssueSeverity, expected: String) throws {
         let config = LintConfiguration(
@@ -177,7 +178,7 @@ struct LintConfigurationWriterTests {
         let original = LintConfiguration(
             ruleOverrides: [
                 .magicNumber: .init(severity: .info, excludedPaths: ["Tests/"]),
-                .printStatement: .init(severity: .error)
+                .printStatement: .init(severity: .error),
             ]
         )
         let tempFile = NSTemporaryDirectory() + "roundtrip-\(UUID().uuidString).yml"

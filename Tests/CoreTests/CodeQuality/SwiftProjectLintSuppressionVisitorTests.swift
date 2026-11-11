@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -48,7 +49,7 @@ struct SwiftProjectLintSuppressionVisitorTests {
         ("// swiftprojectlint:disable:this could-be-private\nlet val = 1",
          "swiftprojectlint:disable:this", "could-be-private"),
         ("/* swiftprojectlint:disable magic-number */\nlet val = 1",
-         "swiftprojectlint:disable", "magic-number")
+         "swiftprojectlint:disable", "magic-number"),
     ])
     func detectsSuppressionComment(
         source: String, directive: String, rule: String
@@ -93,7 +94,7 @@ struct SwiftProjectLintSuppressionVisitorTests {
         // inventorying these was reporting suppressions that suppress nothing — and every
         // word after the token counted as a separate "suppressed rule".
         "// A note about swiftprojectlint:disable:next force-try written in prose.\nlet val = 1",
-        "// See swiftprojectlint:disable force-try for the reasoning.\nlet val = 1"
+        "// See swiftprojectlint:disable force-try for the reasoning.\nlet val = 1",
     ])
     func noIssueForNonSuppressionComment(source: String) {
         let visitor = makeVisitor()

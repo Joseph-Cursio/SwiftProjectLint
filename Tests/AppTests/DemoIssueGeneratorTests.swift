@@ -1,5 +1,5 @@
 @testable import App
-import Core
+import SwiftProjectLintModels
 import Testing
 
 @MainActor
@@ -7,7 +7,7 @@ struct DemoIssueGeneratorTests {
     @Test func test_createDemoIssues_includesExpectedCategories() {
         let categories: [PatternCategory] = [
             .stateManagement, .performance, .architecture, .codeQuality, .security,
-            .accessibility, .memoryManagement, .networking, .uiPatterns
+            .accessibility, .memoryManagement, .networking, .uiPatterns,
         ]
         let issues = DemoIssueGenerator.createDemoIssues(for: categories)
         // There should be at least one issue per category (except .other)
@@ -20,7 +20,7 @@ struct DemoIssueGeneratorTests {
             .missingAccessibilityLabel, // accessibility
             .potentialRetainCycle, // memoryManagement
             .missingErrorHandling, // networking
-            .nestedNavigationView // uiPatterns
+            .nestedNavigationView, // uiPatterns
         ]
         let actualRuleNames = Set(issues.map(\.ruleName))
         for rule in expectedRuleNames {

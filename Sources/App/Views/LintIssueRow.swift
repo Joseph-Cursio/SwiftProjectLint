@@ -1,62 +1,5 @@
-import Core
+import SwiftProjectLintModels
 import SwiftUI
-
-/// A SwiftUI view that displays a single lint issue in a row format, with expandable details.
-///
-/// `LintIssueRow` summarizes a lint issue with an icon indicating severity, a descriptive message,
-/// and file location. Users can expand the row to reveal additional details and suggestions for resolving the issue.
-///
-/// - Parameters:
-///   - issue: A `LintIssue` instance containing the severity, message, file path, line number, and an optional suggestion.
-///
-/// The row uses a chevron button to toggle expanded content, which displays the suggestion (if available)
-/// and further file details. Severity is visually indicated using a color-coded SF Symbol.
-/// The expansion is animated for a smooth user experience.
-struct LintIssueRow: View {
-    private static let expandAnimationDuration: Double = 0.2
-
-    let issue: LintIssue
-    @State private var isExpanded: Bool
-
-    init(issue: LintIssue, isExpanded: Bool = false) {
-        self.issue = issue
-        self._isExpanded = State(initialValue: isExpanded)
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            summaryRow
-            if isExpanded {
-                ExpandedIssueContent(issue: issue)
-            }
-        }
-        .padding(.vertical, 4)
-    }
-
-    private var summaryRow: some View {
-        HStack {
-            SeverityIcon(severity: issue.severity)
-            IssueSummary(issue: issue)
-            Spacer()
-            expandToggle
-        }
-    }
-
-    /// Kept inline deliberately. Extracting it would hand a child a `Binding<Bool>`, and a child
-    /// holding a binding re-renders exactly as often as the property it replaced — measured, and
-    /// the reason `Computed Property View` does not report this one.
-    private var expandToggle: some View {
-        Button {
-            withAnimation(.easeInOut(duration: Self.expandAnimationDuration)) {
-                isExpanded.toggle()
-            }
-        } label: {
-            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                .foregroundStyle(.blue)
-        }
-        .accessibilityLabel(isExpanded ? "Collapse details" : "Expand details")
-    }
-}
 
 // MARK: - Summary subviews
 
@@ -184,6 +127,64 @@ private struct ExpandedIssueContent: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
+    }
+}
+
+/// A SwiftUI view that displays a single lint issue in a row format, with expandable details.
+///
+/// `LintIssueRow` summarizes a lint issue with an icon indicating severity, a descriptive message,
+/// and file location. Users can expand the row to reveal additional details and suggestions for resolving the issue.
+///
+/// - Parameters:
+///   - issue: A `LintIssue` instance containing the severity, message, file path, line number, and an optional
+///     suggestion.
+///
+/// The row uses a chevron button to toggle expanded content, which displays the suggestion (if available)
+/// and further file details. Severity is visually indicated using a color-coded SF Symbol.
+/// The expansion is animated for a smooth user experience.
+struct LintIssueRow: View {
+    private static let expandAnimationDuration: Double = 0.2
+
+    let issue: LintIssue
+    @State private var isExpanded: Bool
+
+    init(issue: LintIssue, isExpanded: Bool = false) {
+        self.issue = issue
+        self._isExpanded = State(initialValue: isExpanded)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            summaryRow
+            if isExpanded {
+                ExpandedIssueContent(issue: issue)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    private var summaryRow: some View {
+        HStack {
+            SeverityIcon(severity: issue.severity)
+            IssueSummary(issue: issue)
+            Spacer()
+            expandToggle
+        }
+    }
+
+    /// Kept inline deliberately. Extracting it would hand a child a `Binding<Bool>`, and a child
+    /// holding a binding re-renders exactly as often as the property it replaced — measured, and
+    /// the reason `Computed Property View` does not report this one.
+    private var expandToggle: some View {
+        Button {
+            withAnimation(.easeInOut(duration: Self.expandAnimationDuration)) {
+                isExpanded.toggle()
+            }
+        } label: {
+            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                .foregroundStyle(.blue)
+        }
+        .accessibilityLabel(isExpanded ? "Collapse details" : "Expand details")
     }
 }
 

@@ -19,6 +19,67 @@ enum InspectionBinding {
     case opaque
 }
 
+/// The member lists of every type declaration and extension in a file, by the type's name.
+private final class TypeMemberLists: SyntaxVisitor {
+    private(set) var lists: [String: [MemberBlockItemListSyntax]] = [:]
+
+    init() {
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        lists[node.name.text, default: []].append(node.memberBlock.members)
+        return .visitChildren
+    }
+
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        lists[node.name.text, default: []].append(node.memberBlock.members)
+        return .visitChildren
+    }
+
+    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
+        lists[node.name.text, default: []].append(node.memberBlock.members)
+        return .visitChildren
+    }
+
+    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
+        lists[node.name.text, default: []].append(node.memberBlock.members)
+        return .visitChildren
+    }
+
+    override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
+        let name = InspectionVocabulary.typeName(node.extendedType.trimmedDescription)
+        lists[name, default: []].append(node.memberBlock.members)
+        return .visitChildren
+    }
+}
+
+/// The declared return type of every function in a file, by name, with the type declaring it.
+private final class FunctionReturnTypes: SyntaxVisitor {
+    struct Declaration {
+        /// The innermost type or extension around the function; `nil` at file scope.
+        let owner: String?
+        let returnType: String
+    }
+
+    private(set) var declarations: [String: [Declaration]] = [:]
+
+    init() {
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        if let returned = node.signature.returnClause?.type {
+            let spelled = InspectableViewType.unwrapped(returned).trimmedDescription
+            let owner = InspectionChainEvaluator.enclosingTypeNames(of: Syntax(node)).first
+            // `static func make() -> Self` builds its own type.
+            let returnType = spelled == "Self" ? owner ?? spelled : InspectionVocabulary.typeName(spelled)
+            declarations[node.name.text, default: []].append(Declaration(owner: owner, returnType: returnType))
+        }
+        return .visitChildren
+    }
+}
+
 /// Finds the binding a name refers to, by walking outward through the scopes around its use.
 ///
 /// Most positional walks in real tests are split across statements —
@@ -32,6 +93,7 @@ enum InspectionBinding {
 final class InspectionBindingResolver {
 
     private typealias Entry = (position: AbsolutePosition, binding: InspectionBinding)
+
     private var statementIndex: [SyntaxIdentifier: [String: [Entry]]] = [:]
     private var memberIndex: [SyntaxIdentifier: [String: InspectionBinding]] = [:]
     /// Member lists of every type declaration in the file, by name, so an `extension Tests` finds
@@ -285,10 +347,16 @@ final class InspectionBindingResolver {
 
     /// `for x in …` binds for its body; `case let`, `catch` and tuple patterns bind names the rule
     /// cannot read, which shadow any outer binding of the same name.
-    private static func localBinding(named name: String, in scope: Syntax, enclosing child: Syntax) -> InspectionBinding? {
+    private static func localBinding(
+        named name: String,
+        in scope: Syntax,
+        enclosing child: Syntax
+    ) -> InspectionBinding? {
         if let bindingList = scope.as(PatternBindingListSyntax.self) {
-            return Array(bindingList).filter { $0.position < child.position }
-                .flatMap { variableBindings($0) }.last { $0.0 == name }?.1
+            return Array(bindingList)
+                .filter { $0.position < child.position }
+                .flatMap { variableBindings($0) }
+                .last { $0.0 == name }?.1
         }
         if let forStmt = scope.as(ForStmtSyntax.self), child.id == forStmt.body.id {
             if identifier(of: forStmt.pattern) == name { return .element(forStmt.sequence) }
@@ -327,190 +395,5 @@ final class InspectionBindingResolver {
         default:
             return []
         }
-    }
-}
-
-/// A closure ViewInspector calls with the inspected view: `sut.inspect { view in … }`,
-/// `sut.inspection.inspect(after:) { view in … }`, `sut.on(\.didAppear) { view in … }`. A
-/// predicate passed to `find` is not one — its parameter is a candidate, not a root.
-struct InspectionRelay {
-    /// The view being inspected — `sut` in all three spellings above.
-    let subject: ExprSyntax?
-
-    /// `View.inspect(function:file:line:inspection:)` and the emissary's
-    /// `inspect(after:onReceive:function:file:line:_:)`.
-    private static let relayLabels: Set<String> = ["after", "onReceive", "function", "file", "line", "inspection"]
-
-    init?(_ closure: ClosureExprSyntax) {
-        guard let call = Self.enclosingCall(of: closure),
-              let member = call.calledExpression.as(MemberAccessExprSyntax.self) else {
-            return nil
-        }
-        switch member.declName.baseName.text {
-        case "inspect":
-            let labels = call.arguments.compactMap { $0.label?.text }
-            guard labels.allSatisfy(Self.relayLabels.contains) else { return nil }
-
-        case "on":
-            guard call.arguments.first?.expression.is(KeyPathExprSyntax.self) == true else { return nil }
-
-        default:
-            return nil
-        }
-        // `sut.inspection.inspect { }` inspects `sut`; the emissary is only the relay. It may be
-        // optional: `sut.inspection?.inspect { }`.
-        let base = member.base.map(InspectionChainEvaluator.unwrapped)
-        if let emissary = base?.as(MemberAccessExprSyntax.self), emissary.declName.baseName.text == "inspection" {
-            subject = emissary.base
-        } else {
-            subject = base
-        }
-    }
-
-    static func enclosingCall(of closure: ClosureExprSyntax) -> FunctionCallExprSyntax? {
-        var node = closure.parent
-        while let current = node {
-            if let call = current.as(FunctionCallExprSyntax.self) { return call }
-            let passesThrough = current.is(LabeledExprSyntax.self)
-                || current.is(LabeledExprListSyntax.self)
-                || current.is(MultipleTrailingClosureElementSyntax.self)
-                || current.is(MultipleTrailingClosureElementListSyntax.self)
-            guard passesThrough else { return nil }
-            node = current.parent
-        }
-        return nil
-    }
-}
-
-/// Reads a type annotation as `InspectableView<ViewType.X>`, through `?`, `!` and a module
-/// qualifier. A closure, dictionary or array type that merely mentions one is not one.
-struct InspectableViewType {
-    let isInspectableView: Bool
-    /// What a step on a value of this type does; see `ReceiverKind`.
-    let kind: ReceiverKind
-    /// `X` in `InspectableView<ViewType.X>`, spelled as its accessor: `ForEach` → `forEach`.
-    let viewType: String?
-    /// `T` in `InspectableView<ViewType.View<T>>`: the view whose layout is walked.
-    let subjectType: String?
-    /// A variadic parameter of this type: an array of such views, in the order they were passed.
-    var isArgumentList = false
-    /// Spelled `InspectableView<…>?` or `InspectableView<…>!`.
-    let isOptional: Bool
-
-    init(_ type: TypeSyntax) {
-        isOptional = InspectionBindingResolver.isOptionalType(type)
-        let current = Self.unwrapped(type)
-        let generics: GenericArgumentClauseSyntax?
-        if let identifier = current.as(IdentifierTypeSyntax.self), identifier.name.text == "InspectableView" {
-            generics = identifier.genericArgumentClause
-        } else if let member = current.as(MemberTypeSyntax.self), member.name.text == "InspectableView" {
-            generics = member.genericArgumentClause
-        } else {
-            (isInspectableView, kind, viewType, subjectType) = (false, .typed, nil, nil)
-            return
-        }
-        isInspectableView = true
-        let argument = generics?.arguments.first?.argument.trimmedDescription ?? ""
-        (kind, viewType, subjectType) = Self.read(viewTypeArgument: argument)
-    }
-
-    /// Through `?`, `!`, `Optional<…>`, `inout` and parentheses.
-    static func unwrapped(_ type: TypeSyntax) -> TypeSyntax {
-        var current = type
-        while true {
-            if let optional = current.as(OptionalTypeSyntax.self) {
-                current = optional.wrappedType
-            } else if let forced = current.as(ImplicitlyUnwrappedOptionalTypeSyntax.self) {
-                current = forced.wrappedType
-            } else if let attributed = current.as(AttributedTypeSyntax.self) {
-                current = attributed.baseType
-            } else if let tuple = current.as(TupleTypeSyntax.self), tuple.elements.count == 1,
-                      let only = tuple.elements.first {
-                current = only.type
-            } else if let identifier = current.as(IdentifierTypeSyntax.self), identifier.name.text == "Optional",
-                      let wrapped = identifier.genericArgumentClause?.arguments.first?.argument.as(TypeSyntax.self) {
-                current = wrapped
-            } else {
-                return current
-            }
-        }
-    }
-
-    /// `ViewType.ClassifiedView` is a found view; `ViewType.View<T>` and `ViewType.ViewModifier<T>`
-    /// have `T`'s body's views as children; `ViewType.X` is a SwiftUI view; anything else — a
-    /// generic `V` — is unknown, and read as a SwiftUI view.
-    static func read(viewTypeArgument text: String) -> (ReceiverKind, String?, String?) {
-        let unqualified = text.hasPrefix("ViewInspector.") ? String(text.dropFirst("ViewInspector.".count)) : text
-        guard unqualified.hasPrefix("ViewType.") else { return (.typed, nil, nil) }
-        let name = String(unqualified.dropFirst("ViewType.".count))
-        if name == "ClassifiedView" || name == "ParentView" {
-            return (.found, nil, nil)
-        }
-        for wrapper in ["View<", "ViewModifier<"] where name.hasPrefix(wrapper) && name.hasSuffix(">") {
-            let subject = name.dropFirst(wrapper.count).dropLast()
-            return (.content, nil, InspectionVocabulary.typeName(String(subject)))
-        }
-        return (.typed, InspectionVocabulary.accessorName(forViewType: name), nil)
-    }
-}
-
-/// The member lists of every type declaration and extension in a file, by the type's name.
-private final class TypeMemberLists: SyntaxVisitor {
-    private(set) var lists: [String: [MemberBlockItemListSyntax]] = [:]
-
-    init() {
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
-        lists[node.name.text, default: []].append(node.memberBlock.members)
-        return .visitChildren
-    }
-
-    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        lists[node.name.text, default: []].append(node.memberBlock.members)
-        return .visitChildren
-    }
-
-    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
-        lists[node.name.text, default: []].append(node.memberBlock.members)
-        return .visitChildren
-    }
-
-    override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
-        lists[node.name.text, default: []].append(node.memberBlock.members)
-        return .visitChildren
-    }
-
-    override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
-        let name = InspectionVocabulary.typeName(node.extendedType.trimmedDescription)
-        lists[name, default: []].append(node.memberBlock.members)
-        return .visitChildren
-    }
-}
-
-/// The declared return type of every function in a file, by name, with the type declaring it.
-private final class FunctionReturnTypes: SyntaxVisitor {
-    struct Declaration {
-        /// The innermost type or extension around the function; `nil` at file scope.
-        let owner: String?
-        let returnType: String
-    }
-
-    private(set) var declarations: [String: [Declaration]] = [:]
-
-    init() {
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        if let returned = node.signature.returnClause?.type {
-            let spelled = InspectableViewType.unwrapped(returned).trimmedDescription
-            let owner = InspectionChainEvaluator.enclosingTypeNames(of: Syntax(node)).first
-            // `static func make() -> Self` builds its own type.
-            let returnType = spelled == "Self" ? owner ?? spelled : InspectionVocabulary.typeName(spelled)
-            declarations[node.name.text, default: []].append(Declaration(owner: owner, returnType: returnType))
-        }
-        return .visitChildren
     }
 }

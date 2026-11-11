@@ -1,7 +1,6 @@
-@testable import Core
-import Foundation
-@testable import SwiftProjectLintRegistry
-@testable import SwiftProjectLintRules
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
+import SwiftProjectLintRules
 import Testing
 
 /// The contract `SourcePatternRegistry.initialize()` has to keep under concurrency:
@@ -26,7 +25,7 @@ struct SourcePatternRegistryConcurrencyTests {
     /// earlier a factory runs, the narrower the window in which it is missing.
     private static let expectedCategories: [PatternCategory] = [
         .stateManagement, .performance, .security,
-        .accessibility, .memoryManagement, .networking
+        .accessibility, .memoryManagement, .networking,
     ]
 
     private func makeRegistry() -> SourcePatternRegistry {

@@ -1,6 +1,6 @@
 import PropertyBased
 import SwiftParser
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -47,22 +47,24 @@ struct SyntaxPredicateTotalityTests {
     /// about. The last three are malformed on purpose: totality is the law under
     /// test, and half-written code is exactly what an analyser is handed on every
     /// keystroke — the case a fixture of well-formed snippets never covers.
-    private static let sourceGen = Gen<String?>.element(of: [
-        "struct S { var x = 0 }",
-        "struct V: View { var body: some View { Text(\"hi\") } }",
-        "struct A: App { var body: some Scene { WindowGroup { } } }",
-        "struct Both: View, Identifiable { var id = 0; var body: some View { EmptyView() } }",
-        "final class C { func f(_ x: Int) -> Int { x } }",
-        "enum E { case a, b }",
-        "extension S { var doubled: Int { x * 2 } }",
-        "let rows = ForEach(items) { item in Text(item.name) }",
-        "let ids = ForEach(Suit.allCases, id: \\.self) { s in Text(s.rawValue) }",
-        "let indexed = ForEach(0..<10) { index in Text(\"\\(index)\") }",
-        // Malformed on purpose.
-        "struct Half { var x =",
-        "func broken( {",
-        ""
-    ] as [String]).map { $0 ?? "" }
+    private static let sourceGen = Gen<String?>
+        .element(of: [
+            "struct S { var x = 0 }",
+            "struct V: View { var body: some View { Text(\"hi\") } }",
+            "struct A: App { var body: some Scene { WindowGroup { } } }",
+            "struct Both: View, Identifiable { var id = 0; var body: some View { EmptyView() } }",
+            "final class C { func f(_ x: Int) -> Int { x } }",
+            "enum E { case a, b }",
+            "extension S { var doubled: Int { x * 2 } }",
+            "let rows = ForEach(items) { item in Text(item.name) }",
+            "let ids = ForEach(Suit.allCases, id: \\.self) { s in Text(s.rawValue) }",
+            "let indexed = ForEach(0..<10) { index in Text(\"\\(index)\") }",
+            // Malformed on purpose.
+            "struct Half { var x =",
+            "func broken( {",
+            "",
+        ] as [String])
+        .map { $0 ?? "" }
 
     /// **Totality.** `isSwiftUIView` answers for every struct the parser can
     /// produce, including from malformed source — it never traps.

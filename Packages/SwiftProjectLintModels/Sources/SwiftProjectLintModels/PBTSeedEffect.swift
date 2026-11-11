@@ -1,5 +1,3 @@
-import Foundation
-
 /// The effect-lattice position of a seeded symbol, as the linter resolved it.
 ///
 /// ## Why the manifest needs this

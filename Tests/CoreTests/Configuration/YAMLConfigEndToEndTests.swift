@@ -1,5 +1,7 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
 import Testing
 
 /// End-to-end coverage for `.swiftprojectlint.yml`.
@@ -183,7 +185,7 @@ struct YAMLConfigEndToEndTests {
     /// is targeted (hits one rule/path, spares another).
     private func makeFixtureProject() -> String {
         let base = FileManager.default.temporaryDirectory.path
-        let root = (base as NSString).appendingPathComponent("YAMLE2E-\(UUID().uuidString)")
+        let root = PathString.appending("YAMLE2E-\(UUID().uuidString)", to: base)
         writeFile(at: "\(root)/Package.swift", "// swift-tools-version:6.0\n")
         writeFile(at: "\(root)/Sources/App/App.swift", """
         func run(_ value: Int?) -> Int {
@@ -200,7 +202,7 @@ struct YAMLConfigEndToEndTests {
 
     private func writeFile(at path: String, _ content: String) {
         try? FileManager.default.createDirectory(
-            atPath: (path as NSString).deletingLastPathComponent,
+            atPath: PathString.deletingLastComponent(of: path),
             withIntermediateDirectories: true
         )
         try? content.write(toFile: path, atomically: true, encoding: .utf8)

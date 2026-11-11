@@ -1,7 +1,5 @@
 import enum SwiftEffectInference.Effect
-import SwiftParser
-@testable import SwiftProjectLintVisitors
-import SwiftSyntax
+import SwiftProjectLintVisitors
 import Testing
 
 /// Slot 14 — the HttpPipeline pipeline-primitive allowlist. Covers the
@@ -11,7 +9,7 @@ import Testing
 /// this slot. Split off from `FrameworkAllowlistGatingTests` so the base
 /// struct stays under SwiftLint's `type_body_length` threshold.
 @Suite
-struct FrameworkAllowlistHttpPipelineTests {
+struct FrameworkAllowlistHttpPipelineTests: FrameworkAllowlistTestSupport {
 
     // MARK: - HttpPipeline pipeline primitives (framework-gated, slot 14)
 

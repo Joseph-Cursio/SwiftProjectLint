@@ -1,12 +1,14 @@
-@testable import Core
 import Foundation
 import SwiftParser
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
 @Suite("ArchitectureTests")
-struct ArchitectureTests {
+enum ArchitectureTests {
 
     // MARK: - Architecture Visitor Tests (Use Shared Registry)
 

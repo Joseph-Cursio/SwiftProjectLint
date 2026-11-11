@@ -33,7 +33,7 @@ final class DiscardableResultMisuseVisitor: BasePatternVisitor {
     private static let suspiciousNameFragments: [String] = [
         "validate", "save", "submit", "authenticate", "authorize", "verify",
         "check", "create", "delete", "update", "send", "upload", "download",
-        "login", "logout", "register", "commit", "rollback", "execute", "apply"
+        "login", "logout", "register", "commit", "rollback", "execute", "apply",
     ]
 
     /// Return type suffixes that carry a meaningful outcome.

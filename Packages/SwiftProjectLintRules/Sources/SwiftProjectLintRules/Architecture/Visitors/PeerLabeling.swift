@@ -1,4 +1,4 @@
-import Foundation
+import SwiftProjectLintModels
 
 /// Formatting for the "these types cluster together" findings, shared by the shape-clustering
 /// rules (`DuplicateStructShape`, `SharedDomainEnumField`).
@@ -11,14 +11,21 @@ import Foundation
 /// it keeps its own message format and so does not route through here.
 enum PeerLabeling {
 
+    /// One member of a group: its name and where it is declared.
+    struct Member {
+        let name: String
+        let file: String
+        let line: Int
+    }
+
     /// `'Name' (File.swift:line)` for every member except the one at `current`, sorted.
     static func peers(
-        _ members: [(name: String, file: String, line: Int)],
+        _ members: [Member],
         excluding current: (file: String, line: Int)
     ) -> String {
         members
             .filter { $0.file != current.file || $0.line != current.line }
-            .map { "'\($0.name)' (\(($0.file as NSString).lastPathComponent):\($0.line))" }
+            .map { "'\($0.name)' (\(PathString.lastComponent(of: $0.file)):\($0.line))" }
             .sorted()
             .joined(separator: ", ")
     }

@@ -17,17 +17,17 @@ struct IndexArgumentReader {
 
     func isIndexLike(_ expr: ExprSyntax, depth: Int = 0) -> Bool {
         guard depth < Self.maxDepth else { return true }
-        let expr = InspectionChainEvaluator.unwrapped(expr)
-        if Self.isNeverAnInt(expr) {
+        let unwrappedExpr = InspectionChainEvaluator.unwrapped(expr)
+        if Self.isNeverAnInt(unwrappedExpr) {
             return false
         }
-        if let reference = expr.as(DeclReferenceExprSyntax.self) {
+        if let reference = unwrappedExpr.as(DeclReferenceExprSyntax.self) {
             // `check(_:)` names a function.
             guard reference.argumentNames == nil else { return false }
             guard let resolver else { return true }
             return isIndexLike(resolver.resolve(reference.baseName.text, from: Syntax(reference)), depth: depth)
         }
-        if let member = expr.as(MemberAccessExprSyntax.self) {
+        if let member = unwrappedExpr.as(MemberAccessExprSyntax.self) {
             return isIndexLike(member, depth: depth)
         }
         // Arithmetic, a call, a subscript, a ternary.
@@ -62,14 +62,14 @@ struct IndexArgumentReader {
     /// `A11y.allCases` is not an `Int`; an element of a range or of `indices` could be.
     private func isElementIndexLike(of sequence: ExprSyntax, depth: Int) -> Bool {
         guard depth < Self.maxDepth else { return true }
-        let sequence = InspectionChainEvaluator.unwrapped(sequence)
-        if let array = sequence.as(ArrayExprSyntax.self) {
+        let unwrappedSequence = InspectionChainEvaluator.unwrapped(sequence)
+        if let array = unwrappedSequence.as(ArrayExprSyntax.self) {
             return array.elements.first.map { isIndexLike($0.expression, depth: depth + 1) } ?? true
         }
-        if sequence.as(MemberAccessExprSyntax.self)?.declName.baseName.text == "allCases" {
+        if unwrappedSequence.as(MemberAccessExprSyntax.self)?.declName.baseName.text == "allCases" {
             return false
         }
-        guard let resolver, let reference = sequence.as(DeclReferenceExprSyntax.self) else { return true }
+        guard let resolver, let reference = unwrappedSequence.as(DeclReferenceExprSyntax.self) else { return true }
         switch resolver.resolve(reference.baseName.text, from: Syntax(reference)) {
         case let .value(value, annotation):
             if let element = annotation.flatMap(Self.elementType(of:)) { return Self.isIntegerType(element) }
@@ -149,14 +149,14 @@ struct IndexArgumentReader {
     /// `String` cannot be what such a call means.
     func isCertainlyInteger(_ expr: ExprSyntax, depth: Int = 0) -> Bool {
         guard depth < Self.maxDepth else { return false }
-        let expr = InspectionChainEvaluator.unwrapped(expr)
-        if expr.is(IntegerLiteralExprSyntax.self) {
+        let unwrappedExpr = InspectionChainEvaluator.unwrapped(expr)
+        if unwrappedExpr.is(IntegerLiteralExprSyntax.self) {
             return true
         }
-        if let sequence = expr.as(SequenceExprSyntax.self) {
+        if let sequence = unwrappedExpr.as(SequenceExprSyntax.self) {
             return isIntegerArithmetic(sequence, depth: depth)
         }
-        guard let resolver, let reference = expr.as(DeclReferenceExprSyntax.self) else { return false }
+        guard let resolver, let reference = unwrappedExpr.as(DeclReferenceExprSyntax.self) else { return false }
         switch resolver.resolve(reference.baseName.text, from: Syntax(reference)) {
         case let .value(value, annotation):
             return annotation.map(Self.isIntegerType) ?? isCertainlyInteger(value, depth: depth + 1)
@@ -165,9 +165,9 @@ struct IndexArgumentReader {
             return Self.isIntegerType(type)
 
         case .element(let sequence):
-            let sequence = InspectionChainEvaluator.unwrapped(sequence)
-            return Self.isRange(sequence)
-                || sequence.as(MemberAccessExprSyntax.self)?.declName.baseName.text == "indices"
+            let unwrappedSequence = InspectionChainEvaluator.unwrapped(sequence)
+            return Self.isRange(unwrappedSequence)
+                || unwrappedSequence.as(MemberAccessExprSyntax.self)?.declName.baseName.text == "indices"
 
         default:
             return false

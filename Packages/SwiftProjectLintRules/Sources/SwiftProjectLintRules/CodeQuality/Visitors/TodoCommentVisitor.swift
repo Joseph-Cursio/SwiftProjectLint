@@ -3,7 +3,8 @@ import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
-/// A SwiftSyntax visitor that detects TODO, FIXME, and HACK comments in source code.
+/// A SwiftSyntax visitor that detects comments marked to-do, fix-me or hack (the upper-case
+/// marker words) in source code.
 ///
 /// These comments indicate unresolved technical debt that should be tracked
 /// in an issue tracker rather than left as inline comments.

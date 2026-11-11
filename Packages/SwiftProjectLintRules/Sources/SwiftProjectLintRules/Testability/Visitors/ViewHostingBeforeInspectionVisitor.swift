@@ -2,6 +2,26 @@ import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
+/// Small search helper: the first `FunctionCallExprSyntax` under `root`
+/// satisfying `predicate`, in source order.
+enum SyntaxSearch {
+
+    static func firstCall(
+        in root: Syntax,
+        where predicate: (FunctionCallExprSyntax) -> Bool
+    ) -> Syntax? {
+        if let call = root.as(FunctionCallExprSyntax.self), predicate(call) {
+            return root
+        }
+        for child in root.children(viewMode: .sourceAccurate) {
+            if let found = firstCall(in: child, where: predicate) {
+                return found
+            }
+        }
+        return nil
+    }
+}
+
 /// Detects a ViewInspector test that hosts a view and only *then* inspects it.
 ///
 /// ViewInspector evaluates a view's `body` outside SwiftUI unless the view is
@@ -157,25 +177,5 @@ final class ViewHostingBeforeInspectionVisitor: BasePatternVisitor {
             }
             return member.declName.baseName.text == "inspect"
         }
-    }
-}
-
-/// Small search helper: the first `FunctionCallExprSyntax` under `root`
-/// satisfying `predicate`, in source order.
-enum SyntaxSearch {
-
-    static func firstCall(
-        in root: Syntax,
-        where predicate: (FunctionCallExprSyntax) -> Bool
-    ) -> Syntax? {
-        if let call = root.as(FunctionCallExprSyntax.self), predicate(call) {
-            return root
-        }
-        for child in root.children(viewMode: .sourceAccurate) {
-            if let found = firstCall(in: child, where: predicate) {
-                return found
-            }
-        }
-        return nil
     }
 }

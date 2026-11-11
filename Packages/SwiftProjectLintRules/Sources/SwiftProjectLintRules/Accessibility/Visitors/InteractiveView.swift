@@ -14,7 +14,7 @@ enum InteractiveView {
     /// Views that respond to the activate gesture without any modifier being added.
     static let all: Set<String> = [
         "Button", "NavigationLink", "Link", "Menu",
-        "Toggle", "Stepper", "Picker", "Slider"
+        "Toggle", "Stepper", "Picker", "Slider",
     ]
 
     /// Whether `name` is one of the interactive views.

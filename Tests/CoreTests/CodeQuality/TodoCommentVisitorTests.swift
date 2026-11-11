@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -43,7 +44,7 @@ struct TodoCommentVisitorTests {
         ("// TODO: fix this later\nlet value = 42", "TODO"),
         ("// FIXME: broken logic here\nfunc calculate() -> Int { return 0 }", "FIXME"),
         ("// HACK: workaround for compiler bug\nlet hack = true", "HACK"),
-        ("/* TODO: refactor this entire module */\nstruct MyModule {}", "TODO")
+        ("/* TODO: refactor this entire module */\nstruct MyModule {}", "TODO"),
     ])
     func detectsMarkerComment(source: String, expectedSubstring: String) throws {
         let visitor = makeVisitor()
@@ -59,7 +60,7 @@ struct TodoCommentVisitorTests {
     @Test("No issue for non-marker comment", arguments: [
         "// This is a normal comment\nlet value = 42",
         "let todo = \"item\"",
-        "// The todo list view shows all items\nlet items: [String] = []"
+        "// The todo list view shows all items\nlet items: [String] = []",
     ])
     func noIssueForNonMarkerComment(source: String) {
         let visitor = makeVisitor()

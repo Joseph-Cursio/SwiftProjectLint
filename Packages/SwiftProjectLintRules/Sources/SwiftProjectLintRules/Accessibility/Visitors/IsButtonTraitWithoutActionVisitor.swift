@@ -38,7 +38,7 @@ final class IsButtonTraitWithoutActionVisitor: BasePatternVisitor {
         "onLongPressGesture",
         "gesture",
         "highPriorityGesture",
-        "simultaneousGesture"
+        "simultaneousGesture",
     ]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

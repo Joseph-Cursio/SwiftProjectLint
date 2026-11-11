@@ -15,7 +15,7 @@ final class MagicBooleanParameterVisitor: BasePatternVisitor {
         "XCTAssertEqual", "XCTAssertNotEqual",
         "XCTAssertNil", "XCTAssertNotNil",
         "min", "max", "assert", "precondition",
-        "fatalError"
+        "fatalError",
     ]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

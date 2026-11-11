@@ -51,7 +51,7 @@ enum DemeterChainFilter {
         "containsComments", "isNotSingleSpaceWithoutComments",
         "withTrailingEmptyLineRemoved", "splitBlocks",
         // Other value terminals
-        "length", "isEmptyOrNil"
+        "length", "isEmptyOrNil",
     ]
 
     /// SwiftSyntax structural members that form idiomatic API access chains.
@@ -69,20 +69,20 @@ enum DemeterChainFilter {
         "declName", "calledExpression",
         "indentationRanges", "expected", "actual",
         "importDecl", "inKeyword", "operator",
-        "stringView", "lines", "onlyElement"
+        "stringView", "lines", "onlyElement",
     ]
 
     /// Members related to geometry/layout that form natural access chains.
     static let geometryMembers: Set<String> = [
         "frame", "size", "bounds", "origin", "width", "height",
         "minX", "minY", "maxX", "maxY", "midX", "midY",
-        "contentSize", "safeAreaInsets"
+        "contentSize", "safeAreaInsets",
     ]
 
     /// Root names that indicate environment/navigation context (case-insensitive).
     static let environmentRoots: Set<String> = [
         "environment", "theme", "settings", "configuration",
-        "navigationPath", "navigator", "coordinator", "router"
+        "navigationPath", "navigator", "coordinator", "router",
     ]
 
     /// Well-known system chain prefixes that are idiomatic Foundation/system API usage.
@@ -99,7 +99,7 @@ enum DemeterChainFilter {
         ["URLSession", "shared", "data"],
         ["UserDefaults", "standard", "string"],
         ["UserDefaults", "standard", "bool"],
-        ["DispatchQueue", "main", "async"]
+        ["DispatchQueue", "main", "async"],
     ]
 
     /// The chain's components root-first and its depth, or `nil` when it is exempt or too shallow.

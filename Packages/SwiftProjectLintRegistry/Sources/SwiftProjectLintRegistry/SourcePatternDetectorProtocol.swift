@@ -35,19 +35,27 @@ public protocol SourcePatternDetectorProtocol {
     /// Type names known to be `@Observable`/`ObservableObject` across the project.
     var knownObservableTypes: Set<String> { get set }
 
-    /// Type names known to be declared as protocols across the project.
     /// `View` names reading `@Environment(SomeType.self)`; `nil` when no pre-scan ran.
     var knownObservableEnvironmentViews: Set<String>? { get set }
+    /// Type names referenced from a file importing ViewInspector; `nil` when no pre-scan ran.
     var knownInspectedTypeNames: Set<String>? { get set }
 
+    /// Member names declared under `@_spi(...)`: published deliberately, not leaked.
     var knownSPIMembers: Set<String> { get set }
+    /// Underscore-prefixed members this project declares.
     var knownUnderscoredMembers: Set<String> { get set }
+    /// Members declared in extensions, so a per-file visitor can tell a type has members it
+    /// cannot see.
     var knownExtensionMembers: ExtensionMemberCatalog { get set }
+    /// Value types whose entire content is a single closure, which are already injection seams.
     var knownClosureWrapperTypes: ClosureWrapperTypeCatalog { get set }
+    /// For each non-`Equatable` value type, whether a bare `: Equatable` would synthesize.
     var knownEquatableRemedies: EquatableRemedyCatalog { get set }
 
+    /// `typealias` names whose underlying type is a function type.
     var knownFunctionTypeAliases: Set<String> { get set }
 
+    /// Type names known to be declared as protocols across the project.
     var knownProtocolTypes: Set<String> { get set }
 
     /// Type names known to be `Equatable` across the project (Equatable /
@@ -57,12 +65,12 @@ public protocol SourcePatternDetectorProtocol {
     /// Type names declared as `struct` or `enum` (value types) across the project.
     var knownValueTypes: Set<String> { get set }
 
-    /// Per type, sibling methods cleared as functions of their inputs by the pre-scan.
     /// Package function names the purity oracle refutes with an establishable witness —
     /// the one-hop callee join, resolved once in the pre-scan. See
     /// `PackagePurityJoin` and `BasePatternVisitor.knownImpurePackageFunctions`.
     var knownImpurePackageFunctions: ImpurePackageFunctions { get set }
 
+    /// Per type, sibling methods cleared as functions of their inputs by the pre-scan.
     var knownCleanInstanceMethods: CleanInstanceMethodCatalog { get set }
 
     /// Functions this project declares (bare and labelled names). Lets the Pure Closure rule tell a

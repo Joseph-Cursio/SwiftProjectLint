@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -75,7 +76,7 @@ struct MultipleTypesPerFileVisitorTests {
         actor DatabaseActor {
             func save() {}
         }
-        """, "DatabaseActor")
+        """, "DatabaseActor"),
     ])
     func detectsUnrelatedMixedTypes(source: String, expectedTypeName: String) throws {
         let visitor = makeVisitor()
@@ -130,7 +131,7 @@ struct MultipleTypesPerFileVisitorTests {
         enum Direction {
             case north, south, east, west
         }
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

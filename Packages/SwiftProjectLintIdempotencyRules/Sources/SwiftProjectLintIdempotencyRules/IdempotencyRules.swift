@@ -11,6 +11,8 @@ public enum IdempotencyRules {
     private static let lock = NSLock()
     nonisolated(unsafe) private static var registered = false
 
+    /// Registers the idempotency category factory once; later calls return after the first
+    /// has finished.
     public static func registerAll() {
         // Held for the whole of registration — see BuiltInRules.registerAll for
         // why the flag alone is not enough.
@@ -21,13 +23,6 @@ public enum IdempotencyRules {
             SourcePatternRegistry.registerFactory { registry, visitorRegistry in
                 Idempotency(registry: registry, visitorRegistry: visitorRegistry)
             }
-        }
-    }
-
-    /// Resets registration state. Used by tests to ensure a clean slate.
-    static func reset() {
-        lock.withLock {
-            registered = false
         }
     }
 }

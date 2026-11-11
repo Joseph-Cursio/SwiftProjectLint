@@ -20,7 +20,7 @@ struct LayerConfigurationAuditWalkTests {
 
         let configuration = LintConfiguration(architecturalLayers: [
             LayerPolicy(name: "domain", paths: ["Domain/"]),
-            LayerPolicy(name: "presentation", paths: ["Presentation/"])
+            LayerPolicy(name: "presentation", paths: ["Presentation/"]),
         ])
         let problems = SwiftProjectLintCLI.layerConfigurationProblems(
             projectRoot: root.path, configuration: configuration

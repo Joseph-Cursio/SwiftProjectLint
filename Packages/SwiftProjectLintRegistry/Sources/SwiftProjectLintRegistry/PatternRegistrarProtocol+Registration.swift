@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintVisitors
 
 /// Protocol for simple pattern providers that supply one or more patterns.
@@ -13,10 +12,6 @@ public protocol PatternRegistrarProtocol {
     ///
     /// Override this property when a registrar provides multiple patterns.
     var patterns: [SyntaxPattern] { get }
-}
-
-extension PatternRegistrarProtocol {
-    public var patterns: [SyntaxPattern] { [pattern] }
 }
 
 /// Protocol for pattern registration that requires access to the visitor registry.
@@ -45,4 +40,9 @@ open class BasePatternRegistrar: PatternRegistrarWithVisitorProtocol {
     }
 
     open func registerPatterns() { /* subclasses override */ }
+}
+
+public extension PatternRegistrarProtocol {
+    /// The registrar's single `pattern`, for registrars that provide only one.
+    var patterns: [SyntaxPattern] { [pattern] }
 }

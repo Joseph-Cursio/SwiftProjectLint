@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -49,7 +50,7 @@ struct URLSessionUnhandledErrorVisitorTests {
             guard let result else { return }
             use(result)
         }.resume()
-        """
+        """,
     ])
     func detectsVariant(source: String) {
         let visitor = makeVisitor()
@@ -69,7 +70,7 @@ struct URLSessionUnhandledErrorVisitorTests {
         URLSession.shared.dataTask(with: url) { data, response, error in
             self.status = decode(data).error
         }.resume()
-        """
+        """,
     ])
     func detectsNameThatIsNotTheErrorParameter(source: String) {
         let visitor = makeVisitor()
@@ -112,7 +113,7 @@ struct URLSessionUnhandledErrorVisitorTests {
             if let error { logger.error("\\(error)"); return }
             process(data)
         }.resume()
-        """
+        """,
     ])
     func noIssueWhenErrorReferenced(source: String) {
         let visitor = makeVisitor()

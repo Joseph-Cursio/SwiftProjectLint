@@ -1,7 +1,6 @@
 import Foundation
 import SwiftParser
-@testable import SwiftProjectLintVisitors
-import SwiftSyntax
+import SwiftProjectLintVisitors
 import Testing
 
 /// Which files' types the purity oracle's construction facts are built from, and in what order.
@@ -41,20 +40,23 @@ struct ConstructionUniverseTests {
 
     // MARK: - The shared cases
 
+    struct ManifestCase: Decodable {
+        let manifest: String
+        let expected: [String]?
+    }
+
+    struct RecognitionCase: Decodable {
+        let text: String
+        let expected: Bool
+    }
+
     /// `Docs/construction-universe-cases.json`, which SwiftInferProperties keeps byte-identical and
     /// asserts too (the shared spec's amendment 2).
     private struct SharedCases: Decodable {
-        struct ManifestCase: Decodable {
-            let manifest: String
-            let expected: [String]?
-        }
         let localPackageDependencies: [ManifestCase]
         let buildOrder: [String]
         let localTargetPaths: [ManifestCase]
-        struct RecognitionCase: Decodable {
-            let text: String
-            let expected: Bool
-        }
+
         let isManifest: [RecognitionCase]
     }
 
@@ -138,7 +140,7 @@ struct ConstructionUniverseTests {
         ("Sources/Lib/Clock.swift", "import Foundation\nstruct Stamp { let at = Date() }"),
         ("Sources/Lib/Plain.swift", "struct Plain { let n: Int }"),
         ("Tests/LibTests/Fixture.swift", "import Foundation\nstruct Fixture { let id = UUID() }"),
-        ("Package.swift", "// swift-tools-version:6.2\nstruct Manifest { let id = UUID() }")
+        ("Package.swift", "// swift-tools-version:6.2\nstruct Manifest { let id = UUID() }"),
     ]
 
     @Test("the build drops non-production files, sorts, and does not depend on input order")
@@ -194,6 +196,7 @@ struct ConstructionUniverseTests {
     /// A seeded generator, so a shuffle that fails fails the same way on the next run.
     private struct SplitMix64: RandomNumberGenerator {
         var state: UInt64
+
         init(seed: UInt64) { state = seed }
         mutating func next() -> UInt64 {
             state &+= 0x9E37_79B9_7F4A_7C15

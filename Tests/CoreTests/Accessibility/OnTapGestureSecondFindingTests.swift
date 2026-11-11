@@ -1,5 +1,7 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
 import Testing
 
 /// A visitor's second finding must survive the pipeline that runs it.

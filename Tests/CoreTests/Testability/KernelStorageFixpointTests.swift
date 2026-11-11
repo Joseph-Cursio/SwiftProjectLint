@@ -1,7 +1,5 @@
-import Foundation
 import SwiftParser
-@testable import SwiftProjectLintVisitors
-import SwiftSyntax
+import SwiftProjectLintVisitors
 import Testing
 
 /// A kernel may hold another kernel, and the single-pass version could not see it.

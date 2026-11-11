@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -55,7 +56,7 @@ struct AsyncLetUnusedVisitorTests {
         // Regular variable
         """
         let value = computeResult()
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

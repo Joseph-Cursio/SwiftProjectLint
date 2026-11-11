@@ -1,5 +1,3 @@
-import Foundation
-
 /// Enum representing supported SwiftUI property wrappers for state management.
 public enum PropertyWrapper: String, CaseIterable, Sendable {
     case state = "State"
@@ -34,7 +32,7 @@ public enum PropertyWrapper: String, CaseIterable, Sendable {
     public static let stateStorageAttributeNames: Set<String> = {
         let cases: [Self] = [
             .state, .stateObject, .observedObject, .environmentObject,
-            .binding, .appStorage, .sceneStorage
+            .binding, .appStorage, .sceneStorage,
         ]
         return Set(cases.map(\.rawValue)).union(["Published"])
     }()

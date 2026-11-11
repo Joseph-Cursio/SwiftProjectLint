@@ -1,7 +1,7 @@
-@testable import Core
 import SwiftParser
 import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -13,6 +13,64 @@ private func makeVisitor() -> VariableShadowingVisitor {
 private func runVisitor(_ visitor: VariableShadowingVisitor, source: String) {
     let sourceFile = Parser.parse(source: source)
     visitor.walk(sourceFile)
+}
+
+// MARK: - Tiered Severity Tests
+
+@Suite("Variable Shadowing Severity")
+struct VariableShadowingSeverityTests {
+
+    struct SeverityCase: Sendable, CustomTestStringConvertible {
+        let label: String
+        let source: String
+        let expected: IssueSeverity
+        var testDescription: String { label }
+    }
+
+    @Test("Assigns correct severity tier", arguments: [
+        SeverityCase(
+            label: "nested block re-declaration → error",
+            source: """
+            func example() {
+                let value = 10
+                if true {
+                    let value = 20
+                }
+            }
+            """,
+            expected: .error
+        ),
+        SeverityCase(
+            label: "nested function parameter → error",
+            source: """
+            func outer() {
+                let name = "hello"
+                func inner(name: String) {
+                    print(name)
+                }
+            }
+            """,
+            expected: .error
+        ),
+        SeverityCase(
+            label: "for-loop variable → error",
+            source: """
+            func example() {
+                let index = 0
+                for index in 0..<10 {
+                    print(index)
+                }
+            }
+            """,
+            expected: .error
+        ),
+    ])
+    func severity(_ testCase: SeverityCase) throws {
+        let visitor = makeVisitor()
+        runVisitor(visitor, source: testCase.source)
+        let issue = try #require(visitor.detectedIssues.first)
+        #expect(issue.severity == testCase.expected)
+    }
 }
 
 // MARK: - Rebinding and Loop Exclusion Tests
@@ -155,69 +213,11 @@ struct VariableShadowingRebindingTests {
                 }
             }
             """
-        )
+        ),
     ])
     func rebindingExclusion(_ testCase: ExclusionCase) {
         let visitor = makeVisitor()
         runVisitor(visitor, source: testCase.source)
         #expect(visitor.detectedIssues.isEmpty)
-    }
-}
-
-// MARK: - Tiered Severity Tests
-
-@Suite("Variable Shadowing Severity")
-struct VariableShadowingSeverityTests {
-
-    struct SeverityCase: Sendable, CustomTestStringConvertible {
-        let label: String
-        let source: String
-        let expected: IssueSeverity
-        var testDescription: String { label }
-    }
-
-    @Test("Assigns correct severity tier", arguments: [
-        SeverityCase(
-            label: "nested block re-declaration → error",
-            source: """
-            func example() {
-                let value = 10
-                if true {
-                    let value = 20
-                }
-            }
-            """,
-            expected: .error
-        ),
-        SeverityCase(
-            label: "nested function parameter → error",
-            source: """
-            func outer() {
-                let name = "hello"
-                func inner(name: String) {
-                    print(name)
-                }
-            }
-            """,
-            expected: .error
-        ),
-        SeverityCase(
-            label: "for-loop variable → error",
-            source: """
-            func example() {
-                let index = 0
-                for index in 0..<10 {
-                    print(index)
-                }
-            }
-            """,
-            expected: .error
-        )
-    ])
-    func severity(_ testCase: SeverityCase) throws {
-        let visitor = makeVisitor()
-        runVisitor(visitor, source: testCase.source)
-        let issue = try #require(visitor.detectedIssues.first)
-        #expect(issue.severity == testCase.expected)
     }
 }

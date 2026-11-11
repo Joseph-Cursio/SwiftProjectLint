@@ -6,6 +6,46 @@ import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
+/// Cross-rule fixture: a function annotated with both an effect and a context.
+/// Exercises the expectation that both rules are independent and both fire
+/// when their respective conditions are met.
+@Suite
+struct IdempotencyRuleInteractionTests {
+
+    @Test
+    func bothRulesFireIndependently() {
+        let source = """
+        /// @lint.effect non_idempotent
+        func insert(_ id: Int) async throws {}
+
+        /// @lint.effect idempotent
+        /// @lint.context replayable
+        func handle(_ id: Int) async throws {
+            try await insert(id)
+        }
+        """
+
+        let sourceFile = Parser.parse(source: source)
+
+        let violationVisitor = IdempotencyViolationVisitor(
+            pattern: IdempotencyViolation().pattern
+        )
+        violationVisitor.walk(sourceFile)
+        violationVisitor.analyze()
+
+        let contextVisitor = NonIdempotentInRetryContextVisitor(
+            pattern: NonIdempotentInRetryContext().pattern
+        )
+        contextVisitor.walk(sourceFile)
+        contextVisitor.analyze()
+
+        #expect(violationVisitor.detectedIssues.count == 1)
+        #expect(violationVisitor.detectedIssues.first?.ruleName == .idempotencyViolation)
+        #expect(contextVisitor.detectedIssues.count == 1)
+        #expect(contextVisitor.detectedIssues.first?.ruleName == .nonIdempotentInRetryContext)
+    }
+}
+
 @Suite
 struct NonIdempotentInRetryContextVisitorTests {
 
@@ -150,45 +190,5 @@ struct NonIdempotentInRetryContextVisitorTests {
         let visitor = run(source: source)
 
         #expect(visitor.detectedIssues.isEmpty)
-    }
-}
-
-/// Cross-rule fixture: a function annotated with both an effect and a context.
-/// Exercises the expectation that both rules are independent and both fire
-/// when their respective conditions are met.
-@Suite
-struct IdempotencyRuleInteractionTests {
-
-    @Test
-    func bothRulesFireIndependently() {
-        let source = """
-        /// @lint.effect non_idempotent
-        func insert(_ id: Int) async throws {}
-
-        /// @lint.effect idempotent
-        /// @lint.context replayable
-        func handle(_ id: Int) async throws {
-            try await insert(id)
-        }
-        """
-
-        let sourceFile = Parser.parse(source: source)
-
-        let violationVisitor = IdempotencyViolationVisitor(
-            pattern: IdempotencyViolation().pattern
-        )
-        violationVisitor.walk(sourceFile)
-        violationVisitor.analyze()
-
-        let contextVisitor = NonIdempotentInRetryContextVisitor(
-            pattern: NonIdempotentInRetryContext().pattern
-        )
-        contextVisitor.walk(sourceFile)
-        contextVisitor.analyze()
-
-        #expect(violationVisitor.detectedIssues.count == 1)
-        #expect(violationVisitor.detectedIssues.first?.ruleName == .idempotencyViolation)
-        #expect(contextVisitor.detectedIssues.count == 1)
-        #expect(contextVisitor.detectedIssues.first?.ruleName == .nonIdempotentInRetryContext)
     }
 }

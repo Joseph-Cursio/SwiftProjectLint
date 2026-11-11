@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 import Testing
 
 /// The raw values of the enums SwiftProjectLint writes out, pinned.

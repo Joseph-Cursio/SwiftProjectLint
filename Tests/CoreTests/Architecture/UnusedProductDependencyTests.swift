@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -51,7 +52,7 @@ struct UnusedProductDependencyTests {
             "Sources/App/App.swift": appSource,
             "Packages/Kit/Package.swift": kitManifest,
             "Packages/Kit/Sources/KitCore/Core.swift": "struct Core {}",
-            "Packages/Kit/Sources/KitUI/View.swift": "import KitCore"
+            "Packages/Kit/Sources/KitUI/View.swift": "import KitCore",
         ]
     }
 

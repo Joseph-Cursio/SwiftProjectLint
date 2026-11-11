@@ -155,10 +155,10 @@ extension ComparisonResult {
     }
 }
 
-extension Array where Element == LintIssue {
+public extension Array where Element == LintIssue {
 
     /// The findings in reporting order — see `LintIssue.precedes`.
-    public func sortedForReporting() -> [LintIssue] {
+    func sortedForReporting() -> [LintIssue] {
         sorted(by: LintIssue.precedes)
     }
 }

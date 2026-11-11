@@ -1,4 +1,4 @@
-import Core
+import SwiftProjectLintModels
 import Testing
 
 struct LintIssueTests {
@@ -28,7 +28,7 @@ struct LintIssueTests {
         let locations: [(filePath: String, lineNumber: Int)] = [
             ("file1.swift", 10),
             ("file2.swift", 20),
-            ("file3.swift", 30)
+            ("file3.swift", 30),
         ]
 
         let issue = LintIssue(

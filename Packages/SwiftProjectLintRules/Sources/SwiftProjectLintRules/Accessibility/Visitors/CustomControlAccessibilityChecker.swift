@@ -1,5 +1,3 @@
-import Foundation
-import SwiftProjectLintVisitors
 import SwiftSyntax
 
 /// Checks accessibility issues specific to custom controls in SwiftUI.

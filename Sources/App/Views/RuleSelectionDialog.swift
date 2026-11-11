@@ -5,7 +5,8 @@
 //  Created by Joseph Cursio on 7/1/25.
 //
 
-import Core
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import SwiftUI
 
 // swiftprojectlint:disable:next large-view-body
@@ -278,10 +279,10 @@ private let previewPatterns: [PatternCategoryInfo] = [
                 message: "Unused State Variable",
                 suggestion: "Remove unused @State variables",
                 category: .stateManagement
-            )
+            ),
         ],
         useSwiftSyntax: true
-    )
+    ),
 ]
 
 #Preview {

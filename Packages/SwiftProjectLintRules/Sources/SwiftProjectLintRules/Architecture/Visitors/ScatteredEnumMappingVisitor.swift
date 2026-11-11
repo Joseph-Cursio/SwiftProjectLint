@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
@@ -114,13 +113,21 @@ final class ScatteredEnumMappingVisitor: CrossFileVisitorBase, CrossFilePatternV
         )
     }
 
+    /// One arm of a mapping switch: its body's return kind, the implicit member when the kind
+    /// alone is too weak to compare, and the case labels it covers.
+    private struct MappingArm {
+        let kind: String
+        let member: String?
+        let labels: Set<String>
+    }
+
     /// One arm of a candidate mapping switch: the uniform return kind of its body, the
     /// implicit member when the kind is too weak to compare on its own, and the case labels
     /// it covers. Nil when the arm disqualifies the whole switch — a non-single-expression
     /// body, a non-literal value, or a value-binding pattern.
     private func mappingArm(
         from element: SwitchCaseListSyntax.Element
-    ) -> (kind: String, member: String?, labels: Set<String>)? {
+    ) -> MappingArm? {
         // Body must be a single expression (`return X` or implicit-return `X`).
         guard let switchCase = element.as(SwitchCaseSyntax.self),
               let value = singleExpressionBody(switchCase.statements),
@@ -133,11 +140,11 @@ final class ScatteredEnumMappingVisitor: CrossFileVisitorBase, CrossFilePatternV
                 guard let label = enumCaseLabel(item.pattern) else { return nil }
                 labels.insert(label)
             }
-            return (kind, member, labels)
+            return MappingArm(kind: kind, member: member, labels: labels)
 
         case .default:
             // `default` contributes no label but its body is still kind-checked.
-            return (kind, member, [])
+            return MappingArm(kind: kind, member: member, labels: [])
 
         @unknown default:
             return nil
@@ -318,6 +325,6 @@ final class ScatteredEnumMappingVisitor: CrossFileVisitorBase, CrossFilePatternV
     }
 
     private func shortName(_ path: String) -> String {
-        (path as NSString).lastPathComponent
+        PathString.lastComponent(of: path)
     }
 }

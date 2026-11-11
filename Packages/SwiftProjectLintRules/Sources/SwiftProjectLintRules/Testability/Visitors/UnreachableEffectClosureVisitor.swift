@@ -1,7 +1,164 @@
-import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
+
+/// Where a callback closure is registered — condition 1, as two shapes rather than one.
+///
+/// Deliberately an allowlist rather than "any trailing closure on a member access in a view body".
+/// That inference would sweep in `Toggle`, `ForEach` and every custom `@ViewBuilder`, none of which
+/// register a callback. **Prefer under-reporting**: an unlisted modifier is a missed finding, while
+/// a wrong inference is a finding the reader has to argue with. The cost is that the list drifts
+/// behind SwiftUI, which is the maintenance this rule signs up for.
+enum CallbackSurface {
+
+    /// A view modifier — `.onTapGesture { … }`. A `MemberAccessExprSyntax` call.
+    case modifier(String)
+
+    /// A `Button`'s action. A `DeclReferenceExprSyntax` call, so the modifier match cannot see it,
+    /// and it needs its own arm.
+    ///
+    /// In scope despite `buttonClosureWrapping` also looking at `Button`: that rule fires only on a
+    /// body that is a *single no-argument call*, which is exactly the shape `isWorthExtracting`
+    /// already excludes. The two cannot collide. Leaving `Button` out would have waived every
+    /// multi-statement action — `Button { count += 1; save() }` — with nothing else reporting it.
+    case buttonAction
+
+    /// The SwiftUI callback surface, as an explicit list.
+    ///
+    /// `onAppear` / `onDisappear` are **deliberately absent**. `impureCallInViewBody`'s own
+    /// suggestion is *"move it out of `body` — an action / `onAppear` for effects"*, so listing
+    /// `onAppear` here would hand a reader straight from that rule's fix into this rule's finding.
+    /// Two rules passing someone back and forth is how a whole category gets disabled. They are also
+    /// usually one-liners, which condition 3 mostly refutes anyway, so the exclusion costs little.
+    private static let modifiers: Set<String> = [
+        "onTapGesture", "onLongPressGesture", "onKeyPress", "onContinuousHover", "onHover",
+        "onChange", "onSubmit", "onDrag", "onDrop",
+        // Gesture callbacks.
+        "onEnded", "onChanged", "updating",
+    ]
+
+    init?(call: FunctionCallExprSyntax) {
+        if let member = call.calledExpression.as(MemberAccessExprSyntax.self),
+           Self.modifiers.contains(member.declName.baseName.text) {
+            self = .modifier(member.declName.baseName.text)
+            return
+        }
+        if let reference = call.calledExpression.as(DeclReferenceExprSyntax.self),
+           reference.baseName.text == "Button" {
+            self = .buttonAction
+            return
+        }
+        return nil
+    }
+
+    var name: String {
+        switch self {
+        case .modifier(let name):
+            return name
+
+        case .buttonAction:
+            return "Button"
+        }
+    }
+
+    /// The closure that actually runs on the callback.
+    ///
+    /// For a modifier that is the trailing closure, or the first closure argument when it is written
+    /// in parenthesised form.
+    ///
+    /// `Button` needs more care, because which closure is the *action* depends on the spelling. In
+    /// `Button(action: { … }) { Text("Go") }` the trailing closure is the **label** — a
+    /// `@ViewBuilder`, not a callback — and reporting it would be a false finding. So an explicit
+    /// `action:` argument wins whenever it is present; only otherwise is the first trailing closure
+    /// the action, which covers `Button("Title") { … }` and `Button { … } label: { … }`.
+    func callbackClosure(in call: FunctionCallExprSyntax) -> ClosureExprSyntax? {
+        switch self {
+        case .modifier:
+            return call.trailingClosure ?? Self.firstClosureArgument(of: call)
+
+        case .buttonAction:
+            return Self.argument(labelled: "action", of: call) ?? call.trailingClosure
+        }
+    }
+
+    private static func firstClosureArgument(of call: FunctionCallExprSyntax) -> ClosureExprSyntax? {
+        call.arguments.lazy
+            .compactMap { $0.expression.as(ClosureExprSyntax.self) }
+            .first
+    }
+
+    private static func argument(
+        labelled label: String,
+        of call: FunctionCallExprSyntax
+    ) -> ClosureExprSyntax? {
+        call.arguments.lazy
+            .filter { $0.label?.text == label }
+            .compactMap { $0.expression.as(ClosureExprSyntax.self) }
+            .first
+    }
+}
+
+/// Per type, the `@State` and `@FocusState` property names a file declares.
+///
+/// Keyed by type rather than gathered per file: two views in one file routinely use the same
+/// property name for different storage, and a file-wide set would let one view's `@State private
+/// var text` gate another view's `@Binding var text`.
+private final class ViewLocalStateCollector: SyntaxVisitor {
+
+    private(set) var byType: [String: Set<String>] = [:]
+
+    private static let viewLocalWrappers: Set<String> = ["State", "FocusState"]
+
+    private var typeNameStack: [String] = []
+
+    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
+        typeNameStack.append(node.name.text)
+        return .visitChildren
+    }
+
+    override func visitPost(_ _: StructDeclSyntax) { typeNameStack.removeLast() }
+
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        typeNameStack.append(node.name.text)
+        return .visitChildren
+    }
+
+    override func visitPost(_ _: ClassDeclSyntax) { typeNameStack.removeLast() }
+
+    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        guard let type = typeNameStack.last else { return .visitChildren }
+        let wrapped = node.attributes.contains { attribute in
+            guard let name = attribute.as(AttributeSyntax.self)?
+                .attributeName.as(IdentifierTypeSyntax.self)?.name.text else { return false }
+            return Self.viewLocalWrappers.contains(name)
+        }
+        guard wrapped else { return .visitChildren }
+        for binding in node.bindings {
+            if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) {
+                byType[type, default: []].insert(identifier.identifier.text)
+            }
+        }
+        return .visitChildren
+    }
+}
+
+/// Whether a subtree contains a call — the test condition 5 uses for "the closure computes
+/// something the caller cannot already reach".
+final class CallFinder: SyntaxVisitor {
+
+    private var found = false
+
+    func foundCall(in node: Syntax) -> Bool {
+        found = false
+        walk(node)
+        return found
+    }
+
+    override func visit(_ _: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        found = true
+        return .skipChildren
+    }
+}
 
 /// The effect nobody can assert on.
 ///
@@ -232,232 +389,5 @@ final class UnreachableEffectClosureVisitor: BasePatternVisitor, PackagePurityCo
             parent = current.parent
         }
         return nil
-    }
-}
-
-/// Where a callback closure is registered — condition 1, as two shapes rather than one.
-///
-/// Deliberately an allowlist rather than "any trailing closure on a member access in a view body".
-/// That inference would sweep in `Toggle`, `ForEach` and every custom `@ViewBuilder`, none of which
-/// register a callback. **Prefer under-reporting**: an unlisted modifier is a missed finding, while
-/// a wrong inference is a finding the reader has to argue with. The cost is that the list drifts
-/// behind SwiftUI, which is the maintenance this rule signs up for.
-enum CallbackSurface {
-
-    /// A view modifier — `.onTapGesture { … }`. A `MemberAccessExprSyntax` call.
-    case modifier(String)
-
-    /// A `Button`'s action. A `DeclReferenceExprSyntax` call, so the modifier match cannot see it,
-    /// and it needs its own arm.
-    ///
-    /// In scope despite `buttonClosureWrapping` also looking at `Button`: that rule fires only on a
-    /// body that is a *single no-argument call*, which is exactly the shape `isWorthExtracting`
-    /// already excludes. The two cannot collide. Leaving `Button` out would have waived every
-    /// multi-statement action — `Button { count += 1; save() }` — with nothing else reporting it.
-    case buttonAction
-
-    /// The SwiftUI callback surface, as an explicit list.
-    ///
-    /// `onAppear` / `onDisappear` are **deliberately absent**. `impureCallInViewBody`'s own
-    /// suggestion is *"move it out of `body` — an action / `onAppear` for effects"*, so listing
-    /// `onAppear` here would hand a reader straight from that rule's fix into this rule's finding.
-    /// Two rules passing someone back and forth is how a whole category gets disabled. They are also
-    /// usually one-liners, which condition 3 mostly refutes anyway, so the exclusion costs little.
-    private static let modifiers: Set<String> = [
-        "onTapGesture", "onLongPressGesture", "onKeyPress", "onContinuousHover", "onHover",
-        "onChange", "onSubmit", "onDrag", "onDrop",
-        // Gesture callbacks.
-        "onEnded", "onChanged", "updating"
-    ]
-
-    init?(call: FunctionCallExprSyntax) {
-        if let member = call.calledExpression.as(MemberAccessExprSyntax.self),
-           Self.modifiers.contains(member.declName.baseName.text) {
-            self = .modifier(member.declName.baseName.text)
-            return
-        }
-        if let reference = call.calledExpression.as(DeclReferenceExprSyntax.self),
-           reference.baseName.text == "Button" {
-            self = .buttonAction
-            return
-        }
-        return nil
-    }
-
-    var name: String {
-        switch self {
-        case .modifier(let name):
-            return name
-
-        case .buttonAction:
-            return "Button"
-        }
-    }
-
-    /// The closure that actually runs on the callback.
-    ///
-    /// For a modifier that is the trailing closure, or the first closure argument when it is written
-    /// in parenthesised form.
-    ///
-    /// `Button` needs more care, because which closure is the *action* depends on the spelling. In
-    /// `Button(action: { … }) { Text("Go") }` the trailing closure is the **label** — a
-    /// `@ViewBuilder`, not a callback — and reporting it would be a false finding. So an explicit
-    /// `action:` argument wins whenever it is present; only otherwise is the first trailing closure
-    /// the action, which covers `Button("Title") { … }` and `Button { … } label: { … }`.
-    func callbackClosure(in call: FunctionCallExprSyntax) -> ClosureExprSyntax? {
-        switch self {
-        case .modifier:
-            return call.trailingClosure ?? Self.firstClosureArgument(of: call)
-
-        case .buttonAction:
-            return Self.argument(labelled: "action", of: call) ?? call.trailingClosure
-        }
-    }
-
-    private static func firstClosureArgument(of call: FunctionCallExprSyntax) -> ClosureExprSyntax? {
-        call.arguments.lazy
-            .compactMap { $0.expression.as(ClosureExprSyntax.self) }
-            .first
-    }
-
-    private static func argument(
-        labelled label: String,
-        of call: FunctionCallExprSyntax
-    ) -> ClosureExprSyntax? {
-        call.arguments.lazy
-            .filter { $0.label?.text == label }
-            .compactMap { $0.expression.as(ClosureExprSyntax.self) }
-            .first
-    }
-}
-
-/// Per type, the `@State` and `@FocusState` property names a file declares.
-///
-/// Keyed by type rather than gathered per file: two views in one file routinely use the same
-/// property name for different storage, and a file-wide set would let one view's `@State private
-/// var text` gate another view's `@Binding var text`.
-private final class ViewLocalStateCollector: SyntaxVisitor {
-
-    private(set) var byType: [String: Set<String>] = [:]
-
-    private static let viewLocalWrappers: Set<String> = ["State", "FocusState"]
-
-    private var typeNameStack: [String] = []
-
-    override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
-        typeNameStack.append(node.name.text)
-        return .visitChildren
-    }
-
-    override func visitPost(_ _: StructDeclSyntax) { typeNameStack.removeLast() }
-
-    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
-        typeNameStack.append(node.name.text)
-        return .visitChildren
-    }
-
-    override func visitPost(_ _: ClassDeclSyntax) { typeNameStack.removeLast() }
-
-    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard let type = typeNameStack.last else { return .visitChildren }
-        let wrapped = node.attributes.contains { attribute in
-            guard let name = attribute.as(AttributeSyntax.self)?
-                .attributeName.as(IdentifierTypeSyntax.self)?.name.text else { return false }
-            return Self.viewLocalWrappers.contains(name)
-        }
-        guard wrapped else { return .visitChildren }
-        for binding in node.bindings {
-            if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) {
-                byType[type, default: []].insert(identifier.identifier.text)
-            }
-        }
-        return .visitChildren
-    }
-}
-
-/// What a closure body writes to, split by whether the write lands in view-local storage.
-///
-/// `directWrites` are bare-identifier assignments and `toggle()` — the shapes that reach a
-/// `@State` property itself. `otherWrites` is everything else that mutates: a member assignment
-/// (`viewModel.error = nil`), or a mutating call on a receiver (`items.append(x)`). One entry in
-/// `otherWrites` disqualifies the whole closure, because the gate's claim is about the *only*
-/// thing the body does.
-final class ClosureWriteTargetCollector: SyntaxVisitor {
-
-    private(set) var directWrites: Set<String> = []
-    private(set) var otherWrites: Set<String> = []
-
-    /// Calls that mutate their receiver. An allowlist, for the reason `CallbackSurface` gives:
-    /// an unlisted name is a missed disqualification and so a kept finding, which is the safe
-    /// direction, while a wrong inference gates something real.
-    private static let mutatingCalls: Set<String> = [
-        "append", "insert", "remove", "removeAll", "removeFirst", "removeLast", "removeValue",
-        "sort", "reverse", "popLast", "formUnion", "subtract"
-    ]
-
-    /// Assignment is read off `SequenceExprSyntax`, not `InfixOperatorExprSyntax`: an unfolded
-    /// tree — what `Parser.parse` produces and what every visitor here walks — represents
-    /// `flag = true` as a three-element sequence. `InfixOperatorExprSyntax` appears only after
-    /// operator folding, which the linter never does.
-    override func visit(_ node: SequenceExprSyntax) -> SyntaxVisitorContinueKind {
-        let elements = Array(node.elements)
-        guard elements.count >= 2, Self.isAssignment(elements[1]) else { return .visitChildren }
-        record(target: elements[0])
-        return .visitChildren
-    }
-
-    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard let member = node.calledExpression.as(MemberAccessExprSyntax.self),
-              let receiver = member.base?.as(DeclReferenceExprSyntax.self) else {
-            return .visitChildren
-        }
-        let name = member.declName.baseName.text
-        if name == "toggle" {
-            directWrites.insert(receiver.baseName.text)
-        } else if Self.mutatingCalls.contains(name) {
-            otherWrites.insert(receiver.baseName.text)
-        }
-        return .visitChildren
-    }
-
-    private func record(target: ExprSyntax) {
-        if let reference = target.as(DeclReferenceExprSyntax.self) {
-            directWrites.insert(reference.baseName.text)
-            return
-        }
-        if let member = target.as(MemberAccessExprSyntax.self) {
-            otherWrites.insert(member.description.trimmingCharacters(in: .whitespaces))
-            return
-        }
-        // A subscript, a tuple destructuring, anything else — treat as a write that is not a
-        // plain `@State` assignment rather than ignoring it.
-        otherWrites.insert(target.description.trimmingCharacters(in: .whitespaces))
-    }
-
-    /// `=` is an `AssignmentExprSyntax`; `+=` and friends are binary operators whose text ends
-    /// in `=` without being a comparison.
-    static func isAssignment(_ element: ExprSyntax) -> Bool {
-        if element.is(AssignmentExprSyntax.self) { return true }
-        guard let binary = element.as(BinaryOperatorExprSyntax.self) else { return false }
-        let text = binary.operator.text
-        return text.hasSuffix("=") && !["==", "!=", "<=", ">=", "==="].contains(text)
-    }
-}
-
-/// Whether a subtree contains a call — the test condition 5 uses for "the closure computes
-/// something the caller cannot already reach".
-final class CallFinder: SyntaxVisitor {
-
-    private var found = false
-
-    func foundCall(in node: Syntax) -> Bool {
-        found = false
-        walk(node)
-        return found
-    }
-
-    override func visit(_ _: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        found = true
-        return .skipChildren
     }
 }

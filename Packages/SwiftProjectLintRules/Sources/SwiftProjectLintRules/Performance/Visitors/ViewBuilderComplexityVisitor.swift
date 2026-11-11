@@ -1,5 +1,4 @@
 import Foundation
-import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
@@ -82,7 +81,7 @@ class ViewBuilderComplexityVisitor: BasePatternVisitor {
                 variables: [
                     "name": name,
                     "lineCount": "\(lineCount)",
-                    "statementCount": "\(statementCount)"
+                    "statementCount": "\(statementCount)",
                 ]
             )
         }

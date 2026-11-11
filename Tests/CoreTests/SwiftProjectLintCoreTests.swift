@@ -5,7 +5,9 @@
 //  Created by Joseph Cursio on 7/5/25.
 //
 
-@testable import Core
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import Testing
 
 @Suite("Core Module Tests")

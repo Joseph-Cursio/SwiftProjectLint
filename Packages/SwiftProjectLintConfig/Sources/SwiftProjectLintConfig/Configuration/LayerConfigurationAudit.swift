@@ -93,7 +93,11 @@ public enum LayerConfigurationAudit {
     }
 
     /// A shortest route from `start` back to itself, staying inside `group`.
-    private static func cyclePath(from start: String, within group: Set<String>, edges: [String: [String]]) -> [String]? {
+    private static func cyclePath(
+        from start: String,
+        within group: Set<String>,
+        edges: [String: [String]]
+    ) -> [String]? {
         var queue: [[String]] = [[start]]
         var visited: Set<String> = []
         while queue.isEmpty == false {

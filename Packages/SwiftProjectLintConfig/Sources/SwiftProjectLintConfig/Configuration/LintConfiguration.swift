@@ -144,7 +144,7 @@ public struct LintConfiguration: Sendable {
         // asked for `OrderStoreProtocol` — the naming `Mirror Protocol` treats as the
         // smell's signature — against Swift's own guidelines, which name a role-noun
         // protocol `OrderStore`. See Docs/rules/protocol-naming-suffix.md.
-        .protocolNamingSuffix
+        .protocolNamingSuffix,
     ]
 
     /// Default configuration — all rules enabled, no exclusions.
@@ -220,7 +220,7 @@ public struct LintConfiguration: Sendable {
             // (`/var` → `/private/var` on macOS). See `ProjectRoot`.
             let root = ProjectRoot(givenRoot)
             for fullPath in allFiles {
-                let basename = (fullPath as NSString).lastPathComponent
+                let basename = PathString.lastComponent(of: fullPath)
                 // Not under the root: match against the absolute path, which is the widest thing a
                 // pattern can be tried on. A third fallback, and now a stated one -- the other two
                 // callers of this derivation answer differently, because an exclusion that matches
@@ -236,7 +236,7 @@ public struct LintConfiguration: Sendable {
             // Check per-rule path exclusions against the relative path
             if !override.excludedPaths.isEmpty {
                 let relativePath = basenameToRelativePath[issue.filePath] ?? issue.filePath
-                let basename = (relativePath as NSString).lastPathComponent
+                let basename = PathString.lastComponent(of: relativePath)
                 let excluded = override.excludedPaths.contains { pattern in
                     Self.pathMatches(relativePath: relativePath, basename: basename, pattern: pattern)
                 }

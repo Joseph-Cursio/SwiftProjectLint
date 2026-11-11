@@ -1,5 +1,6 @@
-@testable import App
-@testable import Core
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import Testing
 
 @Suite("PatternRegistryFactory Tests")

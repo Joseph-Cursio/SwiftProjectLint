@@ -1,7 +1,8 @@
-@testable import Core
 import Foundation
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -115,9 +116,9 @@ struct GodViewModelVisitorTests {
     @Test func testExcludesComputedProperties() {
         let stored = (1...8).map { "    var prop\($0): String = \"\"" }
             .joined(separator: "\n")
-        let computed = (1...10).map {
-            "    var computed\($0): String { \"val\" }"
-        }.joined(separator: "\n")
+        let computed = (1...10)
+            .map { "    var computed\($0): String { \"val\" }" }
+            .joined(separator: "\n")
         let source = """
         @Observable
         class MixedModel {

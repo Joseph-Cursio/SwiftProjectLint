@@ -2,6 +2,25 @@ import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
+/// Finds whether a type declaration contains any property-test candidate.
+private final class CandidateFunctionCollector: SyntaxVisitor {
+    private let knownEquatableTypes: Set<String>
+
+    var foundCandidate = false
+
+    init(knownEquatableTypes: Set<String>, viewMode: SyntaxTreeViewMode) {
+        self.knownEquatableTypes = knownEquatableTypes
+        super.init(viewMode: viewMode)
+    }
+
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        if PropertyTestCandidacy.shape(of: node, knownEquatableTypes: knownEquatableTypes) != nil {
+            foundCandidate = true
+        }
+        return .visitChildren
+    }
+}
+
 /// A cross-file visitor that detects top-level types with internal (default) access
 /// that are only referenced in their declaring file and could be narrowed to `private`.
 ///
@@ -15,7 +34,14 @@ final class CouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
     static let packagePurityInputs: PackagePurityInputs = [.oracle]
 
     /// Tracks where each type name is declared: typeName → fileName
-    private var declarations: [(name: String, file: String, node: Syntax)] = []
+    /// A top-level type declaration: its name, its file, and its node.
+    private struct Declaration {
+        let name: String
+        let file: String
+        let node: Syntax
+    }
+
+    private var declarations: [Declaration] = []
 
     /// Tracks which files reference each type name: typeName → Set<fileName>
     private var references: [String: Set<String>] = [:]
@@ -237,7 +263,7 @@ final class CouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
         // Skip types that already have explicit access control
         guard !modifiers.hasExplicitAccessControl else { return }
 
-        declarations.append((name: name, file: currentFilePath, node: node))
+        declarations.append(Declaration(name: name, file: currentFilePath, node: node))
         declaredTypeNames.insert(name)
     }
 
@@ -316,24 +342,5 @@ final class CouldBePrivateVisitor: CrossFileVisitorBase, CrossFilePatternVisitor
               let greatGrandparent = grandparent.parent,
               greatGrandparent.is(SourceFileSyntax.self) else { return false }
         return true
-    }
-}
-
-/// Finds whether a type declaration contains any property-test candidate.
-private final class CandidateFunctionCollector: SyntaxVisitor {
-    private let knownEquatableTypes: Set<String>
-
-    var foundCandidate = false
-
-    init(knownEquatableTypes: Set<String>, viewMode: SyntaxTreeViewMode) {
-        self.knownEquatableTypes = knownEquatableTypes
-        super.init(viewMode: viewMode)
-    }
-
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        if PropertyTestCandidacy.shape(of: node, knownEquatableTypes: knownEquatableTypes) != nil {
-            foundCandidate = true
-        }
-        return .visitChildren
     }
 }

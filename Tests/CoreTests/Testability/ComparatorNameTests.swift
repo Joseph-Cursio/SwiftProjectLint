@@ -1,4 +1,3 @@
-import Foundation
 import SwiftParser
 @testable import SwiftProjectLintRules
 import SwiftSyntax
@@ -16,6 +15,7 @@ struct ComparatorNameTests {
         let tree = Parser.parse(source: "let _ = xs.sorted { \(signature)\(body) }")
         final class Finder: SyntaxVisitor {
             var found: ClosureExprSyntax?
+
             override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind {
                 if found == nil { found = node }
                 return .skipChildren
@@ -104,7 +104,8 @@ struct ComparatorNameTests {
     @Test("the ternary spelling names the same keys as the guard spelling")
     func ternarySpelling() throws {
         let sut = try closure(
-            "lhs.value != rhs.value ? lhs.value > rhs.value : lhs.key < rhs.key")
+            "lhs.value != rhs.value ? lhs.value > rhs.value : lhs.key < rhs.key"
+        )
         #expect(ComparatorName.derived(from: sut) == "byValueDescendingThenKey")
     }
 

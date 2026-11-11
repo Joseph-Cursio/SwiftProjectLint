@@ -1,8 +1,3 @@
-@testable import Core
-import SwiftParser
-@testable import SwiftProjectLintRules
-@testable import SwiftProjectLintVisitors
-import SwiftSyntax
 import Testing
 
 /// The forwarding gate keys a callee by name, and a name has to be specific enough to key on.
@@ -38,7 +33,7 @@ struct ForwardingCallKeyTests {
     @Test("common standard-library member names do not exempt a closure", arguments: [
         ("map(_:)", "values.filter { transformer.map($0) }"),
         ("first(_:)", "values.filter { registry.first($0) }"),
-        ("hasPrefix(_:)", "values.filter { matcher.hasPrefix($0) }")
+        ("hasPrefix(_:)", "values.filter { matcher.hasPrefix($0) }"),
     ])
     func standardLibraryNamesDoNotExempt(declared: String, body: String) {
         #expect(!analyzeClosureCandidates("""

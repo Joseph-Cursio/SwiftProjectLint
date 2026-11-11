@@ -1,5 +1,3 @@
-import Foundation
-
 /// Top-level JSON report structure.
 public struct LintReport: Codable, Sendable {
     public let summary: ReportSummary

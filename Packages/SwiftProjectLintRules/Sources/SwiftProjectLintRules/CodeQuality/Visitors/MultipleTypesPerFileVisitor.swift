@@ -25,8 +25,8 @@ final class MultipleTypesPerFileVisitor: BasePatternVisitor {
         super.setFilePath(filePath)
         // Extract file name stem: "WorkspaceManager.swift" → "WorkspaceManager"
         // Also handle "+Extensions" files: "ViolationInspectorView+Options.swift" → "ViolationInspectorView"
-        let fileName = (filePath as NSString).lastPathComponent
-        let stem = (fileName as NSString).deletingPathExtension
+        let fileName = PathString.lastComponent(of: filePath)
+        let stem = PathString.deletingExtension(of: fileName)
         fileNameStem = stem.components(separatedBy: "+").first ?? stem
     }
 

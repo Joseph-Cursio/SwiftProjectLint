@@ -1,4 +1,4 @@
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintVisitors
 import Testing
 
 /// Fixtures for the stdlib-collection exclusion table. Covers every pair
@@ -70,13 +70,15 @@ struct StdlibExclusionsTests {
     @Test
     func dictionaryRemoveValue_excluded() {
         #expect(StdlibExclusions.isExcluded(
-            receiver: .stdlibCollection("Dictionary"), method: "removeValue"))
+            receiver: .stdlibCollection("Dictionary"), method: "removeValue"
+        ))
     }
 
     @Test
     func dictionaryUpdateValue_excluded() {
         #expect(StdlibExclusions.isExcluded(
-            receiver: .stdlibCollection("Dictionary"), method: "updateValue"))
+            receiver: .stdlibCollection("Dictionary"), method: "updateValue"
+        ))
     }
 
     // MARK: - Negative: non-excluded methods on stdlib types
@@ -87,14 +89,16 @@ struct StdlibExclusionsTests {
         // the linter later flags `enqueue` on a user type, the (Array,
         // enqueue) pair must not suppress it.
         #expect(StdlibExclusions.isExcluded(
-            receiver: .stdlibCollection("Array"), method: "enqueue") == false)
+            receiver: .stdlibCollection("Array"), method: "enqueue"
+        ) == false)
     }
 
     @Test
     func dictionaryInsert_notExcluded() {
         // Dictionary has no `insert` method. Don't suppress.
         #expect(StdlibExclusions.isExcluded(
-            receiver: .stdlibCollection("Dictionary"), method: "insert") == false)
+            receiver: .stdlibCollection("Dictionary"), method: "insert"
+        ) == false)
     }
 
     // MARK: - Negative: named (user-defined) receivers are never excluded
@@ -104,13 +108,15 @@ struct StdlibExclusionsTests {
         // `queue.append(...)` where `queue: UserDefinedQueue`. The bare
         // name `append` should still classify this as non_idempotent.
         #expect(StdlibExclusions.isExcluded(
-            receiver: .named("UserDefinedQueue"), method: "append") == false)
+            receiver: .named("UserDefinedQueue"), method: "append"
+        ) == false)
     }
 
     @Test
     func namedReceiverInsert_notExcluded() {
         #expect(StdlibExclusions.isExcluded(
-            receiver: .named("Database"), method: "insert") == false)
+            receiver: .named("Database"), method: "insert"
+        ) == false)
     }
 
     @Test
@@ -120,7 +126,8 @@ struct StdlibExclusionsTests {
         // `localTypeShadowsStdlibName_downgradesToNamed` in the resolver
         // tests). The exclusion table only matches `.stdlibCollection`.
         #expect(StdlibExclusions.isExcluded(
-            receiver: .named("Array"), method: "append") == false)
+            receiver: .named("Array"), method: "append"
+        ) == false)
     }
 
     // MARK: - Negative: unresolved receivers are never excluded

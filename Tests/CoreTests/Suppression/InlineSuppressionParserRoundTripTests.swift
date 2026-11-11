@@ -1,5 +1,6 @@
-@testable import Core
 import PropertyBased
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
 import Testing
 
 /// Round-trip laws for `InlineSuppressionParser` — **every directive this
@@ -42,7 +43,7 @@ struct InlineSuppressionParserRoundTripTests {
         ("disable", .disable),
         ("enable", .enable),
         ("disable:next", .disableNext),
-        ("disable:this", .disableThis)
+        ("disable:this", .disableThis),
     ]
 
     private static func line(_ spelling: String, _ keys: [String]) -> String {
@@ -196,7 +197,7 @@ struct InlineSuppressionParserRoundTripTests {
             "// swiftprojectlint:banana force-try",
             "// swiftlint:disable force_try",
             "let s = \"// swiftprojectlint:disable force-try\"",
-            ""
+            "",
         ]
         for source in inert {
             #expect(

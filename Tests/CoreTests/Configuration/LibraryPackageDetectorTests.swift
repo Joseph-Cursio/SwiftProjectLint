@@ -1,6 +1,5 @@
-@testable import Core
 import Foundation
-@testable import SwiftProjectLintConfig
+import SwiftProjectLintConfig
 import Testing
 
 /// A nested package that publishes a `.library` product is a library whatever the analysed root
@@ -101,7 +100,7 @@ struct LibraryPackageDetectorTests {
         let root = try makeTree(nested: [
             ("Zed", Self.libraryManifest),
             ("Alpha", Self.libraryManifest),
-            ("Tool", Self.executableManifest)
+            ("Tool", Self.executableManifest),
         ])
         defer { try? FileManager.default.removeItem(at: root) }
 

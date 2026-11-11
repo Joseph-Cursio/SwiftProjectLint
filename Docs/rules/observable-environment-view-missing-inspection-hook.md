@@ -18,7 +18,7 @@ A view reading the fatal form can only be inspected by hosting it and inspecting
 
 ### Discussion
 
-`ObservableEnvironmentViewMissingInspectionHookVisitor` reports a `struct` conforming to `View` that declares at least one `@Environment(SomeType.self)` property and no stored property named `inspection`. The message names each offending environment type.
+`ObservableViewInspectionHookVisitor` reports a `struct` conforming to `View` that declares at least one `@Environment(SomeType.self)` property and no stored property named `inspection`. The message names each offending environment type.
 
 **It fires only for a view something is actually trying to inspect** — one named from a file that imports ViewInspector. This is advisory rather than a defect: a view nobody inspects needs no hook, and asking every view for one is noise. `Info` severity for that reason.
 

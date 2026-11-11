@@ -1,5 +1,6 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
 import Testing
 
 // MARK: - Shared Helper
@@ -31,6 +32,202 @@ private func makeTempProject(
     return (rootPath, cleanup)
 }
 
+// MARK: - Filtering & Skipping
+
+@Suite("DirectoryScanner Filtering Tests")
+struct DirectoryScannerFilteringTests {
+
+    @Test("scanSync skips .build directory")
+    func scanSyncSkipsBuild() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Sources",
+            ".build",
+            ".build/debug",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let allNames = root.allNodes().map(\.name)
+        #expect(allNames.contains(".build") == false)
+    }
+
+    @Test("scanSync skips DerivedData directory")
+    func scanSyncSkipsDerivedData() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Sources",
+            "DerivedData",
+            "DerivedData/Build",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let allNames = root.allNodes().map(\.name)
+        #expect(allNames.contains("DerivedData") == false)
+        #expect(allNames.contains("Build") == false)
+    }
+
+    @Test("scanSync skips Pods directory")
+    func scanSyncSkipsPods() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Sources",
+            "Pods",
+            "Pods/SomePod",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let allNames = root.allNodes().map(\.name)
+        #expect(allNames.contains("Pods") == false)
+    }
+
+    @Test("scanSync skips .xcodeproj directories")
+    func scanSyncSkipsXcodeproj() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Sources",
+            "MyApp.xcodeproj",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let allNames = root.allNodes().map(\.name)
+        #expect(allNames.contains("MyApp.xcodeproj") == false)
+    }
+
+    @Test("scanSync skips .xcworkspace directories")
+    func scanSyncSkipsXcworkspace() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Sources",
+            "MyApp.xcworkspace",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let allNames = root.allNodes().map(\.name)
+        #expect(allNames.contains("MyApp.xcworkspace") == false)
+    }
+
+    @Test("scanSync skips extra skipped directories like build and xcuserdata")
+    func scanSyncSkipsExtraDirs() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Sources",
+            "build",
+            "debug_output",
+            "xcshareddata",
+            "xcuserdata",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let allNames = root.allNodes().map(\.name)
+        #expect(allNames.contains("build") == false)
+        #expect(allNames.contains("debug_output") == false)
+        #expect(allNames.contains("xcshareddata") == false)
+        #expect(allNames.contains("xcuserdata") == false)
+    }
+
+    @Test("scanSync skips Carthage directory")
+    func scanSyncSkipsCarthage() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Sources",
+            "Carthage",
+            "Carthage/Build",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let allNames = root.allNodes().map(\.name)
+        #expect(allNames.contains("Carthage") == false)
+    }
+
+    @Test("scanSync skips node_modules directory")
+    func scanSyncSkipsNodeModules() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Sources",
+            "node_modules",
+            "node_modules/some_package",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let allNames = root.allNodes().map(\.name)
+        #expect(allNames.contains("node_modules") == false)
+    }
+
+    @Test("scanSync skips hidden directories (dot-prefixed)")
+    func scanSyncSkipsHidden() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Sources",
+            ".hidden",
+            ".git",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let allNames = root.allNodes().map(\.name)
+        #expect(allNames.contains(".hidden") == false)
+        #expect(allNames.contains(".git") == false)
+    }
+
+    @Test("scanSync skips directories containing Package.swift")
+    func scanSyncSkipsNestedPackages() throws {
+        let (path, cleanup) = try makeTempProject(
+            subdirs: [
+                "Sources",
+                "Vendor",
+                "Vendor/SomeLib",
+                "Vendor/SomeLib/Sources",
+            ],
+            files: [
+                "Vendor/SomeLib/Package.swift": "// swift-tools-version:5.9"
+            ]
+        )
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path)
+        let allNames = root.allNodes().map(\.name)
+        #expect(allNames.contains("SomeLib") == false)
+        #expect(allNames.filter { $0 == "Sources" }.count <= 1)
+        #expect(allNames.contains("Vendor"))
+    }
+
+    @Test("scanSync respects maxDepth limit")
+    func scanSyncMaxDepth() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Level1",
+            "Level1/Level2",
+            "Level1/Level2/Level3",
+            "Level1/Level2/Level3/Level4",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path, maxDepth: 2)
+        let allNodes = root.allNodes()
+        let maxNodeDepth = allNodes.map(\.depth).max() ?? 0
+        #expect(maxNodeDepth <= 2)
+        let allNames = allNodes.map(\.name)
+        #expect(allNames.contains("Level1"))
+        #expect(allNames.contains("Level2"))
+        #expect(allNames.contains("Level3") == false)
+    }
+
+    @Test("scanSync with maxDepth 1 only includes direct children")
+    func scanSyncMaxDepthOne() throws {
+        let (path, cleanup) = try makeTempProject(subdirs: [
+            "Sources",
+            "Sources/App",
+            "Tests",
+        ])
+        defer { cleanup() }
+
+        let root = DirectoryScanner.scanSync(rootPath: path, maxDepth: 1)
+        let allNodes = root.allNodes()
+        let allNames = allNodes.map(\.name)
+        #expect(allNames.contains("Sources"))
+        #expect(allNames.contains("Tests"))
+        #expect(allNames.contains("App") == false)
+    }
+}
+
 // MARK: - Basic Scanning & Structure
 
 @Suite("DirectoryScanner Basic Tests")
@@ -42,7 +239,7 @@ struct DirectoryScannerTests {
         defer { cleanup() }
 
         let root = DirectoryScanner.scanSync(rootPath: path)
-        let expectedName = (path as NSString).lastPathComponent
+        let expectedName = PathString.lastComponent(of: path)
         #expect(root.name == expectedName)
         #expect(root.id.isEmpty)
         #expect(root.depth == 0)
@@ -55,7 +252,7 @@ struct DirectoryScannerTests {
             "Sources",
             "Sources/App",
             "Sources/Core",
-            "Tests"
+            "Tests",
         ])
         defer { cleanup() }
 
@@ -73,7 +270,7 @@ struct DirectoryScannerTests {
     func scanSyncParentChild() throws {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
-            "Sources/App"
+            "Sources/App",
         ])
         defer { cleanup() }
 
@@ -92,7 +289,7 @@ struct DirectoryScannerTests {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Zebra",
             "Alpha",
-            "Mango"
+            "Mango",
         ])
         defer { cleanup() }
 
@@ -107,7 +304,7 @@ struct DirectoryScannerTests {
             "Parent",
             "Parent/Charlie",
             "Parent/Alice",
-            "Parent/Bob"
+            "Parent/Bob",
         ])
         defer { cleanup() }
 
@@ -122,7 +319,7 @@ struct DirectoryScannerTests {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
             "Sources/App",
-            "Sources/App/Views"
+            "Sources/App/Views",
         ])
         defer { cleanup() }
 
@@ -144,7 +341,7 @@ struct DirectoryScannerTests {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
             "Sources/App",
-            "Tests"
+            "Tests",
         ])
         defer { cleanup() }
 
@@ -167,7 +364,7 @@ struct DirectoryScannerTests {
     func scanSyncRelativePaths() throws {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
-            "Sources/App"
+            "Sources/App",
         ])
         defer { cleanup() }
 
@@ -184,7 +381,7 @@ struct DirectoryScannerTests {
         let (path, cleanup) = try makeTempProject(subdirs: [
             "Sources",
             "Sources/App",
-            "Tests"
+            "Tests",
         ])
         defer { cleanup() }
 
@@ -194,201 +391,5 @@ struct DirectoryScannerTests {
         let syncNames = syncRoot.allNodes().map(\.name).sorted()
         let asyncNames = asyncRoot.allNodes().map(\.name).sorted()
         #expect(syncNames == asyncNames)
-    }
-}
-
-// MARK: - Filtering & Skipping
-
-@Suite("DirectoryScanner Filtering Tests")
-struct DirectoryScannerFilteringTests {
-
-    @Test("scanSync skips .build directory")
-    func scanSyncSkipsBuild() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Sources",
-            ".build",
-            ".build/debug"
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let allNames = root.allNodes().map(\.name)
-        #expect(allNames.contains(".build") == false)
-    }
-
-    @Test("scanSync skips DerivedData directory")
-    func scanSyncSkipsDerivedData() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Sources",
-            "DerivedData",
-            "DerivedData/Build"
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let allNames = root.allNodes().map(\.name)
-        #expect(allNames.contains("DerivedData") == false)
-        #expect(allNames.contains("Build") == false)
-    }
-
-    @Test("scanSync skips Pods directory")
-    func scanSyncSkipsPods() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Sources",
-            "Pods",
-            "Pods/SomePod"
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let allNames = root.allNodes().map(\.name)
-        #expect(allNames.contains("Pods") == false)
-    }
-
-    @Test("scanSync skips .xcodeproj directories")
-    func scanSyncSkipsXcodeproj() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Sources",
-            "MyApp.xcodeproj"
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let allNames = root.allNodes().map(\.name)
-        #expect(allNames.contains("MyApp.xcodeproj") == false)
-    }
-
-    @Test("scanSync skips .xcworkspace directories")
-    func scanSyncSkipsXcworkspace() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Sources",
-            "MyApp.xcworkspace"
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let allNames = root.allNodes().map(\.name)
-        #expect(allNames.contains("MyApp.xcworkspace") == false)
-    }
-
-    @Test("scanSync skips extra skipped directories like build and xcuserdata")
-    func scanSyncSkipsExtraDirs() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Sources",
-            "build",
-            "debug_output",
-            "xcshareddata",
-            "xcuserdata"
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let allNames = root.allNodes().map(\.name)
-        #expect(allNames.contains("build") == false)
-        #expect(allNames.contains("debug_output") == false)
-        #expect(allNames.contains("xcshareddata") == false)
-        #expect(allNames.contains("xcuserdata") == false)
-    }
-
-    @Test("scanSync skips Carthage directory")
-    func scanSyncSkipsCarthage() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Sources",
-            "Carthage",
-            "Carthage/Build"
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let allNames = root.allNodes().map(\.name)
-        #expect(allNames.contains("Carthage") == false)
-    }
-
-    @Test("scanSync skips node_modules directory")
-    func scanSyncSkipsNodeModules() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Sources",
-            "node_modules",
-            "node_modules/some_package"
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let allNames = root.allNodes().map(\.name)
-        #expect(allNames.contains("node_modules") == false)
-    }
-
-    @Test("scanSync skips hidden directories (dot-prefixed)")
-    func scanSyncSkipsHidden() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Sources",
-            ".hidden",
-            ".git"
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let allNames = root.allNodes().map(\.name)
-        #expect(allNames.contains(".hidden") == false)
-        #expect(allNames.contains(".git") == false)
-    }
-
-    @Test("scanSync skips directories containing Package.swift")
-    func scanSyncSkipsNestedPackages() throws {
-        let (path, cleanup) = try makeTempProject(
-            subdirs: [
-                "Sources",
-                "Vendor",
-                "Vendor/SomeLib",
-                "Vendor/SomeLib/Sources"
-            ],
-            files: [
-                "Vendor/SomeLib/Package.swift": "// swift-tools-version:5.9"
-            ]
-        )
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path)
-        let allNames = root.allNodes().map(\.name)
-        #expect(allNames.contains("SomeLib") == false)
-        #expect(allNames.filter { $0 == "Sources" }.count <= 1)
-        #expect(allNames.contains("Vendor"))
-    }
-
-    @Test("scanSync respects maxDepth limit")
-    func scanSyncMaxDepth() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Level1",
-            "Level1/Level2",
-            "Level1/Level2/Level3",
-            "Level1/Level2/Level3/Level4"
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path, maxDepth: 2)
-        let allNodes = root.allNodes()
-        let maxNodeDepth = allNodes.map(\.depth).max() ?? 0
-        #expect(maxNodeDepth <= 2)
-        let allNames = allNodes.map(\.name)
-        #expect(allNames.contains("Level1"))
-        #expect(allNames.contains("Level2"))
-        #expect(allNames.contains("Level3") == false)
-    }
-
-    @Test("scanSync with maxDepth 1 only includes direct children")
-    func scanSyncMaxDepthOne() throws {
-        let (path, cleanup) = try makeTempProject(subdirs: [
-            "Sources",
-            "Sources/App",
-            "Tests"
-        ])
-        defer { cleanup() }
-
-        let root = DirectoryScanner.scanSync(rootPath: path, maxDepth: 1)
-        let allNodes = root.allNodes()
-        let allNames = allNodes.map(\.name)
-        #expect(allNames.contains("Sources"))
-        #expect(allNames.contains("Tests"))
-        #expect(allNames.contains("App") == false)
     }
 }

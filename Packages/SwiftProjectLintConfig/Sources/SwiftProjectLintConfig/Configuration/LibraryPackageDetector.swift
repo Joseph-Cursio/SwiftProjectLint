@@ -14,7 +14,7 @@ import Foundation
 ///
 /// The parse is deliberately the same shape as ``ExecutableTargetDetector`` — a marker regex and a
 /// balanced-paren scan — and shares its helpers rather than growing a second manifest reader.
-public struct LibraryPackageDetector {
+public enum LibraryPackageDetector {
 
     /// Root-relative directory prefixes of nested packages publishing a `.library` product,
     /// e.g. `["SwiftUMLBridge/"]`. The root's own manifest is not considered: a library root is

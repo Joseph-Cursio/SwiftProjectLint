@@ -1,5 +1,34 @@
 import SwiftSyntax
 
+/// Literal reads shared by the manifest collectors: an argument by label, a plain string literal,
+/// and an array of them. Anything computed — interpolation, a variable, a concatenation — reads as
+/// `nil`, which each caller turns into its own kind of refusal.
+enum ManifestLiterals {
+
+    static func argument(_ label: String, of call: FunctionCallExprSyntax) -> ExprSyntax? {
+        call.arguments.first { $0.label?.text == label }?.expression
+    }
+
+    static func string(_ expression: ExprSyntax) -> String? {
+        guard let literal = expression.as(StringLiteralExprSyntax.self),
+              literal.segments.count == 1,
+              let segment = literal.segments.first?.as(StringSegmentSyntax.self) else {
+            return nil
+        }
+        return segment.content.text
+    }
+
+    static func strings(_ expression: ExprSyntax) -> [String]? {
+        guard let array = expression.as(ArrayExprSyntax.self) else { return nil }
+        var strings: [String] = []
+        for element in array.elements {
+            guard let string = string(element.expression) else { return nil }
+            strings.append(string)
+        }
+        return strings
+    }
+}
+
 /// Reads what a manifest says about the package as a whole: its name, its library products, and
 /// the `.package(path:)` dependencies through which other manifests in the run can be reached.
 ///
@@ -67,34 +96,5 @@ final class PackageDeclarationCollector: SyntaxVisitor {
             return reference.baseName.text
         }
         return base.as(MemberAccessExprSyntax.self)?.declName.baseName.text
-    }
-}
-
-/// Literal reads shared by the manifest collectors: an argument by label, a plain string literal,
-/// and an array of them. Anything computed — interpolation, a variable, a concatenation — reads as
-/// `nil`, which each caller turns into its own kind of refusal.
-enum ManifestLiterals {
-
-    static func argument(_ label: String, of call: FunctionCallExprSyntax) -> ExprSyntax? {
-        call.arguments.first { $0.label?.text == label }?.expression
-    }
-
-    static func string(_ expression: ExprSyntax) -> String? {
-        guard let literal = expression.as(StringLiteralExprSyntax.self),
-              literal.segments.count == 1,
-              let segment = literal.segments.first?.as(StringSegmentSyntax.self) else {
-            return nil
-        }
-        return segment.content.text
-    }
-
-    static func strings(_ expression: ExprSyntax) -> [String]? {
-        guard let array = expression.as(ArrayExprSyntax.self) else { return nil }
-        var strings: [String] = []
-        for element in array.elements {
-            guard let string = string(element.expression) else { return nil }
-            strings.append(string)
-        }
-        return strings
     }
 }

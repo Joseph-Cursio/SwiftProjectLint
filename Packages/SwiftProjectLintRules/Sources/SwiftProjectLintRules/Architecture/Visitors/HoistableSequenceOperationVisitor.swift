@@ -1,7 +1,27 @@
-import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
+
+/// Collects member accesses whose base is a closure parameter (`$N` or a named param).
+private final class ClosureMemberAccessCollector: SyntaxVisitor {
+    private let paramNames: Set<String>
+    private(set) var members: Set<String> = []
+
+    init(paramNames: Set<String>) {
+        self.paramNames = paramNames
+        super.init(viewMode: .sourceAccurate)
+    }
+
+    override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
+        if let base = node.base?.as(DeclReferenceExprSyntax.self) {
+            let text = base.baseName.text
+            if text.hasPrefix("$") || paramNames.contains(text) {
+                members.insert(node.declName.baseName.text)
+            }
+        }
+        return .visitChildren
+    }
+}
 
 /// Cross-file visitor: flags an identical closure passed to a `Sequence` higher-order
 /// method at two or more call sites, where the closure accesses *two or more* members
@@ -27,7 +47,7 @@ final class HoistableSequenceOperationVisitor: CrossFileVisitorBase, CrossFilePa
     /// Element-wise `Sequence` higher-order methods whose closure reads the element.
     private static let hofNames: Set<String> = [
         "sorted", "sort", "filter", "min", "max", "first", "last", "contains",
-        "firstIndex", "lastIndex", "partition", "allSatisfy", "drop", "prefix"
+        "firstIndex", "lastIndex", "partition", "allSatisfy", "drop", "prefix",
     ]
 
     /// Two members is the precision gate (see type doc); one-member sets are dropped.
@@ -149,26 +169,5 @@ final class HoistableSequenceOperationVisitor: CrossFileVisitorBase, CrossFilePa
                 lhs.value.count == rhs.value.count ? lhs.key < rhs.key : lhs.value.count < rhs.value.count
             }?
             .key
-    }
-}
-
-/// Collects member accesses whose base is a closure parameter (`$N` or a named param).
-private final class ClosureMemberAccessCollector: SyntaxVisitor {
-    private let paramNames: Set<String>
-    private(set) var members: Set<String> = []
-
-    init(paramNames: Set<String>) {
-        self.paramNames = paramNames
-        super.init(viewMode: .sourceAccurate)
-    }
-
-    override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
-        if let base = node.base?.as(DeclReferenceExprSyntax.self) {
-            let text = base.baseName.text
-            if text.hasPrefix("$") || paramNames.contains(text) {
-                members.insert(node.declName.baseName.text)
-            }
-        }
-        return .visitChildren
     }
 }

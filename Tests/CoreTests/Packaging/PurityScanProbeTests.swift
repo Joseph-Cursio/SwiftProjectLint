@@ -8,6 +8,7 @@ import Testing
 struct PurityScanProbeTests {
 
     typealias Scan = PurityOracleEntryTests
+
     static let visitors = Scan.visitorsSources + "SwiftProjectLintVisitors/"
     static let rules = "Packages/SwiftProjectLintRules/Sources/SwiftProjectLintRules/"
 
@@ -93,7 +94,7 @@ struct PurityScanProbeTests {
             .init(declaration: "ReviewProbeHelper.check", tokens: ["ReviewProbeHelper", "check"]),
             .init(declaration: "ReviewProbeHolder.init(depth:)", tokens: ["ReviewProbeHolder", "depth"]),
             // An instance member: `oracleEntryPointsAreKnown` refuses it, since no token names the call.
-            .init(declaration: "ReviewProbeValue.judge", tokens: [])
+            .init(declaration: "ReviewProbeValue.judge", tokens: []),
         ])
     }
 

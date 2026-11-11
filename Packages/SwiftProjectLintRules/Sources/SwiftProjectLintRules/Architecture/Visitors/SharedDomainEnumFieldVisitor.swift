@@ -1,4 +1,3 @@
-import Foundation
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
@@ -153,7 +152,7 @@ final class SharedDomainEnumFieldVisitor: CrossFileVisitorBase, CrossFilePattern
             }
             guard reportable.count >= Self.minimumCluster else { continue }
 
-            let locations = reportable.map { (name: $0.name, file: $0.file, line: $0.line) }
+            let locations = reportable.map { PeerLabeling.Member(name: $0.name, file: $0.file, line: $0.line) }
             let conformNames = PeerLabeling.distinctNames(reportable.map(\.name))
             let fieldText = "\(signature.propertyName): \(signature.typeName)"
             for shape in reportable {

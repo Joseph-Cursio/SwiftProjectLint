@@ -39,21 +39,21 @@ enum URLStringConstruction {
     /// ternary's condition, and in `pages[index + 1]` or `path(for: page + 1)` it belongs to a
     /// subscript or a call — none of them is concatenation.
     private static func construction(of expression: ExprSyntax) -> Self? {
-        let expression = withoutParentheses(expression)
-        if let literal = expression.as(StringLiteralExprSyntax.self) {
+        let bareExpression = withoutParentheses(expression)
+        if let literal = bareExpression.as(StringLiteralExprSyntax.self) {
             return isInterpolated(literal) ? .interpolation : nil
         }
-        if let sequence = expression.as(SequenceExprSyntax.self) {
+        if let sequence = bareExpression.as(SequenceExprSyntax.self) {
             return construction(ofSequence: Array(sequence.elements))
         }
         // The folded spellings, the shape once an `OperatorTable` has run over the tree.
-        if let ternary = expression.as(TernaryExprSyntax.self) {
+        if let ternary = bareExpression.as(TernaryExprSyntax.self) {
             return construction(of: ternary.thenExpression) ?? construction(of: ternary.elseExpression)
         }
-        if let cast = expression.as(AsExprSyntax.self) {
+        if let cast = bareExpression.as(AsExprSyntax.self) {
             return construction(of: cast.expression)
         }
-        if let infix = expression.as(InfixOperatorExprSyntax.self) {
+        if let infix = bareExpression.as(InfixOperatorExprSyntax.self) {
             if isNilCoalescing(infix.operator) {
                 return construction(of: infix.leftOperand) ?? construction(of: infix.rightOperand)
             }
@@ -101,10 +101,10 @@ enum URLStringConstruction {
     /// so `base + path as String` and `(base + path) as String` are concatenations, and
     /// `value as? String` is whatever `value` is.
     private static func construction(ofSide side: [ExprSyntax]) -> Self? {
-        let side = withoutCasts(side)
-        if side.count == 1 { return construction(of: side[0]) }
-        guard operators(of: side).allSatisfy(isPlus) else { return nil }
-        return concatenation(of: operands(of: side))
+        let bareSide = withoutCasts(side)
+        if bareSide.count == 1 { return construction(of: bareSide[0]) }
+        guard operators(of: bareSide).allSatisfy(isPlus) else { return nil }
+        return concatenation(of: operands(of: bareSide))
     }
 
     /// `elements` with each cast dropped. A cast binds tighter than `+` and `??`, so `as String`
@@ -139,21 +139,21 @@ enum URLStringConstruction {
     /// folding — spliced in its place, so the literals of `"a" + ("b" + "c")` are all counted.
     private static func joinedOperands(_ operands: [ExprSyntax]) -> [ExprSyntax] {
         operands.flatMap { operand -> [ExprSyntax] in
-            let operand = withoutParentheses(operand)
-            if let infix = operand.as(InfixOperatorExprSyntax.self), isPlus(infix.operator) {
+            let bareOperand = withoutParentheses(operand)
+            if let infix = bareOperand.as(InfixOperatorExprSyntax.self), isPlus(infix.operator) {
                 return joinedOperands([infix.leftOperand, infix.rightOperand])
             }
-            if let cast = operand.as(AsExprSyntax.self) {
+            if let cast = bareOperand.as(AsExprSyntax.self) {
                 return joinedOperands([cast.expression])
             }
-            if let sequence = operand.as(SequenceExprSyntax.self) {
+            if let sequence = bareOperand.as(SequenceExprSyntax.self) {
                 let elements = withoutCasts(Array(sequence.elements))
                 if elements.count == 1 { return joinedOperands(elements) }
                 if operators(of: elements).allSatisfy(isPlus) {
                     return joinedOperands(Self.operands(of: elements))
                 }
             }
-            return [operand]
+            return [bareOperand]
         }
     }
 

@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -43,7 +44,7 @@ struct SwallowedTaskErrorVisitorTests {
         Task {
             let data = try await fetch()
         }
-        """
+        """,
     ])
     func detectsVariant(source: String) {
         let visitor = makeVisitor()
@@ -73,7 +74,7 @@ struct SwallowedTaskErrorVisitorTests {
         // try outside Task
         """
         try await riskyWork()
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()
@@ -101,7 +102,7 @@ struct SwallowedTaskErrorVisitorTests {
         let result = await Task {
             try await fetch()
         }.result
-        """
+        """,
     ])
     func noIssueWhenValueConsumed(source: String) {
         let visitor = makeVisitor()

@@ -1,5 +1,5 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
@@ -112,6 +112,7 @@ struct CouldBePrivateVsTestabilityTests {
 
         final class Finder: SyntaxVisitor {
             var found: FunctionDeclSyntax?
+
             override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
                 if found == nil { found = node }
                 return .skipChildren

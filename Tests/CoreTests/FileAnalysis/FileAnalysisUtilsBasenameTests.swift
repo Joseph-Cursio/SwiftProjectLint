@@ -1,5 +1,4 @@
-@testable import Core
-import Foundation
+import SwiftProjectLintConfig
 import Testing
 
 struct FileAnalysisUtilsBasenameTests {
@@ -11,7 +10,7 @@ struct FileAnalysisUtilsBasenameTests {
         ("/tmp/!@#$%^&*().swift", "!@#$%^&*()"),
         ("/archive/file.tar.gz", "file.tar.gz"),
         ("/Users/test/filename", "filename"),
-        ("", "")
+        ("", ""),
     ])
     func extractBasename(path: String, expected: String) {
         #expect(FileAnalysisUtils.extractSwiftBasename(from: path) == expected)

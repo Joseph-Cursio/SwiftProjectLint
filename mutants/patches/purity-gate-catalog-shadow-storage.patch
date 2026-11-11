@@ -1,11 +1,11 @@
 diff --git a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
-index ede3126..b4cde09 100644
+index c15a93f3..2906921a 100644
 --- a/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
 +++ b/Packages/SwiftProjectLintVisitors/Sources/SwiftProjectLintVisitors/CleanInstanceMethodCatalog.swift
 @@ -49,6 +49,7 @@ public struct CleanInstanceMethodCatalog: Sendable, Equatable {
      }
  
-     private let storage: Withholdable<Tables>
+     let storage: Withholdable<Tables>
 +    private let shadowKernels: Set<String> = []
  
      /// The catalog a caller with no pre-scan gets: nothing is clean, so every callee stays refused

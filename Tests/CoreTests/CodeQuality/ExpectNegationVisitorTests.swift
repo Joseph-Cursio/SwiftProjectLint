@@ -1,6 +1,7 @@
-@testable import Core
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -110,7 +111,7 @@ struct ExpectNegationVisitorTests {
         """
         let flag = !isVisible
         if !isLoading { }
-        """
+        """,
     ])
     func noIssue(source: String) {
         let visitor = makeVisitor()

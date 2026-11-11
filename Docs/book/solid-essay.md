@@ -557,7 +557,7 @@ Three of the strongest pairs tell three different stories.
 **Three visitors with one reason to change.** The idempotency rules have three
 visitors, each in its own file:
 `IdempotencyViolationVisitor`, `NonIdempotentInRetryContextVisitor` and
-`UnannotatedInStrictReplayableContextVisitor`. In those 710 commits, every
+`UnannotatedStrictReplayableVisitor`. In those 710 commits, every
 change to the third also touched the second (6 of 6), and most changes to the
 second also touched the first (6 of 7). By size, none of them is remarkable.
 By history, they are one responsibility in three files.

@@ -75,6 +75,98 @@ public struct ActorTypeCatalog: Sendable, Equatable {
     }
 }
 
+/// One protocol's requirements, reduced to what an actor conforming to it can leak.
+struct ProtocolIsolationShape {
+    var inherited: Set<String> = []
+    /// A requirement callable without `await` — one an actor can satisfy only with `nonisolated`
+    /// or `@preconcurrency`.
+    var hasSynchronous = false
+    /// A requirement every caller reaches through `await`.
+    var hasAwaited = false
+    var isFileLocal = false
+
+    /// Two declarations of one name merge conservatively: either one's synchronous requirement,
+    /// or either one being file-local, disqualifies the name.
+    mutating func merge(_ other: Self) {
+        inherited.formUnion(other.inherited)
+        hasSynchronous = hasSynchronous || other.hasSynchronous
+        hasAwaited = hasAwaited || other.hasAwaited
+        isFileLocal = isFileLocal || other.isFileLocal
+    }
+
+    /// The shape one protocol declaration spells.
+    static func reading(_ node: ProtocolDeclSyntax) -> Self {
+        var shape = Self()
+        shape.inherited = ActorTypeCollector.names(in: node.inheritanceClause)
+        // `protocol P where Self: Q` inherits `Q`'s requirements as surely as `P: Q` does.
+        for requirement in node.genericWhereClause?.requirements ?? [] {
+            guard case .conformanceRequirement(let conformance) = requirement.requirement,
+                  conformance.leftType.as(IdentifierTypeSyntax.self)?.name.text == "Self"
+            else { continue }
+            shape.inherited.formUnion(ActorTypeCollector.names(of: conformance.rightType))
+        }
+        shape.isFileLocal = node.modifiers.contains {
+            $0.name.tokenKind == .keyword(.private) || $0.name.tokenKind == .keyword(.fileprivate)
+        }
+        shape.classify(node.memberBlock.members)
+        return shape
+    }
+
+    private mutating func classify(_ members: MemberBlockItemListSyntax) {
+        for member in members {
+            classify(member.decl)
+        }
+    }
+
+    private mutating func classify(_ decl: DeclSyntax) {
+        if let ifConfig = decl.as(IfConfigDeclSyntax.self) {
+            // Every branch: a requirement in any configuration can be the one that leaks.
+            for clause in ifConfig.clauses {
+                if case .decls(let members) = clause.elements {
+                    classify(members)
+                }
+            }
+            return
+        }
+        for awaited in Self.instanceRequirements(of: decl) {
+            if awaited { hasAwaited = true } else { hasSynchronous = true }
+        }
+    }
+
+    /// For each instance requirement `decl` declares, whether a caller reaches it through `await`.
+    /// `init`, `associatedtype`, `typealias` and `static` members declare none: none of them is
+    /// isolated to an instance.
+    private static func instanceRequirements(of decl: DeclSyntax) -> [Bool] {
+        if let function = decl.as(FunctionDeclSyntax.self), !isTypeLevel(function.modifiers) {
+            return [function.signature.effectSpecifiers?.asyncSpecifier != nil]
+        }
+        if let variable = decl.as(VariableDeclSyntax.self), !isTypeLevel(variable.modifiers) {
+            return variable.bindings.map { isAwaited($0.accessorBlock) }
+        }
+        if let subscriptDecl = decl.as(SubscriptDeclSyntax.self),
+           !isTypeLevel(subscriptDecl.modifiers) {
+            return [isAwaited(subscriptDecl.accessorBlock)]
+        }
+        return []
+    }
+
+    /// `{ get async }` and `{ get async throws }` are awaited; `{ get }` and `{ get set }` are not.
+    private static func isAwaited(_ block: AccessorBlockSyntax?) -> Bool {
+        guard case .accessors(let accessors)? = block?.accessors, !accessors.isEmpty else {
+            return false
+        }
+        return accessors.allSatisfy { $0.effectSpecifiers?.asyncSpecifier != nil }
+    }
+
+    /// A `static` or `class` requirement belongs to the type, and an actor's type-level members
+    /// are not isolated to any instance.
+    private static func isTypeLevel(_ modifiers: DeclModifierListSyntax) -> Bool {
+        modifiers.contains {
+            $0.name.tokenKind == .keyword(.static) || $0.name.tokenKind == .keyword(.class)
+        }
+    }
+}
+
 /// Walks the project for the three facts ``ActorTypeCatalog`` joins: actor names, every type's
 /// declared conformances, and each protocol's requirement shape.
 public final class ActorTypeCollector: SyntaxVisitor {
@@ -96,7 +188,7 @@ public final class ActorTypeCollector: SyntaxVisitor {
     /// through. `Actor`'s one requirement, `unownedExecutor`, is `nonisolated` and synthesised.
     private static let requirementFreeParents: Set<String> = [
         "Sendable", "AnyObject", "Actor", "AnyActor", "SendableMetatype",
-        "Copyable", "Escapable", "BitwiseCopyable"
+        "Copyable", "Escapable", "BitwiseCopyable",
     ]
 
     public init() {
@@ -195,97 +287,5 @@ public final class ActorTypeCollector: SyntaxVisitor {
             return composition.elements.flatMap { names(of: $0.type) }
         }
         return []
-    }
-}
-
-/// One protocol's requirements, reduced to what an actor conforming to it can leak.
-struct ProtocolIsolationShape {
-    var inherited: Set<String> = []
-    /// A requirement callable without `await` — one an actor can satisfy only with `nonisolated`
-    /// or `@preconcurrency`.
-    var hasSynchronous = false
-    /// A requirement every caller reaches through `await`.
-    var hasAwaited = false
-    var isFileLocal = false
-
-    /// Two declarations of one name merge conservatively: either one's synchronous requirement,
-    /// or either one being file-local, disqualifies the name.
-    mutating func merge(_ other: Self) {
-        inherited.formUnion(other.inherited)
-        hasSynchronous = hasSynchronous || other.hasSynchronous
-        hasAwaited = hasAwaited || other.hasAwaited
-        isFileLocal = isFileLocal || other.isFileLocal
-    }
-
-    /// The shape one protocol declaration spells.
-    static func reading(_ node: ProtocolDeclSyntax) -> Self {
-        var shape = Self()
-        shape.inherited = ActorTypeCollector.names(in: node.inheritanceClause)
-        // `protocol P where Self: Q` inherits `Q`'s requirements as surely as `P: Q` does.
-        for requirement in node.genericWhereClause?.requirements ?? [] {
-            guard case .conformanceRequirement(let conformance) = requirement.requirement,
-                  conformance.leftType.as(IdentifierTypeSyntax.self)?.name.text == "Self"
-            else { continue }
-            shape.inherited.formUnion(ActorTypeCollector.names(of: conformance.rightType))
-        }
-        shape.isFileLocal = node.modifiers.contains {
-            $0.name.tokenKind == .keyword(.private) || $0.name.tokenKind == .keyword(.fileprivate)
-        }
-        shape.classify(node.memberBlock.members)
-        return shape
-    }
-
-    private mutating func classify(_ members: MemberBlockItemListSyntax) {
-        for member in members {
-            classify(member.decl)
-        }
-    }
-
-    private mutating func classify(_ decl: DeclSyntax) {
-        if let ifConfig = decl.as(IfConfigDeclSyntax.self) {
-            // Every branch: a requirement in any configuration can be the one that leaks.
-            for clause in ifConfig.clauses {
-                if case .decls(let members) = clause.elements {
-                    classify(members)
-                }
-            }
-            return
-        }
-        for awaited in Self.instanceRequirements(of: decl) {
-            if awaited { hasAwaited = true } else { hasSynchronous = true }
-        }
-    }
-
-    /// For each instance requirement `decl` declares, whether a caller reaches it through `await`.
-    /// `init`, `associatedtype`, `typealias` and `static` members declare none: none of them is
-    /// isolated to an instance.
-    private static func instanceRequirements(of decl: DeclSyntax) -> [Bool] {
-        if let function = decl.as(FunctionDeclSyntax.self), !isTypeLevel(function.modifiers) {
-            return [function.signature.effectSpecifiers?.asyncSpecifier != nil]
-        }
-        if let variable = decl.as(VariableDeclSyntax.self), !isTypeLevel(variable.modifiers) {
-            return variable.bindings.map { isAwaited($0.accessorBlock) }
-        }
-        if let subscriptDecl = decl.as(SubscriptDeclSyntax.self),
-           !isTypeLevel(subscriptDecl.modifiers) {
-            return [isAwaited(subscriptDecl.accessorBlock)]
-        }
-        return []
-    }
-
-    /// `{ get async }` and `{ get async throws }` are awaited; `{ get }` and `{ get set }` are not.
-    private static func isAwaited(_ block: AccessorBlockSyntax?) -> Bool {
-        guard case .accessors(let accessors)? = block?.accessors, !accessors.isEmpty else {
-            return false
-        }
-        return accessors.allSatisfy { $0.effectSpecifiers?.asyncSpecifier != nil }
-    }
-
-    /// A `static` or `class` requirement belongs to the type, and an actor's type-level members
-    /// are not isolated to any instance.
-    private static func isTypeLevel(_ modifiers: DeclModifierListSyntax) -> Bool {
-        modifiers.contains {
-            $0.name.tokenKind == .keyword(.static) || $0.name.tokenKind == .keyword(.class)
-        }
     }
 }

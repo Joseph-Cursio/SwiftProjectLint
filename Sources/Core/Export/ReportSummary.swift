@@ -1,5 +1,3 @@
-import Foundation
-
 /// Summary counts for the JSON report.
 public struct ReportSummary: Codable, Sendable {
     public let totalIssues: Int

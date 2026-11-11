@@ -5,7 +5,7 @@ import SwiftSyntax
 /// Finalize-phase machinery shared by the cross-file effect visitors.
 ///
 /// `IdempotencyViolationVisitor`, `NonIdempotentInRetryContextVisitor` and
-/// `UnannotatedInStrictReplayableContextVisitor` each carried their own copy of
+/// `UnannotatedStrictReplayableVisitor` each carried their own copy of
 /// the upward-inference call and the analysis-site body walk. The copies were
 /// identical in behaviour and had drifted only in their comments, so a change
 /// to the traversal policy had to be made in three places to stay consistent —

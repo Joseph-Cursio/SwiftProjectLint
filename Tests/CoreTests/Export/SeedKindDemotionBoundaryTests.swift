@@ -54,7 +54,7 @@ struct SeedKindDemotionBoundaryTests {
     /// The boundary itself: a kernel never demotes, however unreachable its location.
     @Test("extractable-kernel never demotes", arguments: [
         TestReachability.reachable, .unknown,
-        .unreachable(.declaration), .unreachable(.enclosingType)
+        .unreachable(.declaration), .unreachable(.enclosingType),
     ])
     func testKernelsNeverDemote(reachability: TestReachability) {
         let result = PBTSeedsFormatter.effectiveKind(.extractableKernel, reachability: reachability)
@@ -71,7 +71,7 @@ struct SeedKindDemotionBoundaryTests {
     /// type is a real obstacle, but saying so needs its own vocabulary.
     @Test("carrier never demotes", arguments: [
         TestReachability.reachable, .unknown,
-        .unreachable(.declaration), .unreachable(.enclosingType)
+        .unreachable(.declaration), .unreachable(.enclosingType),
     ])
     func testCarriersNeverDemote(reachability: TestReachability) {
         #expect(PBTSeedsFormatter.effectiveKind(.carrier, reachability: reachability) == .carrier)
@@ -83,7 +83,7 @@ struct SeedKindDemotionBoundaryTests {
     /// carries `restriction` as a field.
     @Test("pure-mutator never demotes", arguments: [
         TestReachability.reachable, .unknown,
-        .unreachable(.declaration), .unreachable(.enclosingType)
+        .unreachable(.declaration), .unreachable(.enclosingType),
     ])
     func testPureMutatorsNeverDemote(reachability: TestReachability) {
         #expect(PBTSeedsFormatter.effectiveKind(.pureMutator, reachability: reachability) == .pureMutator)
@@ -98,8 +98,10 @@ struct SeedKindDemotionBoundaryTests {
     @Test("every seed kind is accounted for by one of the two behaviours")
     func testEveryKindIsClassified() {
         let analysable = PBTSeedKind.allCases.filter(\.isAnalysable).map(\.rawValue).sorted()
-        let refactorPending = PBTSeedKind.allCases.filter { !$0.isAnalysable }
-            .map(\.rawValue).sorted()
+        let refactorPending = PBTSeedKind.allCases
+            .filter { !$0.isAnalysable }
+            .map(\.rawValue)
+            .sorted()
 
         #expect(analysable == ["carrier", "idempotency", "pure-function", "pure-mutator", "restricted-function"])
         #expect(refactorPending == ["extractable-kernel"])

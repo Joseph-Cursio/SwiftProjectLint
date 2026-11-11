@@ -90,6 +90,6 @@ final class RetroactiveConformanceVisitor: BasePatternVisitor {
         "View", "UIView", "NSView", "UIViewController", "NSViewController",
         "Color", "Font", "Image", "Shape",
         // Combine
-        "Publisher", "Subject", "AnyCancellable"
+        "Publisher", "Subject", "AnyCancellable",
     ]
 }

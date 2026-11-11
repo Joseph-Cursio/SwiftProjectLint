@@ -51,77 +51,6 @@ enum LayoutOwnership {
     }
 }
 
-/// Where an inspected view stands relative to the last place the test searched for it.
-struct InspectionChainState {
-    /// Levels walked since the chain's anchor — `inspect()`, a `find`, a named slot, a pick
-    /// already reported. Reaching the first level asserts what the anchor reached; a second walks.
-    var stepsSinceAnchor = 0
-    /// Whose layout the inspected subject at the chain's root is. `parent()` climbs out of
-    /// whatever the chain reached into that layout.
-    var rootOwnership = LayoutOwnership.app
-    /// The previous step's accessor, to tell a data index from a layout index.
-    var lastStep: String?
-    var kind = ReceiverKind.typed
-    /// Whose layout the chain is walking: the subject's, or a view the test file declares.
-    var ownership = LayoutOwnership.app
-    /// The value is `findAll`'s array. `kind` and `matchesOwnership` then describe its elements,
-    /// and the only positional moves left are an ordinal: `[n]`, `.last`.
-    var isMatchList = false
-    var matchesOwnership = LayoutOwnership.app
-    /// The list is a variadic parameter's arguments, not a search's matches. Their order is the
-    /// caller's, so `[n]` and `.last` pick an argument, not a view by its place in a layout.
-    var isArgumentList = false
-
-    /// The layout walked is one the test file declares.
-    var ownsLayout: Bool {
-        ownership.ownsLayout
-    }
-
-    /// A chain's root: `inspect()`, a relay's view, a declared `InspectableView`.
-    static func root(_ kind: ReceiverKind, ownership: LayoutOwnership, after step: String? = nil) -> Self {
-        Self(stepsSinceAnchor: 0, rootOwnership: ownership, lastStep: step, kind: kind, ownership: ownership)
-    }
-
-    /// A new anchor in the same chain: a search, a slot, a pick already reported.
-    func reanchored(_ kind: ReceiverKind, ownership: LayoutOwnership, after step: String? = nil) -> Self {
-        Self(stepsSinceAnchor: 0, rootOwnership: rootOwnership, lastStep: step, kind: kind, ownership: ownership)
-    }
-
-    func advanced(by step: String, to kind: ReceiverKind, ownership: LayoutOwnership) -> Self {
-        Self(stepsSinceAnchor: stepsSinceAnchor + 1, rootOwnership: rootOwnership, lastStep: step,
-             kind: kind, ownership: ownership)
-    }
-
-    var isDataReceiver: Bool {
-        lastStep.map(InspectionVocabulary.dataIndexedReceivers.contains) ?? false
-    }
-
-    /// An element of this value: a match of a search, a `ForEach` row, a container's child.
-    var element: Self {
-        guard isMatchList else { return reanchored(.found, ownership: ownership) }
-        return reanchored(kind, ownership: matchesOwnership, after: lastStep)
-    }
-
-    /// `x()` checks this view's own type rather than moving: the only child of a found view, and of
-    /// a slot, is the view itself.
-    var castsInPlace: Bool {
-        kind == .found || kind == .slot
-    }
-
-    /// Child 0 of a found view or root is the view itself.
-    var isItsOwnFirstChild: Bool {
-        kind == .found || kind == .root
-    }
-
-    /// `x(0)` reaches the only child, as `x()` does: on a found view, a root, a toolbar or a touch
-    /// bar. On a slot, a custom view's body, a sheet's content or a SwiftUI container it picks the
-    /// first of several. A root is the exception among bodies: ViewInspector resolves `x()` and
-    /// `x(0)` on `inspect()` alike, through the body's first view (`implicitCustomViewChild`).
-    var hasOnlyChild: Bool {
-        kind == .found || kind == .root || kind == .singleChild
-    }
-}
-
 /// A step that picks a view by where it sits rather than by what it is.
 struct PositionalStep {
     enum Kind {
@@ -169,5 +98,78 @@ struct ChainEvaluation {
         leaving next: InspectionChainState
     ) -> Self {
         Self(state: next, positionalStep: state.ownsLayout ? nil : step)
+    }
+}
+
+/// Where an inspected view stands relative to the last place the test searched for it.
+struct InspectionChainState {
+    /// Levels walked since the chain's anchor — `inspect()`, a `find`, a named slot, a pick
+    /// already reported. Reaching the first level asserts what the anchor reached; a second walks.
+    var stepsSinceAnchor = 0
+    /// Whose layout the inspected subject at the chain's root is. `parent()` climbs out of
+    /// whatever the chain reached into that layout.
+    var rootOwnership = LayoutOwnership.app
+    /// The previous step's accessor, to tell a data index from a layout index.
+    var lastStep: String?
+    var kind = ReceiverKind.typed
+    /// Whose layout the chain is walking: the subject's, or a view the test file declares.
+    var ownership = LayoutOwnership.app
+    /// The value is `findAll`'s array. `kind` and `matchesOwnership` then describe its elements,
+    /// and the only positional moves left are an ordinal: `[n]`, `.last`.
+    var isMatchList = false
+    var matchesOwnership = LayoutOwnership.app
+    /// The list is a variadic parameter's arguments, not a search's matches. Their order is the
+    /// caller's, so `[n]` and `.last` pick an argument, not a view by its place in a layout.
+    var isArgumentList = false
+
+    /// The layout walked is one the test file declares.
+    var ownsLayout: Bool {
+        ownership.ownsLayout
+    }
+
+    /// A chain's root: `inspect()`, a relay's view, a declared `InspectableView`.
+    static func root(_ kind: ReceiverKind, ownership: LayoutOwnership, after step: String? = nil) -> Self {
+        Self(stepsSinceAnchor: 0, rootOwnership: ownership, lastStep: step, kind: kind, ownership: ownership)
+    }
+
+    /// A new anchor in the same chain: a search, a slot, a pick already reported.
+    func reanchored(_ kind: ReceiverKind, ownership: LayoutOwnership, after step: String? = nil) -> Self {
+        Self(stepsSinceAnchor: 0, rootOwnership: rootOwnership, lastStep: step, kind: kind, ownership: ownership)
+    }
+
+    func advanced(by step: String, to kind: ReceiverKind, ownership: LayoutOwnership) -> Self {
+        Self(
+            stepsSinceAnchor: stepsSinceAnchor + 1, rootOwnership: rootOwnership, lastStep: step,
+            kind: kind, ownership: ownership
+        )
+    }
+
+    var isDataReceiver: Bool {
+        lastStep.map(InspectionVocabulary.dataIndexedReceivers.contains) ?? false
+    }
+
+    /// An element of this value: a match of a search, a `ForEach` row, a container's child.
+    var element: Self {
+        guard isMatchList else { return reanchored(.found, ownership: ownership) }
+        return reanchored(kind, ownership: matchesOwnership, after: lastStep)
+    }
+
+    /// `x()` checks this view's own type rather than moving: the only child of a found view, and of
+    /// a slot, is the view itself.
+    var castsInPlace: Bool {
+        kind == .found || kind == .slot
+    }
+
+    /// Child 0 of a found view or root is the view itself.
+    var isItsOwnFirstChild: Bool {
+        kind == .found || kind == .root
+    }
+
+    /// `x(0)` reaches the only child, as `x()` does: on a found view, a root, a toolbar or a touch
+    /// bar. On a slot, a custom view's body, a sheet's content or a SwiftUI container it picks the
+    /// first of several. A root is the exception among bodies: ViewInspector resolves `x()` and
+    /// `x(0)` on `inspect()` alike, through the body's first view (`implicitCustomViewChild`).
+    var hasOnlyChild: Bool {
+        kind == .found || kind == .root || kind == .singleChild
     }
 }

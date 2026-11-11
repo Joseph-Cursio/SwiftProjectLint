@@ -1,7 +1,8 @@
-@testable import Core
 import PropertyBased
 import SwiftParser
-import SwiftSyntax
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 import Testing
 
 /// Property-based law: **inline suppression only removes what it targets.**
@@ -66,7 +67,7 @@ struct SuppressionSoundnessPropertyTests {
                 "\(issue.severity)",
                 issue.message,
                 issue.suggestion ?? "",
-                locations
+                locations,
             ].joined(separator: "§")
         }
         .sorted()

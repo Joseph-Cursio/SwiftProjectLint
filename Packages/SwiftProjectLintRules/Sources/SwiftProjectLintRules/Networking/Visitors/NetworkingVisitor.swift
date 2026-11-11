@@ -1,5 +1,4 @@
 import Foundation
-import SwiftParser
 import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
@@ -128,7 +127,7 @@ class NetworkingVisitor: BasePatternVisitor {
         // Variable names with explicit network signals — flag these
         let networkHints = [
             "remote", "endpoint", "api", "server", "network",
-            "http", "web", "download", "request", "host"
+            "http", "web", "download", "request", "host",
         ]
         for hint in networkHints where lowerText.contains(hint) {
             return false

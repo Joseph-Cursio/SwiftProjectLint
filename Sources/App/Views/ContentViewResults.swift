@@ -5,7 +5,7 @@
 //  Created by Joseph Cursio on 7/1/25.
 //
 
-import Core
+import SwiftProjectLintModels
 import SwiftUI
 
 /// The results section of the main content view.
@@ -47,7 +47,7 @@ struct ContentViewResults: View {
             lineNumber: 10,
             suggestion: "This is a demo suggestion",
             ruleName: .relatedDuplicateStateVariable
-        )
+        ),
     ]
 
     VStack {

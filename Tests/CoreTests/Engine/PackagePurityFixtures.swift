@@ -1,7 +1,19 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
 @testable import SwiftProjectLintEngine
-import Testing
+import SwiftProjectLintModels
+import SwiftProjectLintVisitors
+
+/// Returns the same file list, in the given order, for every discovery call.
+struct FixedFileDiscovery: FileDiscoveryProtocol {
+    let files: [String]
+
+    func findSwiftFiles(
+        in _: String, excludedPaths _: [String], excludedFilenames _: [String], includeNestedPackages _: Bool
+    ) -> [String] {
+        files
+    }
+}
 
 /// What the package-purity wiring suites share: the `Item` fixture pair, the subjects, and a lint
 /// through `ProjectLinter` over a scratch project.
@@ -131,8 +143,8 @@ enum PackagePurityFixtures {
     /// exactly as `analyzeProject` runs them, stopped before the analysis phases.
     static func universe(at path: String, configuration: LintConfiguration = .default) async -> [String] {
         let files = await ProjectLinter().discoverFiles(at: path, configuration: configuration)
-        let (purity, _, _) = await ProjectLinter.sharedParse(files, projectRoot: path, withholdingBy: PurityTripwire())
-        return purity.universe
+        let parse = await ProjectLinter.sharedParse(files, projectRoot: path, withholdingBy: PurityTripwire())
+        return parse.purity.universe
     }
 
     /// Creates a symbolic link at `link` (relative to `root`) whose destination is `destination`,
@@ -141,16 +153,5 @@ enum PackagePurityFixtures {
         let url = URL(fileURLWithPath: root).appendingPathComponent(link)
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         try FileManager.default.createSymbolicLink(atPath: url.path, withDestinationPath: destination)
-    }
-}
-
-/// Returns the same file list, in the given order, for every discovery call.
-struct FixedFileDiscovery: FileDiscoveryProtocol {
-    let files: [String]
-
-    func findSwiftFiles(
-        in _: String, excludedPaths _: [String], excludedFilenames _: [String], includeNestedPackages _: Bool
-    ) -> [String] {
-        files
     }
 }

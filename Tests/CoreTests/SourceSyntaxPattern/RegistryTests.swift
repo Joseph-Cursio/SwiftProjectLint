@@ -1,17 +1,16 @@
-@testable import Core
 ///
 /// NOTE ON TEST ISOLATION
 ///
 /// These tests use isolated registry instances to ensure complete test isolation
 /// and avoid interference between tests.
 ///
-import Foundation
-import SwiftParser
+import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 @testable import SwiftProjectLintRules
-import SwiftSyntax
+import SwiftProjectLintVisitors
 import Testing
 
-struct RegistryTests {
+enum RegistryTests {
 
     // MARK: - Test Helper Methods
 
@@ -79,7 +78,7 @@ struct RegistryTests {
                 messageTemplate: "Message 2",
                 suggestion: "Suggestion 2",
                 description: "Description 2"
-            )
+            ),
         ]
 
         // When

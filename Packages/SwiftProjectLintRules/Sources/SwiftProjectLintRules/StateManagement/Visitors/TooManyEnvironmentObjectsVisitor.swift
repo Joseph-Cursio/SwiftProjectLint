@@ -1,5 +1,3 @@
-import Foundation
-import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
@@ -47,7 +45,7 @@ class TooManyEnvironmentObjectsVisitor: BasePatternVisitor {
                 node: Syntax(viewNode),
                 variables: [
                     "viewName": currentViewName,
-                    "count": "\(environmentObjectCount)"
+                    "count": "\(environmentObjectCount)",
                 ]
             )
         }

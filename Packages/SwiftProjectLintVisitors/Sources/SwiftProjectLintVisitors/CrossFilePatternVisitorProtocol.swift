@@ -26,7 +26,7 @@ public protocol CrossFilePatternVisitorProtocol: PatternVisitorProtocol {
     func finalizeAnalysis()
 }
 
-extension CrossFilePatternVisitorProtocol {
+public extension CrossFilePatternVisitorProtocol {
 
     /// Single-file convenience, equivalent to `finalizeAnalysis()`. When a visitor is driven
     /// outside the `CrossFileAnalysisEngine` — most often a unit test — the caller walks each
@@ -36,7 +36,7 @@ extension CrossFilePatternVisitorProtocol {
     ///
     /// Hoisted here from five idempotency visitors that each carried the identical forwarder
     /// (flagged by the Hoistable Conformer Member rule dogfooding this project).
-    public func analyze() {
+    func analyze() {
         finalizeAnalysis()
     }
 }

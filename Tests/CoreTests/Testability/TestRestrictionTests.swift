@@ -1,8 +1,8 @@
 import Core
 import Foundation
 import SwiftParser
-@testable import SwiftProjectLintModels
-@testable import SwiftProjectLintVisitors
+import SwiftProjectLintModels
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -23,6 +23,7 @@ struct TestRestrictionTests {
     private func firstFunction(_ source: String) -> FunctionDeclSyntax? {
         final class Finder: SyntaxVisitor {
             var found: FunctionDeclSyntax?
+
             override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
                 if found == nil { found = node }
                 return .skipChildren
@@ -108,7 +109,7 @@ struct TestRestrictionTests {
             "func f() -> Int { 1 }",
             "private func f() -> Int { 1 }",
             "private struct S { func f() -> Int { 1 } }",
-            "struct S { private func f() -> Int { 1 } }"
+            "struct S { private func f() -> Int { 1 } }",
         ]
         for source in cases {
             guard let function = firstFunction(source) else { continue }

@@ -1,4 +1,4 @@
-@testable import Core
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
 import Testing
 
@@ -26,7 +26,7 @@ struct UnusedProtocolAbstractionAliasTests {
         let issues = analyze([
             "Roles.swift": roles,
             "Disk.swift": "struct DiskStorage: Storage {}",
-            "Client.swift": "final class Client { let storage: any Storage }"
+            "Client.swift": "final class Client { let storage: any Storage }",
         ])
         #expect(issues.isEmpty)
     }
@@ -36,13 +36,13 @@ struct UnusedProtocolAbstractionAliasTests {
         "func copy(_ storage: some Storage) {}",
         "func make() -> any Storage { DiskStorage() }",
         "protocol CachedStorage: Storage {}",
-        "let all: [any Storage] = []"
+        "let all: [any Storage] = []",
     ])
     func everyUsePositionCountsThroughTheAlias(use: String) {
         let issues = analyze([
             "Roles.swift": roles,
             "Disk.swift": "struct DiskStorage: Storage {}",
-            "Use.swift": use
+            "Use.swift": use,
         ])
         #expect(issues.isEmpty)
     }
@@ -51,7 +51,7 @@ struct UnusedProtocolAbstractionAliasTests {
     func conformingThroughTheAliasIsAConformanceToEachRoleNotAUse() {
         let messages = analyze([
             "Roles.swift": roles,
-            "Disk.swift": "struct DiskStorage: Storage {}"
+            "Disk.swift": "struct DiskStorage: Storage {}",
         ]).map(\.message).sorted()
 
         #expect(messages.count == 2)
@@ -67,7 +67,7 @@ struct UnusedProtocolAbstractionAliasTests {
         let issues = analyze([
             "Roles.swift": roles,
             "Disk.swift": "struct DiskStorage: Reading, Writing {}",
-            "Client.swift": "final class Client { let reader: any Reading }"
+            "Client.swift": "final class Client { let reader: any Reading }",
         ])
         #expect(issues.count == 1)
         #expect(issues.first?.message.contains("'Writing'") == true)
@@ -83,7 +83,7 @@ struct UnusedProtocolAbstractionAliasTests {
             typealias Storage = ReadOnly & Writing
             """,
             "Disk.swift": "struct DiskStorage: Storage {}",
-            "Client.swift": "func store(_ storage: any Storage) {}"
+            "Client.swift": "func store(_ storage: any Storage) {}",
         ])
         #expect(issues.isEmpty)
     }
@@ -98,7 +98,7 @@ struct UnusedProtocolAbstractionAliasTests {
             struct DiskStorage: Reading {}
             struct A { typealias Element = Reading }
             """,
-            "B.swift": "struct B { typealias Element = Int }"
+            "B.swift": "struct B { typealias Element = Int }",
         ])
         #expect(issues.isEmpty)
     }

@@ -516,7 +516,7 @@ Without type resolution the base is unknown, and real code contains
 [deliberately excludes](contradicted-clock-determinism.md). Classifying bare `.now` as a wall-clock
 read would trade a false negative for a false positive of exactly the kind the scope note refuses.
 
-`TupleEqualityWithUnstableComponentsVisitor` reached the same conclusion independently: *"Un-based
+`UnstableTupleEqualityVisitor` reached the same conclusion independently: *"Un-based
 `.now` (leading-dot syntax with inferred base) is NOT flagged — without type resolution the base is
 unknown."*
 

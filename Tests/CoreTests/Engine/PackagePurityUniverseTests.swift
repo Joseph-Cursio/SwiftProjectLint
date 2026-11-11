@@ -1,6 +1,32 @@
-@testable import Core
 import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintEngine
+import SwiftProjectLintModels
 import Testing
+
+/// macOS's `UF_HIDDEN` file flag — what `chflags hidden` sets — on a fixture file.
+enum HiddenFlag {
+
+    /// Sets the flag on `path`, and says whether it is now set.
+    static func set(on path: String) -> Bool {
+        chflags(path, UInt32(UF_HIDDEN)) == 0 && isSet(on: path)
+    }
+
+    static func isSet(on path: String) -> Bool {
+        var status = stat()
+        return stat(path, &status) == 0 && status.st_flags & UInt32(UF_HIDDEN) != 0
+    }
+
+    /// Whether the temporary directory's volume keeps the flag. APFS does; elsewhere the tests that
+    /// need it are skipped rather than passed vacuously.
+    static let isSupported: Bool = {
+        let probe = FileManager.default.temporaryDirectory
+            .appendingPathComponent("HiddenFlagProbe-\(UUID().uuidString)").path
+        guard FileManager.default.createFile(atPath: probe, contents: Data()) else { return false }
+        defer { try? FileManager.default.removeItem(atPath: probe) }
+        return set(on: probe)
+    }()
+}
 
 /// Which files the package purity is built from, and in what order — checked through
 /// `ProjectLinter`, where the reporting filters that must NOT shrink it are applied.
@@ -31,7 +57,7 @@ struct PackagePurityUniverseTests {
             "Sources/Lib/Item.swift": PackagePurityFixtures.plainItem,
             "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
             "Sources/Lib/Stamp.swift": stamp,
-            "Tests/LibTests/ItemFixture.swift": PackagePurityFixtures.refutingItem
+            "Tests/LibTests/ItemFixture.swift": PackagePurityFixtures.refutingItem,
         ])
         #expect(found.contains("stampCount") == false, "the facts are not live in this run")
         #expect(found.contains("countOf"))
@@ -49,7 +75,7 @@ struct PackagePurityUniverseTests {
         let found = try await PackagePurityFixtures.candidates(in: [
             "Sources/Lib/Item.swift": PackagePurityFixtures.plainItem,
             "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
-            "\(suite)/ItemFixture.swift": PackagePurityFixtures.refutingItem
+            "\(suite)/ItemFixture.swift": PackagePurityFixtures.refutingItem,
         ])
         #expect(found.contains("countOf"))
         #expect(found.contains("viaJoin"))
@@ -60,7 +86,7 @@ struct PackagePurityUniverseTests {
         let found = try await PackagePurityFixtures.candidates(in: [
             "Sources/Lib/Item.swift": PackagePurityFixtures.plainItem,
             "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
-            "Sources/swift-test/ItemFixture.swift": PackagePurityFixtures.refutingItem
+            "Sources/swift-test/ItemFixture.swift": PackagePurityFixtures.refutingItem,
         ])
         #expect(found.contains("countOf") == false)
         #expect(found.contains("viaJoin") == false)
@@ -79,13 +105,13 @@ struct PackagePurityUniverseTests {
             "Package.swift": manifest,
             "Core/Package.swift": "// swift-tools-version:6.2\n",
             "Core/Sources/Core/Item.swift": PackagePurityFixtures.refutingItem,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         let control = try await PackagePurityFixtures.candidates(in: [
             "Package.swift": manifest,
             "Core/Package.swift": "// swift-tools-version:6.2\n",
             "Core/Sources/Core/Item.swift": PackagePurityFixtures.plainItem,
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         #expect(control.contains("countOf"))
         #expect(refuting.contains("sentinelAdd"))
@@ -139,11 +165,11 @@ struct PackagePurityUniverseTests {
         let configuration = LintConfiguration(includeNestedPackages: includeNestedPackages)
         let refuting = try await PackagePurityFixtures.candidates(in: [
             "Sources/Lib/Item.swift": header + PackagePurityFixtures.refutingItem,
-            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
         ], configuration: configuration)
         let control = try await PackagePurityFixtures.candidates(in: [
             "Sources/Lib/Item.swift": header + PackagePurityFixtures.plainItem,
-            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
         ], configuration: configuration)
         #expect(control.contains("countOf"))
         #expect(refuting.contains("sentinelAdd"))
@@ -163,7 +189,7 @@ struct PackagePurityUniverseTests {
         let item = flagged.hasSuffix(".swift") ? flagged : flagged + "/Item.swift"
         let root = try PackagePurityFixtures.makeProject([
             item: PackagePurityFixtures.refutingItem,
-            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers
+            "Sources/Lib/Callers.swift": PackagePurityFixtures.callers,
         ])
         defer { try? FileManager.default.removeItem(atPath: root) }
         try #require(HiddenFlag.set(on: root + "/" + flagged))
@@ -191,7 +217,7 @@ struct PackagePurityUniverseTests {
             "Flagged/Sources/Flagged/Item.swift": PackagePurityFixtures.refutingItem,
             "Next/Package.swift": "// swift-tools-version:6.0\n",
             "Next/Sources/Next/Stamp.swift": "import Foundation\nstruct Stamp { let at = Date(); let n: Int }\n",
-            "Sources/App/Callers.swift": PackagePurityFixtures.callers
+            "Sources/App/Callers.swift": PackagePurityFixtures.callers,
         ])
         defer { try? FileManager.default.removeItem(atPath: root) }
         try #require(HiddenFlag.set(on: root + "/Flagged"))
@@ -227,7 +253,7 @@ struct PackagePurityUniverseTests {
                     return doubled + 1
                 }
             }
-            """
+            """,
         ])
         defer { try? FileManager.default.removeItem(atPath: path) }
 
@@ -247,28 +273,4 @@ struct PackagePurityUniverseTests {
         #expect(messages[0].count == 1)
         #expect(messages[0] == messages[1])
     }
-}
-
-/// macOS's `UF_HIDDEN` file flag — what `chflags hidden` sets — on a fixture file.
-enum HiddenFlag {
-
-    /// Sets the flag on `path`, and says whether it is now set.
-    static func set(on path: String) -> Bool {
-        chflags(path, UInt32(UF_HIDDEN)) == 0 && isSet(on: path)
-    }
-
-    static func isSet(on path: String) -> Bool {
-        var status = stat()
-        return stat(path, &status) == 0 && status.st_flags & UInt32(UF_HIDDEN) != 0
-    }
-
-    /// Whether the temporary directory's volume keeps the flag. APFS does; elsewhere the tests that
-    /// need it are skipped rather than passed vacuously.
-    static let isSupported: Bool = {
-        let probe = FileManager.default.temporaryDirectory
-            .appendingPathComponent("HiddenFlagProbe-\(UUID().uuidString)").path
-        guard FileManager.default.createFile(atPath: probe, contents: Data()) else { return false }
-        defer { try? FileManager.default.removeItem(atPath: probe) }
-        return set(on: probe)
-    }()
 }

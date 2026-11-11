@@ -32,8 +32,8 @@ extension ProjectLinter {
         init(planned: [RuleIdentifier]?, registry: PatternVisitorRegistry) {
             let patterns = registry.getAllPatterns()
             let running = planned.map { names in
-                let names = Set(names)
-                return patterns.filter { names.contains($0.name) }
+                let nameSet = Set(names)
+                return patterns.filter { nameSet.contains($0.name) }
             } ?? patterns
             self.inputs = running.reduce(into: []) { $0.formUnion($1.packagePurityInputs) }
         }

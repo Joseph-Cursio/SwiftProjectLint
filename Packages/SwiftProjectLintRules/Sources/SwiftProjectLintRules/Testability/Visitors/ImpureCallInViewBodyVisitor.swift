@@ -31,7 +31,7 @@ final class ImpureCallInViewBodyVisitor: BasePatternVisitor {
         "NotificationCenter",
         "DispatchQueue",
         "print",
-        "NSLog"
+        "NSLog",
     ]
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {

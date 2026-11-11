@@ -2,6 +2,22 @@ import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
+private final class ExternalMacroModuleCollector: SyntaxVisitor {
+    private(set) var modules: Set<String> = []
+
+    override func visit(_ node: MacroExpansionExprSyntax) -> SyntaxVisitorContinueKind {
+        guard node.macroName.text == "externalMacro",
+              let argument = node.arguments.first(where: { $0.label?.text == "module" }),
+              let literal = argument.expression.as(StringLiteralExprSyntax.self),
+              let segment = literal.segments.first?.as(StringSegmentSyntax.self),
+              literal.segments.count == 1 else {
+            return .visitChildren
+        }
+        modules.insert(PackageManifest.c99Identifier(segment.content.text))
+        return .visitChildren
+    }
+}
+
 /// Cross-file visitor that reports a declared dependency — a sibling target, or a product of a local
 /// path package — that nothing in the target imports.
 ///
@@ -126,21 +142,5 @@ final class UnusedTargetDependencyVisitor: CrossFileVisitorBase, CrossFilePatter
             }
         }
         return collector.modules
-    }
-}
-
-private final class ExternalMacroModuleCollector: SyntaxVisitor {
-    private(set) var modules: Set<String> = []
-
-    override func visit(_ node: MacroExpansionExprSyntax) -> SyntaxVisitorContinueKind {
-        guard node.macroName.text == "externalMacro",
-              let argument = node.arguments.first(where: { $0.label?.text == "module" }),
-              let literal = argument.expression.as(StringLiteralExprSyntax.self),
-              let segment = literal.segments.first?.as(StringSegmentSyntax.self),
-              literal.segments.count == 1 else {
-            return .visitChildren
-        }
-        modules.insert(PackageManifest.c99Identifier(segment.content.text))
-        return .visitChildren
     }
 }

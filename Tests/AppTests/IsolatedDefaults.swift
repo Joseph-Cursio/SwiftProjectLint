@@ -11,10 +11,10 @@ final class IsolatedDefaults: @unchecked Sendable { // `UserDefaults` is thread-
 
     init() {
         // Only a name `UserDefaults` reserves, such as the app's own domain, gives nil.
-        guard let defaults = UserDefaults(suiteName: suiteName) else {
+        guard let store = UserDefaults(suiteName: suiteName) else {
             preconditionFailure("UserDefaults refused the suite name \(suiteName)")
         }
-        self.defaults = defaults
+        defaults = store
     }
 
     deinit {

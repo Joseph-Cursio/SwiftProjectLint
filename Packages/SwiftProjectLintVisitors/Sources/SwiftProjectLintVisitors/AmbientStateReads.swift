@@ -1,4 +1,3 @@
-import SwiftEffectInference
 import SwiftSyntax
 
 /// Whether an expression reaches ambient state — a clock, a random source, the process

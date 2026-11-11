@@ -1,7 +1,7 @@
-@testable import Core
-import Foundation
 import SwiftParser
+import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -34,8 +34,11 @@ struct ConcreteTypeUsageLocalTests {
     /// of `Property 'name' …` or `Parameter 'name' …`.
     private func reportedNames(_ found: [LintIssue]) -> [String] {
         found.compactMap { issue in
-            issue.message.split(separator: "'", omittingEmptySubsequences: false)
-                .dropFirst().first.map(String.init)
+            issue.message
+                .split(separator: "'", omittingEmptySubsequences: false)
+                .dropFirst()
+                .first
+                .map(String.init)
         }
     }
 
@@ -83,7 +86,7 @@ struct ConcreteTypeUsageLocalTests {
             "func refresh() { if true { var loader: FeedLoader?; loader = nil; _ = loader } }",
             "func refresh() { let work = { var loader: FeedLoader?; loader = nil; _ = loader } }",
             "func refresh() { defer { var loader: FeedLoader?; loader = nil; _ = loader } }",
-            "func refresh() { let loader: FeedLoader; loader = FeedLoader(); _ = loader }"
+            "func refresh() { let loader: FeedLoader; loader = FeedLoader(); _ = loader }",
         ]
     )
     func localInAnyCodeBlockIsNotReported(body: String) {

@@ -1,7 +1,7 @@
-@testable import Core
 import SwiftParser
 import SwiftProjectLintModels
 @testable import SwiftProjectLintRules
+import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
 
@@ -39,7 +39,7 @@ struct VariableShadowingKeyPathTests {
 
     @Test("a member or an argument label is not a use of the outer name", arguments: [
         "let total = orders.first?.total ?? 0",
-        "let total = price(total: orders.count)"
+        "let total = price(total: orders.count)",
     ])
     func sameSpellingDoesNotExemptTheShadow(declaration: String) {
         let issues = shadowingIssues("""
@@ -91,7 +91,7 @@ struct VariableShadowingKeyPathTests {
         "let total = rows.map(\\.[total]).count",
         // A capture list names the outer binding bare: `[total]` captures it.
         "let total = { [total] in run() }",
-        "let total = { [weak total] in run() }"
+        "let total = { [weak total] in run() }",
     ])
     func genuineRebindingIsExempt(rebinding: String) {
         let issues = shadowingIssues("""

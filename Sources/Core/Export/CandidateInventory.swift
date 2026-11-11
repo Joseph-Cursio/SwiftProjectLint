@@ -52,7 +52,7 @@ public enum CandidateInventory {
     public static let inventoryRules: Set<RuleIdentifier> = [
         .pureFunctionCandidate,
         .pureClosureCandidate,
-        .pureMutatorCandidate
+        .pureMutatorCandidate,
     ]
 
     /// The report split into what a reader should see and what should be counted but not listed.
@@ -64,6 +64,7 @@ public enum CandidateInventory {
         /// notice names them.
         public let withheld: [LintIssue]
 
+        /// A split with the given listed findings and withheld candidates.
         public init(listed: [LintIssue], withheld: [LintIssue]) {
             self.listed = listed
             self.withheld = withheld

@@ -1,5 +1,5 @@
-@testable import Core
-import Foundation
+import SwiftProjectLintConfig
+import SwiftProjectLintModels
 import Testing
 
 /// A file the run **reports on** that nests deeper than a cooperative thread's 512 KB of stack.
@@ -50,7 +50,7 @@ struct DeepReportedFileTests {
         return (clock.now - start, issues)
     }
 
-    @Test("with every default rule, the visitors survive a 2,000-link chain, in seconds and about the time its calls take unnested")
+    @Test("every default rule survives a 2,000-link chain in seconds, near the time its calls take unnested")
     func everyDefaultRule() async throws {
         // 2,000 links rather than 10,000 to keep the suite quick: alone, every default rule takes
         // about 6.5 s on 10,000 links in a debug build, and the calls unnested about 11 s. Once each
@@ -80,10 +80,13 @@ struct DeepReportedFileTests {
     /// for an enclosing `await` or `#Preview`.
     static let rulesOnceQuadraticInAChain: [RuleIdentifier] = [
         .nonIdempotentInRetryContext, .unannotatedInStrictReplayableContext,
-        .accessingImplementationDetails, .deprecatedAnimation, .globalActorMismatch, .magicNumber
+        .accessingImplementationDetails, .deprecatedAnimation, .globalActorMismatch, .magicNumber,
     ]
 
-    @Test("a rule once quadratic in a chain lints it in about the time its calls take unnested", arguments: rulesOnceQuadraticInAChain)
+    @Test(
+        "a rule once quadratic in a chain lints it in about the time its calls take unnested",
+        arguments: rulesOnceQuadraticInAChain
+    )
     func nestingCostsNothing(rule: RuleIdentifier) async throws {
         // A regression in one rule can hide in the other rules' time in the default-rules ratio
         // above, so each is also measured alone, side by side with the same calls one per line for
