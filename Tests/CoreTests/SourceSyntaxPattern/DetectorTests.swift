@@ -65,7 +65,9 @@ struct DetectorTests {
 
         // Create a temporary test project structure
         let tempDir = FileManager.default.temporaryDirectory
-        let testProjectPath = tempDir.appendingPathComponent("TestProject")
+        // A unique name: `$TMPDIR/TestProject` was a fixture another suite created, so this
+        // "missing" project sometimes existed.
+        let testProjectPath = tempDir.appendingPathComponent("DetectorTests-missing-\(UUID().uuidString)")
 
         // This test should handle the case where the project doesn't exist
         let issues = await detector.detectPatterns(
