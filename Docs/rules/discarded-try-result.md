@@ -21,6 +21,7 @@ Two more places where a bare `try?` statement is not a discard:
 
 Not flagged:
 - `let x = try? call()` — result captured
+- `(try? call()) ?? fallback` — result used; [Catch Without Handling](catch-without-handling.md#a-try-with-a-default) does not flag it either
 - `guard let x = try? call() else { … }` — result checked
 - `_ = try? call()` — explicit discard, developer intent is clear
 - `items.compactMap { try? f($0) }` — `try?` is the transform closure's result

@@ -39,6 +39,23 @@ func format(_ swift: String) async -> String {
 }
 ```
 
+### A `try?` with a default
+**`(try? f()) ?? fallback` is not flagged, by design.** It swallows the error just as `do { return try f() } catch { return fallback }` does, but it states the fallback at the call site: a reader can see that a failure becomes `fallback`. Treat it as the one-line equivalent of the suppression directive. Other rules draw the line in the same place. [Swallowed Task Error](swallowed-task-error.md) counts `try?` as handling the error inline, and [Discarded Try Result](discarded-try-result.md) flags a `try?` only when its value is thrown away.
+
+```swift
+func countViaCatch(_ text: String) -> Int {
+    do { return try parse(text) } catch { return 0 }   // flagged: the fallback hides in a catch arm
+}
+
+func countViaTryOptional(_ text: String) -> Int {
+    (try? parse(text)) ?? 0                              // not flagged: the fallback is spelled inline
+}
+```
+
+The rule checks only `catch` clauses, and no other rule targets this shape. Most uses are deliberate best-effort reads, such as a directory listing, `resourceValues(…).isDirectory ?? false` or an existence check. A rule matching the spelling would mostly flag code that is fine.
+
+Use it only where the default really is the whole answer. A `try?` default can make a failure look like a real empty result: `(try? identities(of: sources)) ?? []` turns a read or parse failure into an empty set. Any later code that explains that empty set will then blame the wrong component. Where someone may need to diagnose the failure, use `do`/`catch` with a log line, as in the example above.
+
 ### Suppression
 Use the standard directive when swallowing the error is genuinely intentional:
 
