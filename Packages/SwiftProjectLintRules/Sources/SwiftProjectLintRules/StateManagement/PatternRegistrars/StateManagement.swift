@@ -28,7 +28,10 @@ class StateManagement: BasePatternRegistrar {
         ),
         SyntaxPattern(
             name: .fatView,
-            visitor: ArchitectureVisitor.self,
+            // SwiftUIManagementVisitor is the visitor that emits Fat View. Registered to
+            // ArchitectureVisitor, which never does, the rule ran only when a sibling rule of
+            // SwiftUIManagementVisitor was selected too.
+            visitor: SwiftUIManagementVisitor.self,
             severity: .warning,
             category: .stateManagement,
             messageTemplate: "View '{viewName}' has too many state variables ({count}), consider MVVM pattern",

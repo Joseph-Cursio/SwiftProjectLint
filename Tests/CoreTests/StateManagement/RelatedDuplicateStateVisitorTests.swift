@@ -95,6 +95,73 @@ struct RelatedDuplicateStateVisitorTests {
         #expect(issues(["P.swift": viaExtension, "C.swift": Self.child]).count == 1)
     }
 
+    @Test("an attribute on its own line puts the report on the attribute's line, where disable:next aims")
+    func reportsOnTheDeclarationsFirstLine() throws {
+        let child = Self.child.replacingOccurrences(
+            of: "    @State private var isLoggedIn = false", with: "    @State\n    private var isLoggedIn = false"
+        )
+        let found = issues(["P.swift": Self.parent, "C.swift": child])
+        #expect(try #require(found.first).lineNumber == 3)
+    }
+
+    @Test("a child that is a view by extension, by `SwiftUI.View`, or built as `Row<Int>(…)` counts")
+    func reportsEveryWayAStructBecomesAChild() {
+        let parent = """
+        struct ParentView: View {
+            @State private var isOn = false
+            @State private var count = 0
+            @State private var selection = 0
+            var body: some View { ChildA(); ChildB(); Row<Int>(value: 1) }
+        }
+        """
+        let children = """
+        struct ChildA { @State private var isOn = false }
+        extension ChildA: View { var body: some View { Text("") } }
+        struct ChildB: SwiftUI.View {
+            @State private var count = 0
+            var body: some View { Text("") }
+        }
+        struct Row<T>: View {
+            let value: T
+            @State private var selection = 0
+            var body: some View { Text("") }
+        }
+        """
+        let found = issues(["P.swift": parent, "C.swift": children])
+        #expect(found.map { $0.message.components(separatedBy: "'")[1] }.sorted() == ["count", "isOn", "selection"])
+    }
+
+    @Test("an App struct is a parent of the view its scene builds")
+    func appIsAParent() {
+        let app = """
+        @main struct DemoApp: App {
+            @State private var isLoggedIn = false
+            var body: some Scene { WindowGroup { ChildView() } }
+        }
+        """
+        let found = issues(["App.swift": app, "C.swift": Self.child])
+        #expect(found.count == 1)
+        #expect(found.first?.message.contains("its parent DemoApp") == true)
+    }
+
+    @Test("a parent owning the name with another wrapper is named with that wrapper")
+    func differentWrappersAreNamed() throws {
+        let parent = """
+        struct ParentView: View {
+            @StateObject private var model = Model()
+            var body: some View { ChildView() }
+        }
+        """
+        let child = """
+        struct ChildView: View {
+            @State private var model = Model()
+            var body: some View { Text("") }
+        }
+        """
+        let issue = try #require(issues(["P.swift": parent, "C.swift": child]).first)
+        #expect(issue.message.contains("'model' is @State in ChildView and in its parent ParentView (as @StateObject)"))
+    }
+
     @Test("@StateObject pairs count, and a qualified @SwiftUI.State is still @State")
     func reportsStateObjectAndQualifiedState() {
         let parent = """
@@ -197,14 +264,73 @@ struct RelatedDuplicateStateVisitorTests {
         #expect(issues(["P.swift": parent, "C.swift": child]).isEmpty)
     }
 
-    @Test("a #Preview or a non-view type that builds both views relates neither")
+    @Test("a #Preview, a non-view type owning the same @State, or a non-view type nested in the parent adds no pair")
     func previewsAndNonViewTypesAddNoEdges() {
-        let preview = """
-        #Preview { ParentView() ; ChildView() }
-        struct Factory { func make() -> some View { ChildView() } }
-        """
         let parent = Self.parent.replacingOccurrences(of: "ChildView()", with: "Text(\"\")")
+        let preview = "#Preview { ParentView() ; ChildView() }"
         #expect(issues(["P.swift": parent, "C.swift": Self.child, "Preview.swift": preview]).isEmpty)
+
+        // A struct that is not a view, yet owns the same @State and builds the child.
+        let factory = """
+        struct Factory {
+            @State private var isLoggedIn = false
+            func make() -> some View { ChildView() }
+        }
+        """
+        #expect(issues(["P.swift": parent, "C.swift": Self.child, "F.swift": factory]).isEmpty)
+
+        // The child built by a non-view type nested inside a parent that owns the same @State.
+        let nesting = """
+        struct ParentView: View {
+            @State private var isLoggedIn = false
+            var body: some View { Builder.make() }
+            enum Builder { static func make() -> some View { ChildView() } }
+        }
+        """
+        #expect(issues(["P.swift": nesting, "C.swift": Self.child]).isEmpty)
+    }
+
+    @Test("a nested view answers only calls inside its enclosing type, not a system view or model of its name")
+    func nestedViewsDoNotCaptureOutsideCalls() {
+        let screen = """
+        struct SettingsScreen: View {
+            var body: some View { Label() }
+            private struct Label: View {
+                @State private var isExpanded = false
+                var body: some View { Text("") }
+            }
+        }
+        """
+        let profile = """
+        struct ProfileView: View {
+            @State private var isExpanded = false
+            var body: some View { Label("Profile", systemImage: "person") }
+        }
+        """
+        #expect(issues(["A.swift": screen, "B.swift": profile]).isEmpty)
+
+        // The enclosing type itself does show its nested view.
+        let owning = screen.replacingOccurrences(
+            of: "struct SettingsScreen: View {", with: "struct SettingsScreen: View {\n    @State private var isExpanded = false"
+        )
+        #expect(issues(["A.swift": owning]).count == 1)
+
+        let models = """
+        struct Cell { var id = 0 }
+        struct ListScreen: View {
+            var body: some View { Text("") }
+            struct Cell: View {
+                @State private var isExpanded = false
+                var body: some View { Text("") }
+            }
+        }
+        struct DetailView: View {
+            @State private var isExpanded = false
+            let cells = [Cell(id: 1)]
+            var body: some View { Text("") }
+        }
+        """
+        #expect(issues(["M.swift": models]).isEmpty)
     }
 
     // MARK: - Determinism

@@ -14,7 +14,9 @@ The parent and child can be in one file or in different files. This is the cross
 ### Discussion
 The rule is a cross-file analysis (`RelatedDuplicateStateVisitor`), run after every file is parsed. It reports at the **child's** declaration, the one to change, and names the parent. A child shown by several parents that own the same name gets one report naming all of them.
 
-**What counts as a parent showing a child.** The parent's declaration constructs the child anywhere: in `body`, in a helper property or method, inside a `sheet`/`popover`/`fullScreenCover` closure, as a `NavigationLink` destination, or in an extension of the parent. A "child" is any `View` struct declared in the project, so no list of system views decides it.
+**What counts as a parent showing a child.** The parent's declaration constructs the child anywhere: in `body`, in a helper property or method, inside a `sheet`/`popover`/`fullScreenCover` closure, as a `NavigationLink` destination, or in an extension of the parent. A generic child built as `Row<Int>(…)` counts too. A "child" is a struct declared in the project that conforms to `View`, in its own declaration or an extension, written `View` or `SwiftUI.View`. No list of system views decides it. An `App` struct counts as a parent of the views its scenes build, since state it owns and passes into its root view drifts the same way.
+
+**Names resolve the way Swift resolves them, as far as syntax allows.** A view nested in another type is a child only of calls made inside that type or an extension of it, so a nested `Label` never answers SwiftUI's `Label(…)` in another view.
 
 **What counts as the same state.** Both properties are `@State` or `@StateObject` (also written `@SwiftUI.State`) and share a name. When both spell out a type, the types must match as written. When either omits it, the name alone decides.
 
@@ -24,13 +26,14 @@ Not reported:
 - a grandchild compared with its grandparent: only direct parent/child pairs count;
 - other wrappers, such as `@Environment`, `@AppStorage` or `@ObservedObject`;
 - a view that shows itself (a recursive tree view);
-- a child built in a `#Preview`, a free function or a non-view type.
+- a child built in a `#Preview`, a free function or a non-view type, including a non-view type nested inside the parent.
 
 Known limits, all of which make the rule quieter rather than louder:
-- **A view name declared twice in the run is ambiguous**, for example the same name in two modules or two nested types. It takes part in no pair.
+- **An ambiguous name takes part in no pair.** That is a name declared twice in the run (two modules, two nested types), or declared once as a view and once as any other type, such as a model struct `Cell` beside a `Cell` view.
 - **A child built through a qualified name (`Feature.Row()`) or a factory function is not seen.**
+- **A struct that is a view only through a protocol refining `View`** (`struct Screen: AppScreen`) is not seen as one.
 
-Suppress the rule on the child's declaration when each view really should keep its own copy, such as a list row tracking its own expansion state under a name its parent also uses.
+The issue is reported on the first line of the child's declaration, where its attribute is. Suppress it there when each view really should keep its own copy, such as a list row tracking its own expansion state under a name its parent also uses.
 
 ### Suppression
 ```swift

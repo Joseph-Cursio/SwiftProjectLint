@@ -9,20 +9,25 @@ import SwiftSyntax
 /// after that the two drift apart: a change in either view is invisible to the other. The fix is
 /// usually `@Binding` in the child, so a child that declares `@Binding var x` is never reported.
 ///
-/// **Phase 1 (walk):** records, per SwiftUI view, the properties it owns with `@State` or
-/// `@StateObject`. Also records every call inside a type, or an extension of one, whose callee is a
-/// bare type name: a candidate "this view shows that view" edge.
-/// **Phase 2 (finalizeAnalysis):** keeps the edges whose two ends are both project views, so the
-/// project's own declarations decide what a child is, not a list of system views. It then reports,
-/// at the child's declaration, each owned property that a parent showing that child also owns.
+/// **Phase 1 (walk):** records every struct with the properties it owns through `@State` or
+/// `@StateObject`, every type declaration's name, every `extension X: View`, and every call whose
+/// callee is a bare type name (`ChildView(…)` or `Row<Int>(…)`) together with the types it sits in.
+/// **Phase 2 (finalizeAnalysis):** decides which structs are views, keeps the calls whose two ends
+/// are both views, and reports, at the child's declaration, each owned property that a parent showing
+/// that child also owns.
 ///
 /// "Shows" means the parent's declaration constructs the child anywhere: in `body`, a helper property
-/// or method, a `sheet`/`popover`/`fullScreenCover` closure, or a `NavigationLink` destination. Only
-/// direct parent/child pairs count. A grandchild is not compared with its grandparent.
+/// or method, a `sheet`/`popover`/`fullScreenCover` closure, a `NavigationLink` destination, or an
+/// extension of the parent. Only direct parent/child pairs count. An `App` struct counts as a parent
+/// of the views its scenes build, since state it owns and passes in drifts the same way.
+///
+/// **Names are resolved the way Swift would, as far as syntax allows.** A view nested in another
+/// type is a child only of calls made inside that type, so a nested `Label` never answers SwiftUI's
+/// `Label(…)` elsewhere. A name declared more than once in the run, or declared once as a view and
+/// once as any other type, is ambiguous and takes part in no pair.
 ///
 /// Known limits, all of which make the rule quieter rather than louder:
-/// - a view name declared more than once in the run (two modules, or nested types sharing a name) is
-///   ambiguous, so it takes part in no pair;
+/// - a struct that is a view only through a protocol refining `View` is not seen as one;
 /// - a child built through a qualified name (`Feature.Row()`) or a factory function is not seen;
 /// - when both properties spell out a type, the types must match as written. When either omits it,
 ///   the name alone decides.
@@ -30,39 +35,58 @@ final class RelatedDuplicateStateVisitor: CrossFileVisitorBase, CrossFilePattern
 
     // MARK: - Collected data
 
-    /// A property a view owns through `@State` or `@StateObject`.
+    /// A property a struct owns through `@State` or `@StateObject`.
     private struct OwnedState {
         let name: String
         let wrapper: String
         /// The written type, without whitespace, or `nil` when the declaration omits it.
         let type: String?
         let file: String
+        /// The whole declaration, so the report lands on its first line, where its attribute is.
         let node: Syntax
     }
 
-    /// Every SwiftUI view struct declared in the run, by name. More than one entry means the name
-    /// is ambiguous.
-    private var viewDeclarationCounts: [String: Int] = [:]
+    /// A struct declaration: where it is nested and whether its own clause makes it a view.
+    private struct StructInfo {
+        /// The names of the types it is nested in, outermost first. Empty at file scope.
+        let outerTypes: [String]
+        let conformsToViewDirectly: Bool
+    }
 
-    /// The owned state of each view, keyed by view name.
-    private var ownedStateByView: [String: [OwnedState]] = [:]
+    /// A call to a bare type name, made inside `scope` (outermost type first, never empty).
+    private struct Call {
+        let scope: [String]
+        let callee: String
+    }
 
-    /// Candidate edges: the enclosing type's name → the bare type names it calls.
-    private var calledNamesByType: [String: Set<String>] = [:]
+    /// Every struct, by name. More than one entry for a name makes it ambiguous.
+    private var structsByName: [String: [StructInfo]] = [:]
 
-    /// The enclosing type or extension of the code being walked. `nil` at file scope, so a
-    /// `#Preview` or a free function contributes no edge.
+    /// How many non-struct type declarations (class, enum, actor, protocol, typealias) carry each
+    /// name. Any at all makes a same-named view ambiguous.
+    private var otherTypeCounts: [String: Int] = [:]
+
+    /// Names given a `View` or `App` conformance by an extension.
+    private var extendedAsView: Set<String> = []
+
+    /// The owned state of each struct, keyed by struct name.
+    private var ownedStateByStruct: [String: [OwnedState]] = [:]
+
+    private var calls: [Call] = []
+
+    /// The types and extensions enclosing the code being walked, outermost first. Empty at file
+    /// scope, so a `#Preview` or a free function contributes no call.
     private var typeStack: [String] = []
 
     // MARK: - Phase 1: walk
 
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         let name = node.name.text
+        structsByName[name, default: []].append(
+            StructInfo(outerTypes: typeStack, conformsToViewDirectly: Self.namesView(node.inheritanceClause))
+        )
+        recordOwnedState(of: node, structName: name)
         typeStack.append(name)
-        if isSwiftUIView(node) {
-            viewDeclarationCounts[name, default: 0] += 1
-            recordOwnedState(of: node, viewName: name)
-        }
         return .visitChildren
     }
 
@@ -71,6 +95,7 @@ final class RelatedDuplicateStateVisitor: CrossFileVisitorBase, CrossFilePattern
     }
 
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        otherTypeCounts[node.name.text, default: 0] += 1
         typeStack.append(node.name.text)
         return .visitChildren
     }
@@ -80,6 +105,7 @@ final class RelatedDuplicateStateVisitor: CrossFileVisitorBase, CrossFilePattern
     }
 
     override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
+        otherTypeCounts[node.name.text, default: 0] += 1
         typeStack.append(node.name.text)
         return .visitChildren
     }
@@ -89,6 +115,7 @@ final class RelatedDuplicateStateVisitor: CrossFileVisitorBase, CrossFilePattern
     }
 
     override func visit(_ node: ActorDeclSyntax) -> SyntaxVisitorContinueKind {
+        otherTypeCounts[node.name.text, default: 0] += 1
         typeStack.append(node.name.text)
         return .visitChildren
     }
@@ -97,23 +124,37 @@ final class RelatedDuplicateStateVisitor: CrossFileVisitorBase, CrossFilePattern
         typeStack.removeLast()
     }
 
-    /// An extension of a view adds to that view, so a child built in `extension ParentView { … }`
-    /// counts as shown by `ParentView`. An extension of a qualified name (`extension A.B`) is
-    /// pushed under a name no view has, so its calls are kept apart without being attributed.
+    override func visit(_ node: ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
+        otherTypeCounts[node.name.text, default: 0] += 1
+        return .skipChildren
+    }
+
+    override func visit(_ node: TypeAliasDeclSyntax) -> SyntaxVisitorContinueKind {
+        otherTypeCounts[node.name.text, default: 0] += 1
+        return .skipChildren
+    }
+
+    /// An extension of a view adds to that view: a child built in `extension ParentView { … }`
+    /// counts as shown by `ParentView`, and `extension ChildView: View` makes `ChildView` a view.
+    /// The extended type's path is pushed whole (`extension A.B` pushes `A`, `B`), so calls in it
+    /// resolve like calls written inside `B`.
     override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
-        let extended = node.extendedType.as(IdentifierTypeSyntax.self)?.name.text ?? ""
-        typeStack.append(extended)
+        let path = Self.typePath(node.extendedType)
+        if let last = path.last, Self.namesView(node.inheritanceClause) {
+            extendedAsView.insert(last)
+        }
+        typeStack.append(contentsOf: path.isEmpty ? [""] : path)
         return .visitChildren
     }
 
-    override func visitPost(_ _: ExtensionDeclSyntax) {
-        typeStack.removeLast()
+    override func visitPost(_ node: ExtensionDeclSyntax) {
+        let pushed = max(Self.typePath(node.extendedType).count, 1)
+        typeStack.removeLast(pushed)
     }
 
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        if let enclosing = typeStack.last, enclosing.isEmpty == false,
-           let callee = node.calledExpression.as(DeclReferenceExprSyntax.self) {
-            calledNamesByType[enclosing, default: []].insert(callee.baseName.text)
+        if typeStack.isEmpty == false, typeStack.contains("") == false, let callee = Self.calleeName(node) {
+            calls.append(Call(scope: typeStack, callee: callee))
         }
         return .visitChildren
     }
@@ -121,22 +162,31 @@ final class RelatedDuplicateStateVisitor: CrossFileVisitorBase, CrossFilePattern
     // MARK: - Phase 2: report
 
     func finalizeAnalysis() {
-        let views = Set(viewDeclarationCounts.filter { $0.value == 1 }.keys)
+        // A view is a struct whose name is unambiguous and that conforms to View or App.
+        var views: [String: StructInfo] = [:]
+        for name in structsByName.keys.sorted() {
+            guard let declarations = structsByName[name], declarations.count == 1,
+                  let info = declarations.first, otherTypeCounts[name, default: 0] == 0,
+                  info.conformsToViewDirectly || extendedAsView.contains(name) else { continue }
+            views[name] = info
+        }
 
-        // child view → the parent views that construct it. Walked in name order like every
-        // aggregation here (`AggregationDeterminismTests`), though only sets are built from it.
+        // child view → the parent views that construct it
         var parentsByChild: [String: Set<String>] = [:]
-        for parent in calledNamesByType.keys.sorted() where views.contains(parent) {
-            for child in (calledNamesByType[parent] ?? []).sorted() where child != parent && views.contains(child) {
-                parentsByChild[child, default: []].insert(parent)
-            }
+        for call in calls {
+            guard let parent = call.scope.last, views[parent] != nil,
+                  call.callee != parent, let child = views[call.callee],
+                  // A nested view is visible by its simple name only inside its enclosing types.
+                  call.scope.starts(with: child.outerTypes) else { continue }
+            parentsByChild[call.callee, default: []].insert(parent)
         }
 
         for child in parentsByChild.keys.sorted() {
             let parents = (parentsByChild[child] ?? []).sorted()
-            for state in ownedStateByView[child] ?? [] {
-                let sharing = parents.filter { parent in
-                    (ownedStateByView[parent] ?? []).contains { matches($0, state) }
+            for state in ownedStateByStruct[child] ?? [] {
+                let sharing: [(name: String, wrapper: String)] = parents.compactMap { parent in
+                    (ownedStateByStruct[parent] ?? []).first { matches($0, state) }
+                        .map { (parent, $0.wrapper) }
                 }
                 guard sharing.isEmpty == false else { continue }
                 report(state, inChild: child, parents: sharing)
@@ -146,31 +196,62 @@ final class RelatedDuplicateStateVisitor: CrossFileVisitorBase, CrossFilePattern
 
     // MARK: - Helpers
 
-    private func recordOwnedState(of view: StructDeclSyntax, viewName: String) {
-        for member in view.memberBlock.members {
+    private func recordOwnedState(of declaration: StructDeclSyntax, structName: String) {
+        for member in declaration.memberBlock.members {
             guard let variable = member.decl.as(VariableDeclSyntax.self),
-                  let wrapper = owningWrapper(of: variable) else { continue }
+                  let wrapper = Self.owningWrapper(of: variable) else { continue }
             for binding in variable.bindings {
                 guard let identifier = binding.pattern.as(IdentifierPatternSyntax.self) else { continue }
                 let type = binding.typeAnnotation.map {
                     $0.type.trimmedDescription.filter { $0.isWhitespace == false }
                 }
-                ownedStateByView[viewName, default: []].append(
+                ownedStateByStruct[structName, default: []].append(
                     OwnedState(
                         name: identifier.identifier.text,
                         wrapper: wrapper,
                         type: type,
                         file: currentFilePath,
-                        node: Syntax(identifier)
+                        node: Syntax(variable)
                     )
                 )
             }
         }
     }
 
+    /// Whether an inheritance clause names `View` or `App`, plainly or as `SwiftUI.View`.
+    private static func namesView(_ clause: InheritanceClauseSyntax?) -> Bool {
+        let viewNames: Set<String> = [SwiftUIProtocol.view.rawValue, SwiftUIProtocol.app.rawValue]
+        return (clause?.inheritedTypes ?? []).contains { inherited in
+            let name = inherited.type.as(IdentifierTypeSyntax.self)?.name.text
+                ?? inherited.type.as(MemberTypeSyntax.self)?.name.text
+            return name.map(viewNames.contains) ?? false
+        }
+    }
+
+    /// `["A", "B"]` for `A.B`, `["A"]` for `A`, and `[]` for anything else.
+    private static func typePath(_ type: TypeSyntax) -> [String] {
+        if let identifier = type.as(IdentifierTypeSyntax.self) {
+            return [identifier.name.text]
+        }
+        if let member = type.as(MemberTypeSyntax.self) {
+            let base = typePath(member.baseType)
+            return base.isEmpty ? [] : base + [member.name.text]
+        }
+        return []
+    }
+
+    /// The bare type name a call constructs: `Name` for `Name(…)` and `Name<T>(…)`.
+    private static func calleeName(_ call: FunctionCallExprSyntax) -> String? {
+        var callee = call.calledExpression
+        if let specialized = callee.as(GenericSpecializationExprSyntax.self) {
+            callee = specialized.expression
+        }
+        return callee.as(DeclReferenceExprSyntax.self)?.baseName.text
+    }
+
     /// `"State"` or `"StateObject"` when the declaration carries one of them, written plainly or
     /// qualified as `SwiftUI.State`; otherwise `nil`.
-    private func owningWrapper(of variable: VariableDeclSyntax) -> String? {
+    private static func owningWrapper(of variable: VariableDeclSyntax) -> String? {
         for element in variable.attributes {
             guard let attribute = element.as(AttributeSyntax.self) else { continue }
             let name: String? = attribute.attributeName.as(IdentifierTypeSyntax.self)?.name.text
@@ -190,8 +271,12 @@ final class RelatedDuplicateStateVisitor: CrossFileVisitorBase, CrossFilePattern
         return true
     }
 
-    private func report(_ state: OwnedState, inChild child: String, parents: [String]) {
-        let parentList = parents.joined(separator: ", ")
+    /// Names each parent, adding its wrapper wherever it differs from the child's.
+    private func report(_ state: OwnedState, inChild child: String, parents: [(name: String, wrapper: String)]) {
+        let parentList = parents.map { parent in
+            parent.wrapper == state.wrapper ? parent.name : "\(parent.name) (as @\(parent.wrapper))"
+        }
+        .joined(separator: ", ")
         let parentNoun = parents.count == 1 ? "its parent" : "its parents"
         addIssue(
             severity: .warning,

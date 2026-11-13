@@ -2,7 +2,7 @@ import SwiftProjectLintModels
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
-/// Detects a `private` or `fileprivate` `@State` or `@StateObject` that nothing in its file names.
+/// Detects a `private` or `fileprivate` `@State` that nothing in its file names.
 ///
 /// The check is a name count over the file's tokens. A property counts as used when its name
 /// appears anywhere other than its own declaration: as `x`, as the projected `$x`, or as the
@@ -11,9 +11,15 @@ import SwiftSyntax
 /// files included, so a name the file never mentions is a name nothing mentions.
 ///
 /// The count is deliberately generous. A local variable, a parameter or another type's member with
-/// the same name also counts as a use. That can hide a real unused property, but it never reports
-/// a used one. Wider access levels are skipped: an `internal` property could be read from another
-/// file.
+/// the same name also counts as a use. That can hide a real unused property, but a property whose
+/// name appears in the file's source is never reported. Access the source does not spell out, such
+/// as `Mirror` reflection or code a macro generates, is not seen. Wider access levels are skipped:
+/// an `internal` property could be read from another file.
+///
+/// `@StateObject` is left out on purpose. Holding one does work without naming it: SwiftUI keeps
+/// the object alive for the view's lifetime and re-renders the view on its `objectWillChange`. So
+/// a `@StateObject` nobody names can still be load-bearing, and removing it would change behaviour.
+/// A `@State` nobody names can never change, so it cannot affect anything.
 final class UnusedStateVariableVisitor: BasePatternVisitor {
 
     /// How often each name appears in the file, with `$x` and `_x` counted under `x`.
@@ -39,13 +45,15 @@ final class UnusedStateVariableVisitor: BasePatternVisitor {
     }
 
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-        guard isFileLocal(node), hasOwningWrapper(node) else { return .visitChildren }
+        guard isFileLocal(node), hasStateWrapper(node) else { return .visitChildren }
         for binding in node.bindings {
             guard let identifier = binding.pattern.as(IdentifierPatternSyntax.self) else { continue }
             let name = Self.unescaped(identifier.identifier.text)
-            // The declaration itself is the one occurrence an unused property has.
+            // The declaration itself is the one occurrence an unused property has. The report sits
+            // on the declaration's first line, where its attribute is, so a `disable:next` placed
+            // above the declaration covers it even when `@State` is on a line of its own.
             if nameCounts[name, default: 0] <= 1 {
-                addIssue(node: Syntax(identifier), variables: ["variableName": name])
+                addIssue(node: Syntax(node), variables: ["variableName": name])
             }
         }
         return .visitChildren
@@ -79,12 +87,13 @@ final class UnusedStateVariableVisitor: BasePatternVisitor {
         }
     }
 
-    private func hasOwningWrapper(_ node: VariableDeclSyntax) -> Bool {
+    /// `@State`, written plainly or qualified as `SwiftUI.State`.
+    private func hasStateWrapper(_ node: VariableDeclSyntax) -> Bool {
         node.attributes.contains { element in
             guard let attribute = element.as(AttributeSyntax.self) else { return false }
             let name: String? = attribute.attributeName.as(IdentifierTypeSyntax.self)?.name.text
                 ?? attribute.attributeName.as(MemberTypeSyntax.self)?.name.text
-            return name == PropertyWrapper.state.rawValue || name == PropertyWrapper.stateObject.rawValue
+            return name == PropertyWrapper.state.rawValue
         }
     }
 }

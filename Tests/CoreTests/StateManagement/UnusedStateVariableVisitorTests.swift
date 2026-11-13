@@ -38,12 +38,17 @@ struct UnusedStateVariableVisitorTests {
         #expect(issue.message == "State variable 'count' is declared but never used")
     }
 
-    @Test("fileprivate, @StateObject, qualified @SwiftUI.State and each binding of a list count")
-    func reportsEveryFileLocalOwningShape() {
+    @Test("fileprivate, qualified @SwiftUI.State and each binding of a list count")
+    func reportsEveryFileLocalStateShape() {
         #expect(issues(view("@State fileprivate var count = 0")).count == 1)
-        #expect(issues(view("@StateObject private var model = Model()")).count == 1)
         #expect(issues(view("@SwiftUI.State private var count = 0")).count == 1)
         #expect(issues(view("@State private var first = 0, second = 1")).count == 2)
+    }
+
+    @Test("an attribute on its own line puts the report on the attribute's line, where disable:next aims")
+    func reportsOnTheDeclarationsFirstLine() throws {
+        let found = issues(view("@State\n    private var count = 0"))
+        #expect(try #require(found.first).lineNumber == 3)
     }
 
     // MARK: - Not reported
@@ -84,6 +89,11 @@ struct UnusedStateVariableVisitorTests {
         #expect(issues(view("@State var count = 0")).isEmpty)
         #expect(issues(view("@State public var count = 0")).isEmpty)
         #expect(issues(view("@State private(set) var count = 0")).isEmpty)
+    }
+
+    @Test("a @StateObject nobody names is not reported: holding it keeps the object alive and subscribed")
+    func stateObjectIsSkipped() {
+        #expect(issues(view("@StateObject private var ticker = Ticker()")).isEmpty)
     }
 
     @Test("other wrappers and plain properties are not this rule's")

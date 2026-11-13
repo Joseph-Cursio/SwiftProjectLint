@@ -100,4 +100,33 @@ struct RelatedDuplicateStateProjectTests {
         ])
         #expect(found.isEmpty)
     }
+
+    @Test("disable:next above a declaration whose @State is on its own line silences both state rules")
+    func suppressionCoversASplitDeclaration() async throws {
+        let child = Self.child.replacingOccurrences(
+            of: "    @State private var isLoggedIn = false",
+            with: "    // swiftprojectlint:disable:next related-duplicate-state-variable\n"
+                + "    @State\n    private var isLoggedIn = false\n"
+                + "    // swiftprojectlint:disable:next unused-state-variable\n"
+                + "    @State\n    private var spare = 0"
+        )
+        let issues = try await PackagePurityFixtures.lint([
+            "Sources/App/ParentView.swift": Self.parent,
+            "Sources/App/ChildView.swift": child,
+        ])
+        let inChild = issues.filter { $0.filePath.hasSuffix("ChildView.swift") }
+        #expect(inChild.contains { $0.ruleName == .relatedDuplicateStateVariable } == false)
+        #expect(inChild.contains { $0.ruleName == .unusedStateVariable } == false)
+    }
+
+    @Test("Fat View selected on its own still counts a view's state")
+    func fatViewRunsWhenSelectedAlone() async throws {
+        let states = (1...6).map { "    @State private var value\($0) = 0" }.joined(separator: "\n")
+        let reads = (1...6).map { "value\($0)" }.joined(separator: " + ")
+        let fat = "import SwiftUI\n\nstruct FatView: View {\n\(states)\n\n"
+            + "    var body: some View { Text(String(\(reads))) }\n}\n"
+        let found = try await PackagePurityFixtures.lint(["Sources/App/FatView.swift": fat], ruleIdentifiers: [.fatView])
+        #expect(found.map(\.ruleName) == [.fatView])
+        #expect(found.first?.message.contains("has 6 state variables") == true)
+    }
 }
