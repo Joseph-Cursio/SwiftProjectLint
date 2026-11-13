@@ -1,8 +1,10 @@
 import Foundation
 import SwiftEffectInference
 import SwiftParser
+import SwiftProjectLintEngine
 @testable import SwiftProjectLintIdempotencyRules
 import SwiftProjectLintModels
+import SwiftProjectLintRegistry
 @testable import SwiftProjectLintVisitors
 import SwiftSyntax
 import Testing
@@ -112,6 +114,66 @@ struct SharedEffectTableTests {
 
         let missingKey = run(MissingIdempotencyKeyVisitor(fileCache: cache))
         #expect(missingKey.contains { $0.ruleName == .missingIdempotencyKey && $0.message.contains("charge") })
+    }
+
+    // MARK: - The engine's share
+
+    /// Reports which tables it was handed, and how many declarations they hold, so a test can see
+    /// what the engine shares. Two classes, so the engine makes two visitors in one run.
+    class TablesReportingVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
+        func finalizeAnalysis() {
+            let report = sharedEffectTables.map { tables in
+                "\(ObjectIdentifier(tables)) declared=\(tables.declared.entriesBySignature.count)"
+            } ?? "none"
+            addIssue(
+                severity: .info, message: report, filePath: "", lineNumber: 1, suggestion: "", ruleName: pattern.name
+            )
+        }
+    }
+
+    final class FirstTablesReportingVisitor: TablesReportingVisitor {}
+    final class SecondTablesReportingVisitor: TablesReportingVisitor {}
+
+    private static func spyRegistry() -> PatternVisitorRegistry {
+        let registry = PatternVisitorRegistry()
+        for (rule, visitor) in [
+            (RuleIdentifier.couldBePrivate, FirstTablesReportingVisitor.self as PatternVisitorProtocol.Type),
+            (RuleIdentifier.forceUnwrap, SecondTablesReportingVisitor.self),
+        ] {
+            registry.register(pattern: SyntaxPattern(
+                name: rule, visitor: visitor, severity: .info, category: .codeQuality,
+                messageTemplate: "", suggestion: "", description: "Reports the effect tables it was handed"
+            ))
+        }
+        return registry
+    }
+
+    private static func file(_ name: String, declaring count: Int) -> ProjectFile {
+        let declarations = (0..<count).map { "/// @lint.effect idempotent\nfunc zork\($0)() {}" }
+        return ProjectFile(name: name, content: declarations.joined(separator: "\n"), relativePath: name)
+    }
+
+    @Test("the engine hands every visitor in a run the same tables, and each run new ones")
+    func engineSharesOneTablesPerRun() {
+        let engine = CrossFileAnalysisEngine(registry: Self.spyRegistry())
+
+        let byRule = engine.detectCrossFilePatterns(
+            projectFiles: [Self.file("A.swift", declaring: 1)], ruleIdentifiers: [.couldBePrivate, .forceUnwrap]
+        )
+        .map(\.message)
+        #expect(byRule.count == 2)
+        #expect(Set(byRule).count == 1, "each visitor got different tables: \(byRule)")
+        #expect(byRule.allSatisfy { $0.hasSuffix("declared=1") }, "\(byRule)")
+
+        // The other entry point, and a new run on the same engine: the tables are rebuilt from
+        // this run's files, not carried over from the last.
+        let byCategory = engine.detectCrossFilePatterns(
+            projectFiles: [Self.file("B.swift", declaring: 2)], categories: [.codeQuality]
+        )
+        .map(\.message)
+        #expect(byCategory.count == 2)
+        #expect(Set(byCategory).count == 1, "each visitor got different tables: \(byCategory)")
+        #expect(byCategory.allSatisfy { $0.hasSuffix("declared=2") }, "\(byCategory)")
     }
 
     @Test("a directly driven visitor still learns declarations from the files it walks")
