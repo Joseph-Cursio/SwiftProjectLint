@@ -89,11 +89,13 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
 
         // Load configuration from YAML file
         var lintConfiguration: LintConfiguration
-        if let configPath = config {
-            lintConfiguration = LintConfigurationLoader.load(from: configPath)
-        } else {
-            lintConfiguration = LintConfigurationLoader.load(projectRoot: absolutePath)
-        }
+        let configPath = config ?? PathString.appending(LintConfigurationLoader.defaultFileName, to: absolutePath)
+        lintConfiguration = LintConfigurationLoader.load(from: configPath)
+
+        // The loader drops rule names it cannot resolve, and an `enabled_only` left empty that way
+        // runs no rules: a clean exit that checked nothing. Said before the run, on stderr like the
+        // other audits, so it reaches a reader even when the results go to a file.
+        Self.reportRuleNameConfigurationProblems(path: configPath, explicit: config != nil)
 
         // The --include-nested-packages flag can only turn the option on, so it
         // overrides the config when present and leaves it untouched otherwise.
@@ -272,6 +274,12 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
                 filePath: root.relativePath(of: path)?.value ?? path
             )
         }
+    }
+
+    private static func reportRuleNameConfigurationProblems(path: String, explicit: Bool) {
+        let problems = RuleNameConfigurationAudit.problems(atPath: path, explicit: explicit)
+        guard problems.isEmpty == false else { return }
+        printToStandardError(RuleNameConfigurationAudit.notice(for: problems, path: path))
     }
 
     private static func reportLayerConfigurationProblems(projectRoot: String, configuration: LintConfiguration) {
