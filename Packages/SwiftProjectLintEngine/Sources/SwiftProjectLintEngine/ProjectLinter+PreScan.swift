@@ -170,12 +170,18 @@ extension ProjectLinter {
     /// detector — every per-file detector is primed from `FileAnalysisEnvironment` — and the caller
     /// keeps it: the macOS app reuses one across runs, so a catalog a gated run withheld would
     /// outlive the run that could have been redone, holding a sealed tripwire.
+    /// The detector a run uses when the caller gives none: every built-in rule registered, in a
+    /// registry of its own, as `PatternRegistryFactory.createConfiguredSystem()` builds for the CLI.
+    static func defaultDetector() -> any SourcePatternDetectorProtocol {
+        PatternRegistryFactory.createConfiguredSystem().detector
+    }
+
     static func configuredDetector(
         _ detector: (any SourcePatternDetectorProtocol)?,
         collected: CollectedTypes,
         configuration: LintConfiguration
     ) -> any SourcePatternDetectorProtocol {
-        var resolved = detector ?? SourcePatternDetector()
+        var resolved = detector ?? defaultDetector()
         resolved.knownIdentifiableTypes = collected.identifiable
         resolved.knownIdentifiableCollectionProperties = collected.identifiableCollectionProperties
         resolved.knownEnumTypes = collected.enums

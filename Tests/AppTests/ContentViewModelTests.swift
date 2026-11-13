@@ -317,8 +317,8 @@ struct ContentViewModelTests {
                 "Analysis with a configured detector must produce issues for code with violations")
     }
 
-    @Test("analysis without detector produces no issues (registry empty)")
-    func analysisWithoutDetectorProducesNothing() async throws {
+    @Test("analysis without a detector still runs the built-in rules")
+    func analysisWithoutDetectorRunsBuiltInRules() async throws {
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("ViewModelNoDetector_\(UUID().uuidString)")
         try FileManager.default.createDirectory(
@@ -344,10 +344,9 @@ struct ContentViewModelTests {
         viewModel.analyzeProject()
         await viewModel.analysisTask?.value
 
-        // This documents the bug: without a detector, no issues are found
-        // even for code with clear violations
-        // Without a configured detector the shared registry is empty —
-        // this documents the failure mode so it stays visible.
-        #expect(viewModel.lintIssues.isEmpty)
+        // Without a detector the linter used to read the shared registry, which
+        // nothing fills, and found nothing even here. It now registers every
+        // built-in rule itself, as the CLI does.
+        #expect(viewModel.lintIssues.contains { $0.ruleName == .forceTry })
     }
 }

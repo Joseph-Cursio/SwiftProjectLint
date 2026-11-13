@@ -9,9 +9,10 @@ import Testing
 /// test ends. A fixed path under `$TMPDIR` would be shared by tests running in parallel, and by
 /// earlier runs, so one test could read files another was still writing.
 ///
-/// The linter is given the configured detector, as the CLI and the App give it. `ProjectLinter()`
-/// alone reads `PatternVisitorRegistry.shared`, which nothing in the test process fills, so a run
-/// without a detector checks no rules and every assertion about its findings passes vacuously.
+/// Most tests give the linter the configured detector, as the CLI and the App give it. A run given
+/// no detector registers the same built-in rules itself; it used to read
+/// `PatternVisitorRegistry.shared`, which nothing fills, and so check no rules at all.
+/// `testDefaultDetectorRunsTheBuiltInRules` pins that the two agree.
 struct ProjectLinterTests {
 
     @Test func testProjectLinterInitialization() {
@@ -119,6 +120,32 @@ struct ProjectLinterTests {
         #expect(Set(defaultRun.map(\.ruleName)).isSubset(of: Set(issues.map(\.ruleName))))
         for issue in issues {
             #expect(allRules.contains(issue.ruleName))
+        }
+    }
+
+    @Test func testDefaultDetectorRunsTheBuiltInRules() async throws {
+        let path = try makeProject(Self.complexProjectFiles)
+        defer { removeProject(path) }
+
+        let withoutDetector = await ProjectLinter().analyzeProject(at: path)
+        let withConfiguredDetector = await lint(path)
+
+        #expect(withoutDetector.contains { $0.ruleName == .forceUnwrap })
+        #expect(withoutDetector.map(Finding.init) == withConfiguredDetector.map(Finding.init))
+    }
+
+    /// What identifies a finding, for comparing two runs.
+    private struct Finding: Equatable {
+        let rule: RuleIdentifier
+        let file: String
+        let line: Int
+        let message: String
+
+        init(_ issue: LintIssue) {
+            rule = issue.ruleName
+            file = issue.filePath
+            line = issue.lineNumber
+            message = issue.message
         }
     }
 
