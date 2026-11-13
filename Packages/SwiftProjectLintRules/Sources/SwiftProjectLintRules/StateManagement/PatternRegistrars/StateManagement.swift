@@ -18,15 +18,6 @@ class StateManagement: BasePatternRegistrar {
             description: "Detects @State variables that are declared without initial values"
         ),
         SyntaxPattern(
-            name: .missingStateObject,
-            visitor: SwiftUIManagementVisitor.self,
-            severity: .warning,
-            category: .stateManagement,
-            messageTemplate: "Consider using @StateObject for '{variableName}'",
-            suggestion: "Replace @ObservedObject with @StateObject for owned objects",
-            description: "Detects @ObservedObject usage where @StateObject would be more appropriate"
-        ),
-        SyntaxPattern(
             name: .fatView,
             // SwiftUIManagementVisitor is the visitor that emits Fat View. Registered to
             // ArchitectureVisitor, which never does, the rule ran only when a sibling rule of
@@ -44,6 +35,7 @@ class StateManagement: BasePatternRegistrar {
         registry.register(patterns: Self.categoryPatterns)
         registry.register(registrars: [
             ObservedObjectInline(),
+            MissingStateObject(),
             TooManyEnvironmentObjects(),
             MainActorMissing(),
             ObservableMainActorMissing(),

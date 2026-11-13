@@ -7,34 +7,47 @@
 **Severity:** Warning
 
 ### Rationale
-`@ObservedObject` tells SwiftUI that you do not own the object — the object's lifetime is managed elsewhere. When a view creates an `ObservableObject` that it also owns, `@StateObject` must be used instead. Using `@ObservedObject` for an owned object causes SwiftUI to recreate the object on every redraw, losing all accumulated state.
+An `@ObservedObject` that the view's own initializer constructs. `@ObservedObject` says the object belongs to someone else, so SwiftUI does not keep it. A view struct is rebuilt every time its parent's `body` runs, and its initializer runs again with it. An initializer that builds the object therefore builds a new one on every parent update, and the old object's state is lost. Declare it `@StateObject`, which keeps one object for the view's lifetime, or pass the object in from the parent.
 
 ### Discussion
-This rule detects the pattern where a view declares an `@ObservedObject` and there is evidence (in the same file or hierarchy) that the view is responsible for creating that object's instance. The fix is straightforward: replace `@ObservedObject` with `@StateObject` so SwiftUI manages the object's lifetime correctly.
+`MissingStateObjectVisitor` checks each `View` struct's `@ObservedObject` properties that have no inline value, and reports one that any of the view's initializers assigns a newly constructed object. It reports at the property's declaration.
+
+What counts as constructing:
+- `self.model = Model(…)` or `model = Model(…)`, also written `Model.init(…)` or `Model<T>(…)`;
+- `_model = ObservedObject(wrappedValue: Model(…))`, or the older `initialValue:` label.
+
+A capitalized callee is read as a type, so the check is syntactic. These are not construction, and are not reported:
+- assigning a parameter (`self.model = model`), the object passed in, which is what `@ObservedObject` is for;
+- a shared instance (`Model.shared`) or a factory's result (`makeModel()`);
+- `init() { self.init(model: Model()) }`: the delegating call is not followed, which makes the rule quieter rather than louder.
+
+**The inline form belongs to another rule.** `@ObservedObject var model = Model()` is [ObservedObject Inline](observed-object-inline.md)'s, so a property with an inline value is never reported by this rule as well.
 
 ### Non-Violating Examples
 ```swift
-struct ParentView: View {
-    // Parent owns the model — correct use of @StateObject
-    @StateObject private var viewModel = UserViewModel()
-    var body: some View {
-        ChildView(viewModel: viewModel)
-    }
+// The view owns the object: @StateObject, built once for the view's lifetime
+struct CounterView: View {
+    @StateObject private var model: CounterModel
+    init(start: Int) { _model = StateObject(wrappedValue: CounterModel(start: start)) }
+    var body: some View { Text("\(model.count)") }
 }
 
-struct ChildView: View {
-    // Child receives and observes — correct use of @ObservedObject
-    @ObservedObject var viewModel: UserViewModel
-    var body: some View { Text(viewModel.name) }
+// The object is passed in: @ObservedObject is right
+struct CounterRow: View {
+    @ObservedObject var model: CounterModel
+    init(model: CounterModel) { self.model = model }
+    var body: some View { Text("\(model.count)") }
 }
 ```
 
 ### Violating Examples
 ```swift
-struct MyView: View {
-    // View creates the object but uses @ObservedObject — incorrect
-    @ObservedObject private var viewModel = UserViewModel()
-    var body: some View { Text(viewModel.name) }
+struct CounterView: View {
+    @ObservedObject var model: CounterModel   // reported here
+    init(start: Int) {
+        self.model = CounterModel(start: start)  // a new model on every parent update
+    }
+    var body: some View { Text("\(model.count)") }
 }
 ```
 
