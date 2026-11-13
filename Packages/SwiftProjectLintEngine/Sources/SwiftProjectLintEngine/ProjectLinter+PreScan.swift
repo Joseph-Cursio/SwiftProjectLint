@@ -164,18 +164,18 @@ extension ProjectLinter {
         }
     }
 
-    /// The caller's detector (or a fresh one) primed with the pre-scan catalogs and config.
-    ///
-    /// The two purity catalogs are left out on purpose. The run takes only `.registry` from this
-    /// detector — every per-file detector is primed from `FileAnalysisEnvironment` — and the caller
-    /// keeps it: the macOS app reuses one across runs, so a catalog a gated run withheld would
-    /// outlive the run that could have been redone, holding a sealed tripwire.
     /// The detector a run uses when the caller gives none: every built-in rule registered, in a
     /// registry of its own, as `PatternRegistryFactory.createConfiguredSystem()` builds for the CLI.
     static func defaultDetector() -> any SourcePatternDetectorProtocol {
         PatternRegistryFactory.createConfiguredSystem().detector
     }
 
+    /// The caller's detector (or `defaultDetector()`) primed with the pre-scan catalogs and config.
+    ///
+    /// The two purity catalogs are left out on purpose. The run takes only `.registry` from this
+    /// detector — every per-file detector is primed from `FileAnalysisEnvironment` — and the caller
+    /// keeps it: the macOS app reuses one across runs, so a catalog a gated run withheld would
+    /// outlive the run that could have been redone, holding a sealed tripwire.
     static func configuredDetector(
         _ detector: (any SourcePatternDetectorProtocol)?,
         collected: CollectedTypes,

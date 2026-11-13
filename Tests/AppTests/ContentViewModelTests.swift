@@ -169,9 +169,14 @@ struct ContentViewModelTests {
         let directory = try makeIsolatedDirectory()
         defer { try? FileManager.default.removeItem(atPath: directory) }
 
+        // A file with a violation, so "no issues" means no rule ran, not that there was nothing to find.
+        try "func risky() { let value = try! load() }\n"
+            .write(toFile: directory + "/Bad.swift", atomically: true, encoding: .utf8)
+
         let viewModel = ContentViewModel(defaults: store.defaults)
         viewModel.selectedDirectory = directory
-        viewModel.enabledRuleNames = [] // no rules → no categories → skips linter
+        // The empty set reaches the linter as `ruleIdentifiers: []`, which runs no rules.
+        viewModel.enabledRuleNames = []
         viewModel.analyzeProject()
         await viewModel.analysisTask?.value
         #expect(viewModel.isAnalyzing == false)
