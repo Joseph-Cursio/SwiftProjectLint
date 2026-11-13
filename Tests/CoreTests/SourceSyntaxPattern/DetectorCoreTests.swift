@@ -92,9 +92,7 @@ enum DetectorCoreTests {
         // Then - Both files should be processed independently.
         // Per-file detection correctly flags missingPreview and hardcodedStrings,
         // but cross-file issues (duplicate state) require the CrossFileAnalysisEngine.
-        let crossFileRules: Set<RuleIdentifier> = [
-            .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable
-        ]
+        let crossFileRules: Set<RuleIdentifier> = [.relatedDuplicateStateVariable]
         #expect(issues1.contains { crossFileRules.contains($0.ruleName) } == false)
         #expect(issues2.contains { crossFileRules.contains($0.ruleName) } == false)
     }

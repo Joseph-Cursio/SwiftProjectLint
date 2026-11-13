@@ -13,7 +13,7 @@ public extension RuleIdentifier {
     var category: PatternCategory {
         switch self {
         // State Management Rules
-        case .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable,
+        case .relatedDuplicateStateVariable,
              .uninitializedStateVariable, .missingStateObject, .unusedStateVariable, .fatView,
              .observedObjectInline, .tooManyEnvironmentObjects, .mainActorMissingOnUICode,
              .observableMainActorMissing, .mutuallyExclusivePresentationState,

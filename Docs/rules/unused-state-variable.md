@@ -7,10 +7,16 @@
 **Severity:** Warning
 
 ### Rationale
-A `@State`, `@StateObject`, or related property wrapper variable that is declared but never referenced in the view body or in functions called from the view adds unnecessary overhead. SwiftUI allocates and tracks storage for every `@State` property; unused ones waste memory and complicate the view's mental model.
+A `private` or `fileprivate` `@State` or `@StateObject` whose name appears nowhere else in its file is never read or written. SwiftUI still allocates and tracks storage for it, a `@StateObject` still builds its object, and a reader has to work out that it does nothing. Remove it, or use it.
 
 ### Discussion
-`SwiftUIManagementVisitor` compares declared state variables against variable references found in the view's body and child functions. A variable is considered unused if its identifier never appears in any expression within the view scope. Remove unused state variables or replace them with the logic that should use them.
+`UnusedStateVariableVisitor` counts names over the file's tokens. A property is used when its name appears anywhere besides its own declaration: as `x`, as the projected binding `$x`, or as the storage `_x` an initializer assigns. Key paths (`\.x`), string interpolations and same-file extensions all count, and a backticked name matches without its backticks.
+
+**Why only `private` and `fileprivate`.** Nothing outside the file can reach a member with those access levels, extensions in other files included. So a name the file never mentions is a name nothing mentions, and the check needs no other file. An `internal` or `public` property, or one that is only `private(set)`, could be read elsewhere, so it is skipped.
+
+**The count is deliberately generous.** A local variable, a parameter or another type's member with the same name also counts as a use. That can hide a real unused property, but it never reports a used one.
+
+Related: [Unnecessary View Update](unnecessary-view-update.md) reports a `@State` that is written through `self.` but never read through `self.` in the body. This rule reports one that is never named at all.
 
 ### Non-Violating Examples
 ```swift
@@ -21,13 +27,26 @@ struct CounterView: View {
         Text("\(count)")
     }
 }
+
+// Named only through its binding or its storage: still used
+struct FormView: View {
+    @State private var name: String
+    init(name: String) { _name = State(initialValue: name) }
+    var body: some View { TextField("Name", text: $name) }
+}
+
+// Not private: another file could read it, so it is not reported
+struct SettingsView: View {
+    @State var showAdvanced = false
+    var body: some View { Text("Settings") }
+}
 ```
 
 ### Violating Examples
 ```swift
 struct MyView: View {
-    @State private var count = 0   // declared but never used
-    @State private var name = ""   // declared but never used
+    @State private var count = 0              // never named again
+    @StateObject private var model = Model()  // never named again
     var body: some View {
         Text("Hello")
     }

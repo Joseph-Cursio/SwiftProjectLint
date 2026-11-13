@@ -9,26 +9,6 @@ class StateManagement: BasePatternRegistrar {
     /// The state-management patterns that share one visitor family; leaf rules register below.
     private static let categoryPatterns: [SyntaxPattern] = [
         SyntaxPattern(
-            name: .relatedDuplicateStateVariable,
-            visitor: SwiftUIManagementVisitor.self,
-            severity: .warning,
-            category: .stateManagement,
-            messageTemplate: "Duplicate state variable '{variableName}' found in related views: {viewNames}",
-            suggestion: "Create a shared ObservableObject for '{variableName}' and inject it via " +
-                        ".environmentObject() at the root level.",
-            description: "Detects duplicate state variables across related views in the view hierarchy"
-        ),
-        SyntaxPattern(
-            name: .unrelatedDuplicateStateVariable,
-            visitor: SwiftUIManagementVisitor.self,
-            severity: .info,
-            category: .stateManagement,
-            messageTemplate: "Duplicate state variable '{variableName}' found in unrelated views: {viewNames}",
-            suggestion: "Consider if these variables represent the same concept and should be shared " +
-                        "via a common ObservableObject.",
-            description: "Detects duplicate state variables across unrelated views"
-        ),
-        SyntaxPattern(
             name: .uninitializedStateVariable,
             visitor: SwiftUIManagementVisitor.self,
             severity: .error,
@@ -45,15 +25,6 @@ class StateManagement: BasePatternRegistrar {
             messageTemplate: "Consider using @StateObject for '{variableName}'",
             suggestion: "Replace @ObservedObject with @StateObject for owned objects",
             description: "Detects @ObservedObject usage where @StateObject would be more appropriate"
-        ),
-        SyntaxPattern(
-            name: .unusedStateVariable,
-            visitor: SwiftUIManagementVisitor.self,
-            severity: .warning,
-            category: .stateManagement,
-            messageTemplate: "State variable '{variableName}' is declared but never used",
-            suggestion: "Remove unused state variables or use them in the view",
-            description: "Detects state variables that are declared but not used in the view"
         ),
         SyntaxPattern(
             name: .fatView,
@@ -76,6 +47,8 @@ class StateManagement: BasePatternRegistrar {
             MutuallyExclusivePresentationState(),
             FlagOptionalPairState(),
             RedundantDerivedProperty(),
+            RelatedDuplicateStateVariable(),
+            UnusedStateVariable(),
         ])
     }
 }

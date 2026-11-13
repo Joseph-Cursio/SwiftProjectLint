@@ -23,7 +23,7 @@ simple syntax matching."
 | 7 | Actions sent but ignored (`default: .none`) | SPL (cross-file) | New rule | Maybe — send↔case graph |
 | 9 | View reads state that never changes | SPL (cross-file) | New rule | Maybe — related to #6 |
 | 4 | Ignored effect results | — | Overlap | Skip — covered by `discarded-try-result` / `fire-and-forget-task` / `async-let-unused` / `map-used-for-side-effects` |
-| 5 | State fields never read | — | Overlap | Skip — covered by `unused-state-variable` (verify TCA-store coverage) |
+| 5 | State fields never read | — | Overlap | Revisit — `unused-state-variable` covers only a private SwiftUI `@State`/`@StateObject` named nowhere else in its file, not TCA `State` fields |
 | 3 | Unreachable reducer cases | — | Too hard | Skip — needs effect-flow reachability → high FP |
 | 8 | Child state exists, no view scopes it | — | Too hard | Skip — needs view/feature graph, complex |
 

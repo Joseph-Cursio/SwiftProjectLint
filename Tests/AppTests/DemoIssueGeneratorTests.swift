@@ -12,7 +12,7 @@ struct DemoIssueGeneratorTests {
         let issues = DemoIssueGenerator.createDemoIssues(for: categories)
         // There should be at least one issue per category (except .other)
         let expectedRuleNames: Set<RuleIdentifier> = [
-            .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable, // stateManagement
+            .relatedDuplicateStateVariable, .unusedStateVariable, // stateManagement
             .forEachWithoutID, .largeViewBody, // performance
             .fatViewDetection, // architecture
             .magicNumber, // codeQuality

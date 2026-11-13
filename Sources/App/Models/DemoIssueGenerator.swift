@@ -28,21 +28,21 @@ enum DemoIssueGenerator {
         .stateManagement: [
             LintIssue(
                 severity: .warning,
-                message: "Related Duplicate State Variable: 'isLoading' found in ParentView and ChildView",
-                filePath: "ExampleViews/ParentView.swift",
+                message: "'isLoading' is @State in ChildView and in its parent ParentView: the child's copy is "
+                    + "a separate source of truth and will not follow the parent's changes",
+                filePath: "ExampleViews/ChildView.swift",
                 lineNumber: 5,
-                suggestion: "Create a shared ObservableObject for 'isLoading' and inject it via " +
-                            ".environmentObject() at the root level.",
+                suggestion: "If ChildView should read and change the parent's value, declare it "
+                    + "`@Binding var isLoading` and pass `$isLoading`.",
                 ruleName: .relatedDuplicateStateVariable
             ),
             LintIssue(
-                severity: .info,
-                message: "Unrelated Duplicate State Variable: 'userName' found in separate views",
+                severity: .warning,
+                message: "State variable 'userName' is declared but never used",
                 filePath: "ExampleViews/UserView.swift",
                 lineNumber: 8,
-                suggestion: "Consider if these variables represent the same concept and should be shared " +
-                            "via a common ObservableObject.",
-                ruleName: .unrelatedDuplicateStateVariable
+                suggestion: "Remove the unused state variable, or use it in the view.",
+                ruleName: .unusedStateVariable
             ),
         ],
         .performance: [

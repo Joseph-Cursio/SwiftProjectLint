@@ -231,8 +231,8 @@ predates this change and that the refusal had been hiding:
 - **A Foundation initializer that reads the environment.** `HTMLFormatter.detailedListSection`
   calls `URL(fileURLWithPath:)`, which resolves a relative path against the current directory and
   asks the filesystem whether it is a directory. The purity oracle treats it as a value initializer.
-- **Hash-ordered output.** `SwiftUIManagementVisitor.findRelatedViews` returns `Array(Set(…))`, whose
-  order varies from process to process. The oracle has no model of order that depends on hash
+- **Hash-ordered output.** A function returning `Array(Set(…))`, as `SwiftUIManagementVisitor.findRelatedViews`
+  did until it was removed, gives an order that varies from process to process. The oracle has no model of order that depends on hash
   seeding.
 
 ### Constructions: what building a value runs
