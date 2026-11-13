@@ -63,29 +63,6 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(uninitializedIssues.count >= 1)
     }
 
-    @Test func testDetectMissingStateObject() {
-        let source = """
-        class ViewModel: ObservableObject {
-            @Published var data = ""
-        }
-        struct ContentView: View {
-            @State private var viewModel = ViewModel()
-            var body: some View {
-                Text("Hello")
-            }
-        }
-        """
-
-        let syntax = Parser.parse(source: source)
-        let visitor = SwiftUIManagementVisitor(patternCategory: .stateManagement)
-        visitor.setFilePath("test.swift")
-        visitor.walk(syntax)
-
-        let issues = visitor.detectedIssues
-        // May detect missing @StateObject if ViewModel matches pattern
-        #expect(issues.isEmpty)
-    }
-
     @Test func testAnalyzeViewStructure() {
         let source = """
         struct ContentView: View {

@@ -48,15 +48,15 @@ private class StateVariableCounter: SyntaxVisitor {
 /// A SwiftSyntax visitor that detects state management patterns and anti-patterns in SwiftUI code.
 ///
 /// `SwiftUIManagementVisitor` analyzes SwiftUI property wrappers and state variable declarations
-/// to identify fat views, missing @StateObject usage and uninitialized state.
+/// to identify fat views and uninitialized state.
 ///
 /// ### Detected Patterns:
 /// - Views with too many state variables (Fat View)
-/// - Missing @StateObject usage for ObservableObjects
 /// - Uninitialized state variables
 ///
 /// Duplicate state across a parent and child view is `RelatedDuplicateStateVisitor`, a cross-file
-/// visitor; unused state is `UnusedStateVariableVisitor`.
+/// visitor; unused state is `UnusedStateVariableVisitor`; an `@ObservedObject` the view's initializer
+/// creates is `MissingStateObjectVisitor`.
 ///
 /// ### Usage:
 /// ```swift
@@ -149,32 +149,11 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
             )
 
             // Check for specific patterns
-            checkForMissingStateObject(stateVar)
             checkForUninitializedState(stateVar, node: node)
         }
     }
 
     // MARK: - Pattern Detection Methods
-
-    private func checkForMissingStateObject(_ stateVar: StateVariableInfo) {
-        guard stateVar.propertyWrapper == .stateObject else { return }
-
-        let typeName = stateVar.type
-        if typeName.hasSuffix("Manager") ||
-           typeName.hasSuffix("Service") ||
-           typeName.hasSuffix("Store") ||
-           typeName.hasSuffix("ViewModel") {
-
-            addIssue(
-                severity: .warning,
-                message: "Consider using @StateObject for '\(stateVar.name)' instead of @State",
-                filePath: currentFilePath,
-                lineNumber: stateVar.lineNumber,
-                suggestion: "Use @StateObject for ObservableObject instances to preserve their lifecycle",
-                ruleName: .missingStateObject
-            )
-        }
-    }
 
     private func checkForUninitializedState(_ stateVar: StateVariableInfo, node: VariableDeclSyntax) {
         guard stateVar.propertyWrapper == .state else { return }
