@@ -10,7 +10,7 @@
 When a `Task { }` closure contains bare `try` expressions without a `do/catch` block, any thrown errors are silently lost. The task fails but the caller is never notified, leading to bugs that are difficult to diagnose. This is one of the most common pitfalls in Swift concurrency.
 
 ### Discussion
-`SwallowedTaskErrorVisitor` detects `Task { }` closures (not `Task.detached`) where the trailing closure body contains at least one bare `try` (not `try?` or `try!`) but no `do/catch` block. `try?` and `try!` are excluded because they handle the error inline (by converting to nil or crashing). The search does not descend into nested closures or function declarations to avoid false positives.
+`SwallowedTaskErrorVisitor` detects `Task { }` closures (not `Task.detached`) where the trailing closure body contains at least one bare `try` (not `try?` or `try!`) but no `do/catch` block. `try?` and `try!` are excluded because they handle the error inline (by converting to nil or crashing). [Catch Without Handling](catch-without-handling.md#a-try-with-a-default) draws the same line for `(try? f()) ?? fallback`. The search does not descend into nested closures or function declarations to avoid false positives.
 
 The rule suppresses the warning when the Task's result is consumed, since errors propagate to the caller in those cases:
 - `try await Task { ... }.value` — errors rethrown to the awaiter
