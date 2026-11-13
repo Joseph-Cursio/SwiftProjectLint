@@ -1,6 +1,6 @@
 # SwiftProjectLint Rules Reference
 
-SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 219 lint rules, organized by category.
+SwiftProjectLint is a static analysis tool for SwiftUI projects. It parses Swift source files using SwiftSyntax AST visitors to detect anti-patterns spanning state management, performance, animations, architecture, code quality, security, accessibility, memory management, networking, UI patterns, modernization, and idempotency. This reference documents all 218 lint rules, organized by category.
 
 Rules marked **opt-in** are disabled by default and must be explicitly listed under `enabled_only` in `.swiftprojectlint.yml`.
 
@@ -14,7 +14,6 @@ Rules marked **opt-in** are disabled by default and must be explicitly listed un
 | [Mutually Exclusive Presentation State](mutually-exclusive-presentation-state.md) | Info *(opt-in)* |
 | [Redundant Derived Property](redundant-derived-property.md) | Info *(opt-in)* |
 | [Related Duplicate State Variable](related-duplicate-state-variable.md) | Warning |
-| [Unrelated Duplicate State Variable](unrelated-duplicate-state-variable.md) | Info |
 | [Uninitialized State Variable](uninitialized-state-variable.md) | Error |
 | [Missing StateObject](missing-state-object.md) | Warning |
 | [Unused State Variable](unused-state-variable.md) | Warning |

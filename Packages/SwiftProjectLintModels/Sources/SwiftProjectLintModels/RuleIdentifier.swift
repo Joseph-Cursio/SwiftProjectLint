@@ -11,7 +11,6 @@ import Foundation
 public enum RuleIdentifier: String, CaseIterable, Codable, Sendable {
     // State Management Rules
     case relatedDuplicateStateVariable = "Related Duplicate State Variable"
-    case unrelatedDuplicateStateVariable = "Unrelated Duplicate State Variable"
     case uninitializedStateVariable = "Uninitialized State Variable"
     case missingStateObject = "Missing StateObject"
     case unusedStateVariable = "Unused State Variable"

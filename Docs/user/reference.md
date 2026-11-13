@@ -402,7 +402,7 @@ notice above can suggest an exact key rather than a near miss.
 
 ### Scope
 
-Inline suppression applies **per-file only**. Cross-file issues (e.g. `Related Duplicate State Variable`, which spans multiple files) are not affected by single-file suppression comments.
+Inline suppression applies to the line an issue is reported on, cross-file issues included. A cross-file rule reports in one file, so its directive goes there: for `Related Duplicate State Variable`, on the child view's declaration.
 
 ---
 

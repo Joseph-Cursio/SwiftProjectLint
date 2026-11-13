@@ -152,7 +152,7 @@ struct CategoryFilteringTests {
         let issuesByCategory = Dictionary(grouping: issues) { issue in
             // Determine category based on rule name
             switch issue.ruleName {
-            case .relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable, .unusedStateVariable:
+            case .relatedDuplicateStateVariable, .unusedStateVariable:
                 return PatternCategory.stateManagement
 
             case .missingAccessibilityLabel:

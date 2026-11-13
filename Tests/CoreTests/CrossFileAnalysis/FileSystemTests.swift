@@ -11,12 +11,12 @@ import Testing
 @Suite("CrossFileAnalysisEngine File System Tests")
 struct FileSystemTests {
 
-    /// Creates a registry with a CrossFileSwiftUIManagementVisitor registered.
+    /// Creates a registry with a RelatedDuplicateStateVisitor registered.
     private func makeRegistryWithCrossFileVisitor() -> PatternVisitorRegistry {
         let registry = PatternVisitorRegistry()
         let pattern = SyntaxPattern(
             name: .relatedDuplicateStateVariable,
-            visitor: CrossFileSwiftUIManagementVisitor.self,
+            visitor: RelatedDuplicateStateVisitor.self,
             severity: .warning,
             category: .stateManagement,
             messageTemplate: "Cross-file duplicate '{variableName}' in {viewNames}",

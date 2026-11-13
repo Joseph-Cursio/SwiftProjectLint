@@ -202,31 +202,6 @@ struct SwiftUIManagementVisitorBasicTests {
         #expect(uninitializedIssues.isEmpty)
     }
 
-    @Test func testAnalyzeFunctionForUnusedState() {
-        // Test that analyzeFunctionForUnusedState is called (even if it's a stub)
-        let source = """
-        struct ContentView: View {
-            @State private var count = 0
-            func helperFunction() {
-                // Function body
-            }
-            var body: some View {
-                Text("Hello")
-            }
-        }
-        """
-
-        let syntax = Parser.parse(source: source)
-        let visitor = SwiftUIManagementVisitor(patternCategory: .stateManagement)
-        visitor.setFilePath("test.swift")
-        visitor.walk(syntax)
-
-        // Should process function declarations without crashing
-        // Verify through detected issues
-        let issues = visitor.detectedIssues
-        #expect(issues.isEmpty)
-    }
-
     @Test func testDoesNotFlagOptionalStateVariable() {
         let source = """
         struct ContentView: View {

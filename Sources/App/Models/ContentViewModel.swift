@@ -86,11 +86,18 @@ class ContentViewModel {
     }
 
     /// The rules saved in `defaults`, or every rule when none are.
+    ///
+    /// The set is read as names and each name is looked up on its own, so a name this build no
+    /// longer has (a removed rule) is skipped. Decoding the whole set as `Set<RuleIdentifier>`
+    /// failed on the first unknown name, which reset the user's selection to every rule, opt-in
+    /// rules included.
     private static func savedRules(in defaults: UserDefaults) -> Set<RuleIdentifier> {
         if let data = defaults.data(forKey: enabledRulesKey),
-           let saved = try? JSONDecoder().decode(Set<RuleIdentifier>.self, from: data),
-           !saved.isEmpty {
-            return saved
+           let names = try? JSONDecoder().decode([String].self, from: data) {
+            let saved = Set(names.compactMap(RuleIdentifier.init(rawValue:)))
+            if saved.isEmpty == false {
+                return saved
+            }
         }
         return Set(RuleIdentifier.allCases)
     }

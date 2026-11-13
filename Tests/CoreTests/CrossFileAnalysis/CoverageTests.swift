@@ -10,9 +10,9 @@ import Testing
 @Suite("CrossFileAnalysisEngine Cross-File Visitor Tests")
 struct CoverageTests {
 
-    /// Creates a registry with a CrossFileSwiftUIManagementVisitor registered.
-    /// The shared registry uses SwiftUIManagementVisitor (non-cross-file),
-    /// so the cross-file execution loop never fires without this setup.
+    /// Creates an isolated registry holding only `RelatedDuplicateStateVisitor`, so the engine's
+    /// cross-file loop runs on that one visitor. The fixtures below hold same-named state in views
+    /// that never show one another, which the rule correctly leaves alone.
     private func makeRegistryWithCrossFileVisitor(
         ruleIdentifier: RuleIdentifier = .relatedDuplicateStateVariable,
         category: PatternCategory = .stateManagement
@@ -20,7 +20,7 @@ struct CoverageTests {
         let registry = PatternVisitorRegistry()
         let pattern = SyntaxPattern(
             name: ruleIdentifier,
-            visitor: CrossFileSwiftUIManagementVisitor.self,
+            visitor: RelatedDuplicateStateVisitor.self,
             severity: .warning,
             category: category,
             messageTemplate: "Cross-file duplicate '{variableName}' in {viewNames}",
@@ -184,7 +184,7 @@ struct CoverageTests {
         let registry = PatternVisitorRegistry()
         let patternA = SyntaxPattern(
             name: .relatedDuplicateStateVariable,
-            visitor: CrossFileSwiftUIManagementVisitor.self,
+            visitor: RelatedDuplicateStateVisitor.self,
             severity: .warning,
             category: .stateManagement,
             messageTemplate: "Related duplicate",
@@ -192,13 +192,13 @@ struct CoverageTests {
             description: "Related duplicates"
         )
         let patternB = SyntaxPattern(
-            name: .unrelatedDuplicateStateVariable,
-            visitor: CrossFileSwiftUIManagementVisitor.self,
+            name: .unusedStateVariable,
+            visitor: RelatedDuplicateStateVisitor.self,
             severity: .info,
             category: .stateManagement,
-            messageTemplate: "Unrelated duplicate",
-            suggestion: "Consider consolidating",
-            description: "Unrelated duplicates"
+            messageTemplate: "Second pattern",
+            suggestion: "Second suggestion",
+            description: "A second cross-file pattern"
         )
         registry.register(patterns: [patternA, patternB])
 
@@ -215,7 +215,7 @@ struct CoverageTests {
 
         let ruleIssues = engine.detectCrossFilePatterns(
             projectFiles: [fileA, fileB],
-            ruleIdentifiers: [.relatedDuplicateStateVariable, .unrelatedDuplicateStateVariable]
+            ruleIdentifiers: [.relatedDuplicateStateVariable, .unusedStateVariable]
         )
         #expect(ruleIssues.isEmpty)
     }

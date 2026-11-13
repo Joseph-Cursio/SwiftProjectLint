@@ -305,9 +305,9 @@ This runs inside `ProjectLinter.analyzeFile` immediately after visitor detection
 
 ## Cross-File Analysis
 
-`CrossFileAnalysisEngine` runs after all per-file results are collected. It receives the full list of `ProjectFile` objects and the AST cache built during per-file analysis, and detects patterns that require comparing across files — for example, `Related Duplicate State Variable`, which flags a state variable name that appears in both a parent and child view.
+`CrossFileAnalysisEngine` runs after all per-file results are collected. It receives the full list of `ProjectFile` objects and the AST cache built during per-file analysis, and detects patterns that require comparing across files — for example, `Related Duplicate State Variable`, which flags a `@State` or `@StateObject` name owned by both a view and a child view it shows, whichever files they are in.
 
-Cross-file issues are appended to the per-file issues before `LintConfiguration.applyOverrides` runs. They are **not** subject to inline suppression, since a single-file comment cannot unambiguously target a multi-file issue.
+Cross-file issues are appended to the per-file issues before `LintConfiguration.applyOverrides` runs. Inline suppression applies to them on the line each one is reported: for `Related Duplicate State Variable`, the child view's property declaration.
 
 ---
 

@@ -48,15 +48,15 @@ private class StateVariableCounter: SyntaxVisitor {
 /// A SwiftSyntax visitor that detects state management patterns and anti-patterns in SwiftUI code.
 ///
 /// `SwiftUIManagementVisitor` analyzes SwiftUI property wrappers and state variable declarations
-/// to identify issues such as duplicate state variables, missing @StateObject usage, uninitialized
-/// state, and inefficient state sharing patterns.
+/// to identify fat views, missing @StateObject usage and uninitialized state.
 ///
 /// ### Detected Patterns:
-/// - Duplicate state variables across related views
+/// - Views with too many state variables (Fat View)
 /// - Missing @StateObject usage for ObservableObjects
 /// - Uninitialized state variables
-/// - Unused state variables
-/// - Inefficient state sharing patterns
+///
+/// Duplicate state across a parent and child view is `RelatedDuplicateStateVisitor`, a cross-file
+/// visitor; unused state is `UnusedStateVariableVisitor`.
 ///
 /// ### Usage:
 /// ```swift
@@ -70,14 +70,11 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
 
     struct Configuration {
         let maxStateVariables: Int
-        let checkForDuplicates: Bool
-        let checkForUnused: Bool
     }
 
     // MARK: - Properties
 
     private let config: Configuration
-    private var stateVariables: [StateVariableInfo] = []
     private var currentViewName: String = ""
     private var currentFilePath: String = ""
     private var currentStructNode: StructDeclSyntax?
@@ -85,11 +82,7 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     // MARK: - Initialization
 
     required init(pattern: SyntaxPattern, viewMode: SyntaxTreeViewMode = .sourceAccurate) {
-        self.config = Configuration(
-            maxStateVariables: 5,
-            checkForDuplicates: true,
-            checkForUnused: true
-        )
+        self.config = Configuration(maxStateVariables: 5)
         super.init(pattern: pattern, viewMode: viewMode)
     }
 
@@ -113,14 +106,6 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
         // Analyze variable declarations for state management patterns
         analyzeVariableDeclaration(node)
-        return .visitChildren
-    }
-
-    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
-        // Check for unused state variables in functions
-        if config.checkForUnused {
-            analyzeFunctionForUnusedState(node)
-        }
         return .visitChildren
     }
 
@@ -163,17 +148,10 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
                 node: node // Store the node
             )
 
-            stateVariables.append(stateVar)
-
             // Check for specific patterns
             checkForMissingStateObject(stateVar)
             checkForUninitializedState(stateVar, node: node)
         }
-    }
-
-    private func analyzeFunctionForUnusedState(_ _: FunctionDeclSyntax) {
-        // This would analyze function bodies to check if state variables are used
-        // Implementation would traverse the function body and check for variable usage
     }
 
     // MARK: - Pattern Detection Methods
@@ -243,53 +221,6 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
         )
     }
 
-    // MARK: - Cross-File Analysis
-
-    private func performCrossFileAnalysis() {
-        guard config.checkForDuplicates else { return }
-
-        // Group state variables by name
-        let groupedByName = Dictionary(grouping: stateVariables) { $0.name }
-
-        for (variableName, variables) in groupedByName where variables.count > 1 {
-            // Check if these are in related views
-            let relatedViews = findRelatedViews(for: variables)
-
-            if !relatedViews.isEmpty {
-                addDuplicateStateIssue(
-                    variableName: variableName,
-                    variables: variables,
-                    relatedViews: relatedViews
-                )
-            }
-        }
-    }
-
-    func findRelatedViews(for variables: [StateVariableInfo]) -> [String] {
-        // For single-file analysis, we'll consider all views as potentially related
-        // since we don't have cross-file relationship information
-        Array(Set(variables.map(\.viewName)))
-    }
-
-    private func addDuplicateStateIssue(
-        variableName: String,
-        variables: [StateVariableInfo],
-        relatedViews: [String]
-    ) {
-        let viewNames = relatedViews.joined(separator: ", ")
-        guard let firstVariable = variables.first,
-              let node = firstVariable.node else { return }
-
-        addIssue(
-            severity: .warning,
-            message: "Duplicate state variable '\(variableName)' found in related views: \(viewNames)",
-            filePath: currentFilePath,
-            lineNumber: getLineNumber(for: Syntax(node)),
-            suggestion: "Consider lifting state to a common parent or using @Binding",
-            ruleName: .relatedDuplicateStateVariable
-        )
-    }
-
     // MARK: - Public Interface
 
     /// Sets the current file path for issue reporting.
@@ -297,11 +228,6 @@ class SwiftUIManagementVisitor: BasePatternVisitor {
     /// - Parameter filePath: The file path to set.
     override func setFilePath(_ filePath: String) {
         self.currentFilePath = filePath
-    }
-
-    /// Performs cross-file analysis after all files have been processed.
-    func finalizeAnalysis() {
-        performCrossFileAnalysis()
     }
 
     // MARK: - Helper Methods
