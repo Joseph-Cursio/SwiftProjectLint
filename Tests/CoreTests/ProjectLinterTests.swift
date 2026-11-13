@@ -4,6 +4,14 @@ import SwiftProjectLintModels
 import Testing
 
 /// Core `analyzeProject` behaviour: paths, categories, rule selection, and scale.
+///
+/// Every test lints a project directory of its own, made by `makeProject` and removed when the
+/// test ends. A fixed path under `$TMPDIR` would be shared by tests running in parallel, and by
+/// earlier runs, so one test could read files another was still writing.
+///
+/// The linter is given the configured detector, as the CLI and the App give it. `ProjectLinter()`
+/// alone reads `PatternVisitorRegistry.shared`, which nothing in the test process fills, so a run
+/// without a detector checks no rules and every assertion about its findings passes vacuously.
 struct ProjectLinterTests {
 
     @Test func testProjectLinterInitialization() {
@@ -11,125 +19,155 @@ struct ProjectLinterTests {
         #expect(linter != nil)
     }
 
-    @Test func testAnalyzeProjectWithValidPath() async {
-        let testProjectPath = makeTestProject()
-        let linter = ProjectLinter()
+    @Test func testAnalyzeProjectWithValidPath() async throws {
+        let path = try makeProject(Self.simpleProjectFiles)
+        defer { removeProject(path) }
 
-        let issues = await linter.analyzeProject(at: testProjectPath)
+        let issues = await lint(path)
 
-        // A valid project with Swift files should produce at least zero issues without crashing
-        #expect(issues.isEmpty)
+        // `isLoading` is private @State that nothing reads.
+        #expect(issues.contains { $0.ruleName == .unusedStateVariable && $0.message.contains("isLoading") })
     }
 
     @Test func testAnalyzeProjectWithInvalidPath() async {
-        let linter = ProjectLinter()
-        let invalidPath = "/nonexistent/path/to/project"
+        let invalidPath = "/nonexistent/\(UUID().uuidString)/project"
 
-        let issues = await linter.analyzeProject(at: invalidPath)
+        let issues = await lint(invalidPath)
 
         // An invalid path should produce no issues (graceful handling)
         #expect(issues.isEmpty)
     }
 
-    @Test func testAnalyzeProjectWithSpecificCategories() async {
-        let testProjectPath = makeTestProject()
-        let linter = ProjectLinter()
+    @Test func testAnalyzeProjectWithSpecificCategories() async throws {
+        let path = try makeProject(Self.complexProjectFiles)
+        defer { removeProject(path) }
 
-        let issues = await linter.analyzeProject(
-            at: testProjectPath,
-            categories: [.stateManagement, .accessibility]
-        )
+        let issues = await lint(path, categories: [.stateManagement, .accessibility])
 
-        // Verify that issues are from the specified categories
+        let rules = Set(issues.map(\.ruleName))
+        #expect(rules.contains(.unusedStateVariable))
+        #expect(rules.contains(.missingAccessibilityLabel))
         for issue in issues {
             let category = issue.ruleName.category
             #expect(category == .stateManagement || category == .accessibility)
         }
     }
 
-    @Test func testAnalyzeProjectWithSpecificRules() async {
-        let testProjectPath = makeTestProject()
-        let linter = ProjectLinter()
+    @Test func testAnalyzeProjectWithSpecificRules() async throws {
+        let path = try makeProject(Self.complexProjectFiles)
+        defer { removeProject(path) }
 
-        let issues = await linter.analyzeProject(
-            at: testProjectPath,
-            ruleIdentifiers: [.relatedDuplicateStateVariable, .missingAccessibilityLabel]
-        )
+        let issues = await lint(path, ruleIdentifiers: [.relatedDuplicateStateVariable, .missingAccessibilityLabel])
 
-        // Verify that issues are from the specified rules
-        for issue in issues {
-            #expect(issue.ruleName == .relatedDuplicateStateVariable || issue.ruleName == .missingAccessibilityLabel)
-        }
+        // `Image("icon")` has no label; no two of the views are parent and child.
+        #expect(issues.map(\.ruleName) == [.missingAccessibilityLabel])
     }
 
-    @Test func testAnalyzeProjectWithEmptyProject() async {
-        let testProjectPath = makeEmptyTestProject()
-        let linter = ProjectLinter()
+    @Test func testAnalyzeProjectWithEmptyProject() async throws {
+        let path = try makeProject([])
+        defer { removeProject(path) }
 
-        let issues = await linter.analyzeProject(at: testProjectPath)
+        let issues = await lint(path)
 
         // An empty project with no Swift files should produce no issues
         #expect(issues.isEmpty)
     }
 
-    @Test func testAnalyzeProjectWithComplexProject() async {
-        let testProjectPath = makeComplexTestProject()
-        let linter = ProjectLinter()
+    @Test func testAnalyzeProjectWithComplexProject() async throws {
+        let path = try makeProject(Self.complexProjectFiles)
+        defer { removeProject(path) }
 
-        let issues = await linter.analyzeProject(at: testProjectPath)
+        let issues = await lint(path)
 
-        // Analysis should complete successfully on a complex project
-        #expect(issues.isEmpty)
-
-        // If issues are found, verify they have valid categories
-        for issue in issues {
-            #expect(PatternCategory.allCases.contains(issue.ruleName.category))
-        }
+        let rules = Set(issues.map(\.ruleName))
+        let expected: Set<RuleIdentifier> = [
+            .forceUnwrap, .forEachWithoutID, .missingAccessibilityLabel, .unusedStateVariable,
+        ]
+        #expect(expected.isSubset(of: rules), "missing: \(expected.subtracting(rules))")
+        #expect(Set(issues.map { URL(fileURLWithPath: $0.filePath).lastPathComponent }) == [
+            "ContentView.swift", "DetailView.swift", "SettingsView.swift",
+        ])
     }
 
-    @Test func testAnalyzeProjectWithAllCategories() async {
-        let testProjectPath = makeComplexTestProject()
-        let linter = ProjectLinter()
+    @Test func testAnalyzeProjectWithAllCategories() async throws {
+        let path = try makeProject(Self.complexProjectFiles)
+        defer { removeProject(path) }
 
         let allCategories: [PatternCategory] = [
             .stateManagement, .accessibility, .performance, .architecture,
             .codeQuality, .security, .memoryManagement, .networking, .uiPatterns,
         ]
 
-        let issues = await linter.analyzeProject(at: testProjectPath, categories: allCategories)
+        let issues = await lint(path, categories: allCategories)
 
-        // Analysis with all categories should complete successfully
-        #expect(issues.isEmpty)
-
-        // If issues are found, verify they belong to the requested categories
+        #expect(issues.contains { $0.ruleName == .forceUnwrap })
         for issue in issues {
             #expect(allCategories.contains(issue.ruleName.category))
         }
     }
 
-    @Test func testAnalyzeProjectWithAllRules() async {
-        let testProjectPath = makeComplexTestProject()
-        let linter = ProjectLinter()
+    @Test func testAnalyzeProjectWithAllRules() async throws {
+        let path = try makeProject(Self.complexProjectFiles)
+        defer { removeProject(path) }
 
+        let defaultRun = await lint(path)
         let allRules = RuleIdentifier.allCases
-        let issues = await linter.analyzeProject(at: testProjectPath, ruleIdentifiers: allRules)
+        let issues = await lint(path, ruleIdentifiers: allRules)
 
-        // Analysis with all rules should complete successfully
-        #expect(issues.isEmpty)
-
-        // If issues are found, verify they correspond to known rules
+        // Naming every rule runs the opt-in ones too, so it finds at least what the default run finds.
+        #expect(issues.contains { $0.ruleName == .forceUnwrap })
+        #expect(Set(defaultRun.map(\.ruleName)).isSubset(of: Set(issues.map(\.ruleName))))
         for issue in issues {
             #expect(allRules.contains(issue.ruleName))
         }
     }
+
+    @Test("each call makes a new, empty directory, and removing it leaves nothing behind")
+    func projectsAreIsolated() throws {
+        let first = try makeProject(Self.simpleProjectFiles)
+        let second = try makeProject([])
+        #expect(first != second)
+        #expect(try FileManager.default.contentsOfDirectory(atPath: second).isEmpty)
+        removeProject(first)
+        removeProject(second)
+        #expect(FileManager.default.fileExists(atPath: first) == false)
+    }
+
     // MARK: - Helper Methods
 
-    private func makeTestProject() -> String {
-        let tempDir = FileManager.default.temporaryDirectory.path
-        let path = PathString.appending("TestProject", to: tempDir)
-        try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
-        let contentViewPath = PathString.appending("ContentView.swift", to: path)
-        let contentViewCode = """
+    /// Lints `path` with every rule registered, as the CLI does.
+    private func lint(
+        _ path: String,
+        categories: [PatternCategory]? = nil,
+        ruleIdentifiers: [RuleIdentifier]? = nil
+    ) async -> [LintIssue] {
+        await ProjectLinter().analyzeProject(
+            at: path,
+            categories: categories,
+            ruleIdentifiers: ruleIdentifiers,
+            detector: PatternRegistryFactory.createConfiguredSystem().detector
+        )
+    }
+
+    /// A new directory under `$TMPDIR` holding `files`, unique to this call.
+    private func makeProject(_ files: [(String, String)]) throws -> String {
+        let path = PathString.appending(
+            "ProjectLinterTests-\(UUID().uuidString)", to: FileManager.default.temporaryDirectory.path
+        )
+        try FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
+        for (fileName, content) in files {
+            try content.write(toFile: PathString.appending(fileName, to: path), atomically: true, encoding: .utf8)
+        }
+        return path
+    }
+
+    private func removeProject(_ path: String) {
+        try? FileManager.default.removeItem(atPath: path)
+    }
+
+    /// One view with two state variables, one of them never read.
+    private static let simpleProjectFiles = [
+        ("ContentView.swift", """
         import SwiftUI
 
         struct ContentView: View {
@@ -145,17 +183,8 @@ struct ProjectLinterTests {
                 }
             }
         }
-        """
-        try? contentViewCode.write(toFile: contentViewPath, atomically: true, encoding: .utf8)
-        return path
-    }
-
-    private func makeEmptyTestProject() -> String {
-        let tempDir = FileManager.default.temporaryDirectory.path
-        let path = PathString.appending("EmptyTestProject", to: tempDir)
-        try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
-        return path
-    }
+        """),
+    ]
 
     /// Three views with state, a network call and a loop: the complex project's files.
     private static let complexProjectFiles = [
@@ -215,16 +244,4 @@ struct ProjectLinterTests {
         }
         """),
     ]
-
-    private func makeComplexTestProject() -> String {
-        let tempDir = FileManager.default.temporaryDirectory.path
-        let path = PathString.appending("ComplexTestProject", to: tempDir)
-        try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
-
-        for (fileName, content) in Self.complexProjectFiles {
-            let filePath = PathString.appending(fileName, to: path)
-            try? content.write(toFile: filePath, atomically: true, encoding: .utf8)
-        }
-        return path
-    }
 }
