@@ -164,7 +164,13 @@ extension ProjectLinter {
         }
     }
 
-    /// The caller's detector (or a fresh one) primed with the pre-scan catalogs and config.
+    /// The detector a run uses when the caller gives none: every built-in rule registered, in a
+    /// registry of its own, as `PatternRegistryFactory.createConfiguredSystem()` builds for the CLI.
+    static func defaultDetector() -> any SourcePatternDetectorProtocol {
+        PatternRegistryFactory.createConfiguredSystem().detector
+    }
+
+    /// The caller's detector (or `defaultDetector()`) primed with the pre-scan catalogs and config.
     ///
     /// The two purity catalogs are left out on purpose. The run takes only `.registry` from this
     /// detector — every per-file detector is primed from `FileAnalysisEnvironment` — and the caller
@@ -175,7 +181,7 @@ extension ProjectLinter {
         collected: CollectedTypes,
         configuration: LintConfiguration
     ) -> any SourcePatternDetectorProtocol {
-        var resolved = detector ?? SourcePatternDetector()
+        var resolved = detector ?? defaultDetector()
         resolved.knownIdentifiableTypes = collected.identifiable
         resolved.knownIdentifiableCollectionProperties = collected.identifiableCollectionProperties
         resolved.knownEnumTypes = collected.enums

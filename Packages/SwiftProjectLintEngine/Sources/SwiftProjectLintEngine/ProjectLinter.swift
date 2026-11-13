@@ -61,7 +61,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
     ///   - path: The root directory path of the SwiftUI project to analyze.
     ///   - categories: Optional array of pattern categories to analyze. If nil, analyzes all categories.
     ///   - ruleIdentifiers: Optional array of specific rule identifiers to analyze. If provided, overrides categories.
-    ///   - detector: Optional pre-configured detector. If nil, a default detector is created.
+    ///   - detector: Optional pre-configured detector. If nil, one with every built-in rule
+    ///     registered is created, the same as the CLI's.
     ///   - configuration: YAML-based configuration for rule/path control.
     /// - Returns: An array of `LintIssue` objects describing all detected issues.
     ///
@@ -97,7 +98,8 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
     ///     parameter trailing the defaulted ones trips `function_default_parameter_at_end`.
     ///   - categories: Optional array of pattern categories to analyze. If nil, analyzes all categories.
     ///   - ruleIdentifiers: Optional array of specific rule identifiers to analyze. If provided, overrides categories.
-    ///   - detector: Optional pre-configured detector. If nil, a default detector is created.
+    ///   - detector: Optional pre-configured detector. If nil, one with every built-in rule
+    ///     registered is created, the same as the CLI's.
     ///   - configuration: YAML-based configuration for rule/path control.
     /// - Returns: An array of `LintIssue` objects describing all detected issues.
     public func analyzeProject(
@@ -143,7 +145,10 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
             for: path, base: configuration, targetType: targetType
         )
         // One detector, so the registry the demand is derived from is the registry the run executes.
-        let patternDetector = detector ?? SourcePatternDetector()
+        // With none given, every built-in rule is registered, as the CLI and the App register them.
+        // `SourcePatternDetector()` would read `PatternVisitorRegistry.shared`, which nothing fills,
+        // so a run would check no rules and report a clean project.
+        let patternDetector = detector ?? Self.defaultDetector()
 
         // Which rules run is settled by the flags and the configuration alone — no file is read for
         // it — so it is settled here, once, and carried: the set the gate is derived from and the set
