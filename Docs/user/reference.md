@@ -274,7 +274,7 @@ These rules are **off by default** and must be listed under `enabled_only` to ru
 
 ### Precedence
 
-1. `disabled_rules` takes precedence over `enabled_only` if both keys appear (the `enabled_only` key is ignored).
+1. `disabled_rules` takes precedence over `enabled_only` if both keys appear and `disabled_rules` names at least one known rule (the `enabled_only` key is then ignored). Unknown names are dropped first, so a `disabled_rules` list of only unknown names leaves `enabled_only` in force.
 2. CLI `--categories` further restricts whatever the config file produces.
 3. Swift Package projects automatically disable `Public in App Target`.
 4. Executable targets in Swift Packages automatically exclude `Print Statement` for their source paths.
@@ -284,10 +284,10 @@ These rules are **off by default** and must be listed under `enabled_only` to ru
 The CLI checks the configuration file before the run and writes a warning to stderr for each mistake that changes which rules run. None of them stops the run, and the results go to stdout as usual:
 
 - **A rule name that matches no rule**, under `disabled_rules`, `enabled_only` or `rules:`. The name is ignored, and the warning suggests the rule it probably meant (`magic-number` → `Magic Number`).
-- **An `enabled_only` that names no known rule**, including `enabled_only:` with nothing after it. It runs no rules at all, so the run reports nothing and exits 0.
-- **`enabled_only` beside `disabled_rules`**: `enabled_only` is ignored (see Precedence above).
+- **An `enabled_only` that names no known rule**, including `enabled_only:` with nothing after it, or one listing only `Unknown` or `File Parsing Error` (identifiers the linter uses internally, not rules). It runs no rules at all, so the run reports nothing and exits 0.
+- **`enabled_only` beside a `disabled_rules` that names a known rule**: `enabled_only` is ignored (see Precedence above).
 - **A rule list written as one string** (`disabled_rules: "Magic Number"`), which is read as an empty list.
-- **A file passed with `--config` that does not exist, or a file that is not a YAML mapping.** The default configuration is used instead.
+- **A file passed with `--config` that does not exist, or a file that is not valid YAML or not a mapping.** The default configuration is used instead. A file holding only comments, or only `---`, is an empty configuration and draws no warning.
 
 A removed rule's name is reported like any other unknown name, so a configuration that still lists it says so instead of quietly checking less.
 

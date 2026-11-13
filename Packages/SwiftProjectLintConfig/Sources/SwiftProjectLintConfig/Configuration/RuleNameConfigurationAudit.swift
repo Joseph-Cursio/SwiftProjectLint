@@ -11,7 +11,7 @@ import Yams
 ///   **no rules at all**. The run then reports nothing and exits 0. A CI gate configured that way
 ///   passes while checking nothing, and a typo or a removed rule is enough to cause it.
 /// - A rule list written as a single string instead of a list is read as an empty list.
-/// - `enabled_only` is ignored outright when `disabled_rules` is also set.
+/// - `enabled_only` is ignored outright when `disabled_rules` names a known rule.
 /// - A `--config` file that does not exist, or is not a YAML mapping, falls back to the defaults.
 ///
 /// This reads the file again rather than changing what the loader returns, the same way the CLI's
@@ -25,7 +25,7 @@ public enum RuleNameConfigurationAudit {
         case notAList(key: String)
         /// `enabled_only` is present but names no known rule, so the run checks nothing.
         case enabledOnlyRunsNothing
-        /// `enabled_only` is present but ignored, because `disabled_rules` is also set.
+        /// `enabled_only` is present but ignored, because `disabled_rules` names a known rule.
         case enabledOnlyIgnored
         /// The explicitly given configuration file does not exist.
         case fileNotFound(path: String)
@@ -53,12 +53,25 @@ public enum RuleNameConfigurationAudit {
 
     /// The problems in `content`, read as a configuration file at `path`.
     public static func problems(inYAML content: String, path: String) -> [Problem] {
-        // An empty file is an empty configuration, which the loader also treats as the default.
-        if content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return [] }
-        guard let yaml = (try? Yams.load(yaml: content)) as? [String: Any] else {
+        // A file with no content, only comments, or a bare `---` holds no settings. The loader treats
+        // that as the default configuration, which is what an empty file means, so it is not a problem.
+        let document: Any?
+        do {
+            document = try Yams.load(yaml: content)
+        } catch {
+            return [.unreadable(path: path)]
+        }
+        // `---` alone is a document holding null rather than no document; it means the same.
+        guard let document, (document is NSNull) == false else { return [] }
+        guard let yaml = document as? [String: Any] else {
             return [.unreadable(path: path)]
         }
 
+        return unknownNames(in: yaml) + enabledOnlyProblems(in: yaml)
+    }
+
+    /// Rule names that match no rule, and rule lists that are not lists, in key order.
+    private static func unknownNames(in yaml: [String: Any]) -> [Problem] {
         var problems: [Problem] = []
         for key in ruleListKeys {
             guard let value = yaml[key] else { continue }
@@ -68,28 +81,48 @@ public enum RuleNameConfigurationAudit {
                 problems.append(.notAList(key: key))
                 continue
             }
-            for name in names where RuleIdentifier(rawValue: name) == nil {
+            for name in names where isRule(name) == false {
                 problems.append(.unknownRule(key: key, name: name, suggestion: suggestion(for: name)))
             }
         }
         if let overrides = yaml[overridesKey] as? [String: Any] {
-            for name in overrides.keys.sorted() where RuleIdentifier(rawValue: name) == nil {
+            for name in overrides.keys.sorted() where isRule(name) == false {
                 problems.append(.unknownRule(key: overridesKey, name: name, suggestion: suggestion(for: name)))
-            }
-        }
-
-        // The loader treats any present `enabled_only`, even `enabled_only:` with nothing after it,
-        // as the list of rules to run, so an empty one runs nothing.
-        let disabledRules = (yaml["disabled_rules"] as? [String]) ?? []
-        if let enabledOnly = yaml["enabled_only"] {
-            if disabledRules.isEmpty == false {
-                problems.append(.enabledOnlyIgnored)
-            } else if ((enabledOnly as? [String]) ?? []).contains(where: { RuleIdentifier(rawValue: $0) != nil }) == false {
-                problems.append(.enabledOnlyRunsNothing)
             }
         }
         return problems
     }
+
+    /// Whether `enabled_only` is ignored, or runs nothing.
+    ///
+    /// The loader treats any present `enabled_only`, even `enabled_only:` with nothing after it,
+    /// as the list of rules to run, so one naming no rule runs nothing. It ignores `enabled_only`
+    /// only when `disabled_rules` resolves to at least one identifier: unknown names are dropped
+    /// first, so `disabled_rules: ["Typo"]` leaves `enabled_only` in force.
+    private static func enabledOnlyProblems(in yaml: [String: Any]) -> [Problem] {
+        guard let enabledOnly = yaml["enabled_only"] else { return [] }
+        let disabledRules = ((yaml["disabled_rules"] as? [String]) ?? []).filter { RuleIdentifier(rawValue: $0) != nil }
+        if disabledRules.isEmpty == false {
+            return [.enabledOnlyIgnored]
+        }
+        if ((enabledOnly as? [String]) ?? []).contains(where: isRule) == false {
+            return [.enabledOnlyRunsNothing]
+        }
+        return []
+    }
+
+    /// Whether `name` is a rule a configuration can select.
+    ///
+    /// The sentinels `Unknown` and `File Parsing Error` resolve to identifiers, so the loader keeps
+    /// them, but they name no rule: `LintConfiguration.resolveRules` starts from
+    /// `RuleIdentifier.selectableRules` and drops them. An `enabled_only` listing only a sentinel
+    /// therefore runs nothing, just like one listing a typo.
+    static func isRule(_ name: String) -> Bool {
+        RuleIdentifier(rawValue: name).map(RuleIdentifier.selectableRules.contains) ?? false
+    }
+
+    /// Selectable rules in display-name order, so the first suggestion that fits is always the same one.
+    private static let suggestable = RuleIdentifier.selectableRules.sorted { $0.rawValue < $1.rawValue }
 
     /// The rule display name `name` probably meant, or `nil`.
     ///
@@ -99,7 +132,7 @@ public enum RuleNameConfigurationAudit {
     public static func suggestion(for name: String) -> String? {
         let needle = normalized(name)
         guard needle.isEmpty == false else { return nil }
-        return RuleIdentifier.allCases.first { rule in
+        return suggestable.first { rule in
             normalized(rule.rawValue) == needle || normalized(rule.suppressionKey) == needle
         }?.rawValue
     }
