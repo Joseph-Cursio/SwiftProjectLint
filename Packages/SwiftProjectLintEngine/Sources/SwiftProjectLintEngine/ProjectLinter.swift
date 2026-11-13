@@ -232,8 +232,6 @@ public final class ProjectLinter: ProjectAnalyzerProtocol {
     private func analyzeDiscovered(_ project: DiscoveredProject) async -> [LintIssue] {
         let path = project.path
         let effectiveConfiguration = project.configuration
-        let categories = project.categories
-        let effectiveRules = project.effectiveRules
 
         // Pre-scan: collect cross-file type metadata needed by visitors.
         let collected = CollectedTypes.collect(
