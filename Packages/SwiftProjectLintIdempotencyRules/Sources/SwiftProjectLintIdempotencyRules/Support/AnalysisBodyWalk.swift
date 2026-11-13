@@ -1,8 +1,8 @@
-import SwiftEffectInference
 import SwiftProjectLintVisitors
 import SwiftSyntax
 
-/// Finalize-phase machinery shared by the cross-file effect visitors.
+/// Finalize-phase machinery shared by the cross-file effect visitors. The upward-inference call
+/// they also shared now lives in `ProjectEffectTables`, which builds the run's table once.
 ///
 /// `IdempotencyViolationVisitor`, `NonIdempotentInRetryContextVisitor` and
 /// `UnannotatedStrictReplayableVisitor` each carried their own copy of
@@ -62,42 +62,5 @@ enum AnalysisBodyWalk {
             return true
         }
         return false
-    }
-}
-
-extension EffectSymbolTable {
-
-    /// Phase-2.3 body-based upward inference, with the heuristic fallback made
-    /// import-aware.
-    ///
-    /// Must run at finalize time rather than during the walk: upward inference
-    /// consults cross-file declared effects and heuristic-downward resolution,
-    /// and neither is complete until every file has merged. `multiHop` enables
-    /// fixed-point propagation across chains of un-annotated functions — a
-    /// caller whose body reaches a non-idempotent leaf only through another
-    /// un-annotated function is inferred non-idempotent itself, which one-hop
-    /// would miss.
-    ///
-    /// Imports are computed per source and looked up on each call so framework
-    /// allowlists only fire in files that actually import the module. They are
-    /// collected before the passes, not in the per-call closure: collecting walks
-    /// the whole file, so doing it for every call made a file's inference
-    /// quadratic in its size — and the passes stop at a wall-clock budget, so a
-    /// large enough file lost inferences rather than only time.
-    mutating func applyImportAwareBodyInference(
-        to sources: [SourceFileSyntax],
-        enabledFrameworks: Set<String>?
-    ) {
-        let importsBySource = Dictionary(
-            sources.map { (Syntax($0).id, SwiftProjectLintVisitors.ImportCollector.imports(in: $0)) }
-        ) { first, _ in first }
-        applyBodyInference(to: sources, multiHop: true) { call, source in
-            HeuristicEffectInferrer.infer(
-                call: call,
-                imports: importsBySource[Syntax(source).id]
-                    ?? SwiftProjectLintVisitors.ImportCollector.imports(in: source),
-                enabledFrameworks: enabledFrameworks
-            )
-        }
     }
 }

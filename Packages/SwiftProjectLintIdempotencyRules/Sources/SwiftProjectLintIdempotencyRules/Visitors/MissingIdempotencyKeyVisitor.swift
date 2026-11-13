@@ -31,8 +31,13 @@ import SwiftSyntax
 ///   valued parameter; not flagged in Phase 2.1.
 final class MissingIdempotencyKeyVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
+    /// The run's declared effects, read from `ProjectEffectTables` in `finalizeAnalysis()`. This
+    /// rule reads declarations only, so it never makes the run pay for upward inference.
     private var symbolTable = EffectSymbolTable()
     private var analysisSites: [AnalysisSite] = []
+    /// Files walked, for the tables a directly driven visitor builds itself. A run's engine hands
+    /// over `sharedEffectTables` instead, and then nothing is kept here.
+    private var walkedSources: [SourceFileSyntax] = []
 
     private struct AnalysisSite {
         let function: FunctionDeclSyntax
@@ -40,7 +45,7 @@ final class MissingIdempotencyKeyVisitor: CrossFileVisitorBase, CrossFilePattern
     }
 
     override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
-        symbolTable.merge(source: node)
+        if sharedEffectTables == nil { walkedSources.append(node) }
         return .visitChildren
     }
 
@@ -56,6 +61,7 @@ final class MissingIdempotencyKeyVisitor: CrossFileVisitorBase, CrossFilePattern
     }
 
     func finalizeAnalysis() {
+        symbolTable = effectTables(walked: walkedSources).declared
         for site in analysisSites {
             guard let body = site.function.body else { continue }
             analyzeBody(Syntax(body), site: site)

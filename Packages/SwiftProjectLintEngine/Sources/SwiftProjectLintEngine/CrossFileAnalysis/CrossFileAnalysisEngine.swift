@@ -40,6 +40,11 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
     /// each visitor that reads an inheritance clause would build its own from the same trees.
     private var compositionAliases: CompositionAliasCatalog?
 
+    /// The run's effect tables (see `ProjectEffectTables`), made with the first visitor and handed
+    /// to every visitor after it. Making them builds nothing: each table is built on first read,
+    /// so a run whose rules never read one pays nothing.
+    private var effectTables: ProjectEffectTables?
+
     /// Initializes a new SwiftSyntax pattern detector.
     ///
     /// - Parameter registry: The pattern visitor registry to use. Defaults to the shared registry.
@@ -83,6 +88,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
             }
         }
         compositionAliases = nil
+        effectTables = nil
 
         // Get visitors that support cross-file analysis
         let visitors = getVisitorsForCategories(categories)
@@ -96,6 +102,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
                 let visitor = crossFileVisitor.init(fileCache: fileCache)
                 configureBaseVisitor(visitor, visitorType: visitorType, categories: categories)
                 shareCompositionAliases(with: visitor)
+                shareEffectTables(with: visitor)
 
                 for (fileName, sourceFile) in orderedFileCache {
                     if let baseVisitor = visitor as? BasePatternVisitor {
@@ -150,6 +157,17 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
         crossFileVisitor.compositionAliases = aliases
     }
 
+    /// Hands the run's effect tables to a cross-file visitor, making them on first use.
+    private func shareEffectTables(with visitor: CrossFilePatternVisitorProtocol) {
+        guard let crossFileVisitor = visitor as? CrossFileVisitorBase else { return }
+        let tables = effectTables ?? ProjectEffectTables(
+            sources: orderedFileCache.map(\.sourceFile),
+            enabledFrameworks: enabledFrameworkAllowlists
+        )
+        effectTables = tables
+        crossFileVisitor.sharedEffectTables = tables
+    }
+
     /// Detects patterns across multiple Swift files using specific rule identifiers.
     ///
     /// This method analyzes multiple files and can detect patterns that span
@@ -176,6 +194,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
             }
         }
         compositionAliases = nil
+        effectTables = nil
 
         // Get specific patterns by rule identifier
         let allPatterns = registry.getAllPatterns()
@@ -194,6 +213,7 @@ public class CrossFileAnalysisEngine: CrossFileAnalyzerProtocol {
                     baseVisitor.layerPolicies = layerPolicies
                 }
                 shareCompositionAliases(with: visitor)
+                shareEffectTables(with: visitor)
                 for (fileName, sourceFile) in orderedFileCache {
                     if let baseVisitor = visitor as? BasePatternVisitor {
                         baseVisitor.setFilePath(fileName)
