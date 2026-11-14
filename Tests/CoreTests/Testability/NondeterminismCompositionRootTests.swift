@@ -163,9 +163,9 @@ struct NondeterminismCompositionRootTests {
 
     /// **This test asserted the opposite when the arm shipped**, on the reasoning that a receiver is
     /// always the scope using the value. `.timeIntervalSince1970` takes no argument: it is the same
-    /// instant as a number, handed to `bind` as an argument. Four of the nine sites the arm could not
-    /// reach were this shape (SwiftProjectLint#193), and the distinction is not the receiver but
-    /// whether its arguments reach into the scope.
+    /// instant as a number, handed to `bind` as an argument. Three of the sites the arm could not
+    /// reach when it shipped were this shape (SwiftProjectLint#193). The distinction is not the
+    /// receiver but which member it is: see `computingMemberIsNotACompositionRoot` below.
     @Test("a zero-argument member re-presents the value and is reached through", arguments: [
         "func f() { bind(Date.now.timeIntervalSince1970, at: 1) }",
         "func f(_ content: C) { schedule(R(identifier: UUID().uuidString, content: content)) }",

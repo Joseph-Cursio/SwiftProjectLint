@@ -161,20 +161,80 @@ So the message changes and the count does not. These sites were already reported
 see [A composition-root read stays reported](#a-composition-root-read-stays-reported-and-that-is-deliberate)
 for why suppressing them would be worse than reporting them.
 
-**Argument position only, and that restriction is the whole precision.** A receiver is not handing
-the value on, it is *using* it — and every real defect this rule has produced across the corpus
-reads the clock into a receiver or an operand, never into a bare argument:
+**Argument position only, and never to a callee that combines.** A receiver is not handing the
+value on, it is *using* it, and so is a callee that relates the value to something else. Every real
+defect this rule has produced across the corpus reads the clock into one of those:
 
 | Shape | What the scope did with it |
 | --- | --- |
 | `Date().addingTimeInterval(timeout)` | a subprocess deadline |
 | `Date().timeIntervalSince(start)` | the entire output of a benchmark |
-| `Date.now.timeIntervalSince1970` | a number bound into SQL |
-| `"probe_\(UUID().uuidString).swift"` | a filename this scope composed |
+| `start.timeIntervalSince(Date())`, `DateInterval(start: t0, end: t1)` | the same benchmark, the read now an argument |
+| `formatter.localizedString(for: date, relativeTo: Date())` | an elapsed time, as text |
+
+When the arm shipped this table had two other rows, and neither belongs here any more:
+`Date.now.timeIntervalSince1970` bound into SQL is reached through as a re-presentation (below), and
+the probe filename `"probe_\(UUID().uuidString).swift"` is declined by the
+[scratch-path gate](#two-gates-on-the-declines).
+
+**The argument side leaked until the callee counted.** The gate asked only *where* the read sat, so
+the third and fourth rows were labelled composition roots, "nothing to inject", which is the one
+direction this arm must never fail in. The live instance that settled it was SwiftLint's remote
+configuration fetch:
+
+```swift
+let startDate = Date()
+while true {
+    if Date().timeIntervalSince(startDate) > timeout { task.cancel(); break }
+```
+
+`startDate`'s only reference is an argument, so the bound form accepted it, and a timeout loop was
+told it had nothing to inject. A call now counts as combining in any of three ways:
+- **Its callee relates two instants:** `timeIntervalSince`, `distance`, `compare`, `max`, `min`,
+  `contains`, `stride` or `DateInterval`. An initializer is known by its type however it is spelled,
+  so `DateInterval.init(…)` counts too.
+- **Its callee reads a calendar or time-zone fact out of one instant:** `Calendar`'s `component`,
+  `dateComponents`, `date(byAdding:…)`, `startOfDay`, `range`, `ordinality`, the `isDate…` family and
+  the `next…` searches, or `TimeZone`'s `secondsFromGMT`, daylight-saving queries and
+  `abbreviation`.
+- **Its labels name a second operand or bound a span:** `since:` or `relativeTo:`, or a pair
+  `from:`/`to:`, `start:`/`end:` or `start:`/`duration:`. The pairs also catch an implicit
+  `.init(start:end:)`, which names no type.
+
+The code holds the full list.
+
+**This list fails safe when it is too broad, which is the reverse of the member list below.** A
+name listed here moves a site back to the ordinary message, which is what every site got before
+the arm existed, so a project function that shares a name costs one sentence. A name *missing* is
+what leaks. That is why the list reaches beyond the three shapes the corpus showed, into the rest of
+`Date`, `Calendar` and `TimeZone`. It is still a list. A project's own combiner with an unlabelled
+argument (`secondsSince(Date())`) leaks, and the cost is the message.
+
+**A conversion is stepped through, not treated as the hand-off.** `Int(…)`, `Double(…)` and
+`String(describing: …)` re-present a value the way `.timeIntervalSince1970` does. Before this, a read
+inside one counted as an argument, so a TTL check was labelled a composition root:
+
+```swift
+Int(Date().timeIntervalSince1970) - last > 300
+```
+
+The question is now asked of the conversion itself. It is an operand here, and a hand-off in
+`bind(Int(Date().timeIntervalSince1970), at: 1)`.
+
+Measured, every count with `--include-nested-packages`:
+
+| set | findings | moved to the ordinary message |
+| --- | --- | --- |
+| our 23 repositories, 2026-11-13 | 47 → 47 | 1: a `relativeTo: Date()` relative timestamp |
+| the same repositories as of 2026-09-12 | 36 → 36 | 4: that one, plus three `DateInterval` benchmark reads since rewritten away |
+| SwiftLint, SwiftPlantUML, swift-argument-parser, Hummingbird, swift-aws-lambda-runtime | 37 → 37 | 3: the timeout loop above, plus two method timings |
+
+Nothing was added or removed, and nothing moved toward the composition-root message.
 
 **A member that only re-presents the value is reached through.** A receiver is normally the scope
-*using* the value, and that is where every defect this rule has produced lives — but four of the nine
-sites this arm could not reach were receivers that merely change the value's type and then hand it on:
+*using* the value, and that is where every defect this rule has produced lives. But three of the
+sites this arm could not reach when it shipped were receivers that only change the value's type and
+then hand it on:
 `Date.now.formatted(date: .abbreviated, time: .shortened)` bound and passed as a `timestamp:`,
 `bind(Date.now.timeIntervalSince1970, at: 1)`, `R(identifier: UUID().uuidString, …)`. None of those is
 a decision.
@@ -250,21 +310,53 @@ corpus findings by hand suggested the arm would reach about 34. The inline form 
 rule on this project has come in high, and the second on this rule.
 
 **The arm reclassifies and never removes**, which is asserted by a test rather than assumed: the
-corpus reported 37 before and 37 after, with 20 of them carrying the new sentence. The rule now
-reports 34 across the corpus, and the missing three are declines merged separately — an edge-case
+corpus reported 37 before and 37 after, with 20 of them carrying the new sentence. Shortly after,
+the rule reported 34 across that corpus, and the missing three are declines merged separately — an edge-case
 generator whose filler is arbitrary by design, and a deliberately broken `Hashable` conformance in
 a book chapter that exists to be falsified. Both are the shape
 [the decline section](#when-a-suppression-is-right) names.
 
-The nine that keep the ordinary message are worth listing, because they are what the arm is
-*not* claiming: two stamps assigned to storage, a lazy-created session id, a `@State` initial
-value that feeds arithmetic, and four receivers — `Date.now.formatted(…)`,
-`Date.now.timeIntervalSince1970`, `UUID().uuidString`, and a `UUID()` interpolated into a probe
-filename.
+Of the nine corpus sites the arm did not claim when it shipped, five still keep the ordinary
+message, and they are worth listing because they are what the arm is *not* claiming:
+- three stamps assigned to storage: `lastSyncTime = Date()`, `user.lastLogin = Date()`, and
+  `let signedInAt = Date()` assigned on two branches;
+- a lazy-created session id;
+- a `@State` initial value that feeds arithmetic.
+
+The other four were receivers. Three are now reached through as re-presentations
+(`Date.now.formatted(…)`, `Date.now.timeIntervalSince1970`, `UUID().uuidString`). The fourth, a
+`UUID()` in a probe filename, turned out to be a scratch path. Each of the nine is checked against
+current code, and the record that tracked them (SwiftProjectLint#193) is closed on this page.
+
+**Assignment to storage stays refused, and that is a decision rather than a gap.** `x = Date()`
+records the value and nothing in scope examines it, which is semantically the same as
+`store.approve(on: Date())`. Widening the arm to assignment would take three more findings, and it
+would also take an initialiser's `self.createdAt = Date()`. That is a defect this corpus recorded: a
+client invented a creation date only the server knew, three of its four callers corrected it, and a
+file large enough for chunked upload kept *"when the client finished uploading"* for the life of
+the row. `let signedInAt = Date()` assigned on both branches is the opposite case. It was the
+*repair* that got first sign-in recorded as a login. The defect and its fix have the same shape, and
+the shape is all a gate can see, so no threshold reaches this. Tests pin both spellings as ordinary.
+
+**A project's own re-presenting members stay unlisted, by decision.** Hummingbird's
+`Date.now.httpHeader` is the measured cost of the member list above: two third-party findings,
+message only, and none in our corpus. A per-rule configuration key could recover them. The issue
+that tracked this (SwiftProjectLint#193) once said the project had no per-rule configuration at all.
+That was wrong: `.swiftprojectlint.yml` has a `rules:` block, but its entries (`severity`, `excluded_paths`) are applied after detection,
+and no field reaches a visitor. The key stays declined because:
+- **the failure direction is wrong:** a project list can only widen "nothing to inject", and
+  nothing can check that a listed name only restates. A project's own combining extension would
+  pass, which is the leak the member list was built to refuse;
+- **the benefit is small:** two findings, and only their message. Each site is reported either way,
+  and the ordinary message is what it got before the arm existed, so there is nothing to suppress.
+
+Reopen it if a first-party repository has three or more findings on a re-presenting member it owns,
+or if per-rule options that reach visitors get built for some other rule. Even then, refuse
+configured names this rule already knows combine.
 
 ### Two shapes where the finding is right and "inject the source" is wrong
 
-The three faults above each carry their own message, because each is a local syntactic shape the
+The faults above each carry their own message, because each is a local syntactic shape the
 visitor can recognise. These two are not. They report under the ordinary message and they cannot do
 better, because nothing at the expression tells them apart — you find them by reading the enclosing
 function, or by grepping for a reader that does not exist. They are documented here because a
