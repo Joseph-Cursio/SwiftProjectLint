@@ -59,11 +59,13 @@ struct NondeterminismClosureDefaultTests {
         #expect(analyze("func f(_ xs: [Int]) -> [Date] { xs.map { _ in Date() } }").count == 1)
     }
 
-    @Test("a stored closure property with a default is still reported")
-    func storedClosurePropertyIsStillReported() {
-        // `var maker: () -> Date = { Date() }` is a stored property, not a parameter. Whether it
-        // can be replaced depends on an initialiser this rule cannot see from here.
-        #expect(analyze("struct S { var maker: () -> Date = { Date() } }").count == 1)
+    @Test("a stored closure `let` with a default is still reported")
+    func storedClosureLetIsStillReported() {
+        // This test pinned `var maker` as reported, on the reasoning that whether it can be
+        // replaced depends on an initialiser this rule cannot see. That holds for `let`, which no
+        // initialiser can assign once it has an initial value, and not for `var`, which anyone
+        // holding the value can write. `NondeterminismStoredClosureSeamTests` has the `var` side.
+        #expect(analyze("struct S { let maker: () -> Date = { Date() } }").count == 1)
     }
 
     @Test("a nested declaration's body inside a default is still reported")

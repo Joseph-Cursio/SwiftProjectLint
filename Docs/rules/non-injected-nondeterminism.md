@@ -18,7 +18,8 @@ A property-based test re-runs logic against many randomized inputs and, when it 
 - Ambient clock/locale reads: `Date.now`, `Locale.current`, `TimeZone.current`
 
 Uses in a parameter *default value* position are exempt — a defaulted `clock: () -> Date = { Date() }`
-is itself the injection seam — as are test files.
+is itself the injection seam — as is the closure a replaceable stored property starts with
+(`var now: () -> Date = { Date() }`), and test files.
 
 ### Four faults, one trigger
 
@@ -200,6 +201,8 @@ told it had nothing to inject. A call now counts as combining in any of three wa
 - **Its labels name a second operand or bound a span:** `since:` or `relativeTo:`, or a pair
   `from:`/`to:`, `start:`/`end:` or `start:`/`duration:`. The pairs also catch an implicit
   `.init(start:end:)`, which names no type.
+- **It appends a path:** `appendingPathComponent`, `appending` or `appendingPathExtension`. See
+  [below](#composing-a-path-name-is-a-use).
 
 The code holds the full list.
 
@@ -354,6 +357,40 @@ Reopen it if a first-party repository has three or more findings on a re-present
 or if per-rule options that reach visitors get built for some other rule. Even then, refuse
 configured names this rule already knows combine.
 
+#### Composing a path name is a use
+
+The same filename used to land in different arms depending on how it was spelled:
+
+```swift
+directory.appendingPathComponent(UUID().uuidString)          // "handed straight on"
+parent.appendingPathComponent("git-\(UUID().uuidString)")    // the ordinary message
+```
+
+Both build a new value out of the read and a value this scope supplied, the receiver. The path is
+then created, stored or returned in the same scope, so nothing downstream takes the name as a
+parameter that a test could pin: this scope is where the name is made. That is the receiver-side
+refusal, `Date().addingTimeInterval(timeout)`, seen from the argument. The ordinary message already
+names "a name" among the decisions worth a seam, so the interpolated spelling was right and the bare
+one now matches it. Both spellings get the ordinary message, and the bound spelling
+(`let name = UUID().uuidString` then `dir.appendingPathComponent(name)`) does too.
+
+A scratch path is unaffected. The [scratch-path gate](#two-gates-on-the-declines) declines a name
+under the temporary directory, or one a `defer` deletes, before this question is asked. A name
+handed on whole, `R(identifier: UUID().uuidString, …)`, is still a composition root.
+
+Measured on 2026-11-14 with `--include-nested-packages`, release CLI from this rule's previous
+version against this one:
+
+| set | findings | moved to the ordinary message |
+| --- | --- | --- |
+| our 24 repositories | 47 → 46 | 3: MacCloud_server's blob path, and SwiftLintRuleStudio's two simulation workspace folders |
+| SwiftLint, SwiftPlantUML, swift-argument-parser, Hummingbird, swift-aws-lambda-runtime | 37 → 37 | none |
+
+The one finding removed is the stored closure seam
+[below](#a-replaceable-stored-closure-is-a-seam-too), not this change. The two interpolated sites
+that showed the disagreement, SwiftAssist's shadow workspace and SwiftLintRuleStudio's config
+backup folder, kept the ordinary message they already had.
+
 ### Two shapes where the finding is right and "inject the source" is wrong
 
 The faults above each carry their own message, because each is a local syntactic shape the
@@ -443,14 +480,57 @@ A default value is substitutable by construction, and it makes no difference whe
 over is the instant (`= Date()`) or the capability that reads it (`= { Date() }`). A test passes
 `{ fixedDate }` to either.
 
-**The line held is `defaultValue`, not "is a closure."** A closure argument at a call site stays
+**The line held is substitutability, not "is a closure."** A closure argument at a call site stays
 reported: `items.map { Date() }` runs immediately, and `queue.async { stamp = Date() }` runs later
-with nothing able to replace it. Only a parameter guarantees substitutability. A provider constant
-like `DateProvider { Date() }` is outside it too — the substitutability there comes from the type
-being a provider, which this rule cannot see, so that shape stays declined in writing beside the
-code.
+with nothing able to replace it. A parameter guarantees substitutability, and so does a replaceable
+stored property ([below](#a-replaceable-stored-closure-is-a-seam-too)). A provider constant like
+`static let system = DateProvider { Date() }` is outside both. The closure there is an argument,
+and the substitutability comes from the type being a provider, which this rule cannot see. That
+shape stays declined in writing beside the code.
 
 The effect on any count is negligible; what changes is that three hand-written suppressions no longer suppress anything, because the rule stopped reporting what they were written for.
+
+#### A replaceable stored closure is a seam too
+
+SwiftMutator's dependency-injection container was told to inject the source:
+
+```swift
+typealias Now = @Sendable () -> Date
+
+struct World: Sendable {
+    var now: Now = { Date() }
+```
+
+That line is the production default of a clock that is already injected. A stored `var` holding a
+closure is substitutable the same way a parameter default is, and by the same party: a test that
+can reach the value writes `world.now = { fixedDate }`. In a struct with no hand-written
+initialiser the property *is* a parameter default, because the memberwise initialiser takes it with
+`{ Date() }` as its default. Where a test cannot reach the value, because the code under test builds
+its own, neither seam helps, so the two fail together as well.
+
+The declared type is often a typealias, as `Now` is here, and one file's syntax cannot resolve it.
+So the gate reads the initial value instead. A closure literal that is the whole initial value, not
+called, can only initialise a function-typed property. Then it asks whether anything outside the
+declaration can replace it:
+- **`var`, not `let`.** A `let` with an initial value is fixed for every instance, since no
+  initialiser can assign it.
+- **A member, not a local.** A local is replaceable only by the code around it.
+- **Not `private` or `fileprivate`**, `private(set)` included, because a test cannot write it.
+- **Stored, with no accessor block.** An observed closure property is refused. That fails toward
+  the report, and the corpus has none.
+
+**A called closure is refused, and that is the line.** `lazy var stamp = { Date() }()` runs the
+closure and stores a `Date`, which is a value and not a seam. A body between the read and the seam
+ends it too, as it does for a parameter default: a function declared inside the closure is code
+that runs.
+
+A test used to pin `var maker: () -> Date = { Date() }` as reported, on the reasoning that whether
+it can be replaced depends on an initialiser the rule cannot see. That is true of `let` and not of
+`var`, and the test now pins the `let`.
+
+Measured with the composition-root change above: one finding removed in our 24 repositories, the
+`World` line itself, and none in the third-party set. No `swiftprojectlint:disable` in either set
+was written for this shape.
 
 ### Two gates on the declines
 
@@ -656,6 +736,9 @@ func isExpired(_ token: Token, now: Date) -> Bool {
 ```swift
 // Injected via a parameter default — this IS the seam
 func makeID(_ uuid: UUID = UUID()) -> String { uuid.uuidString }
+
+// The production default of a replaceable clock — a seam too
+struct Environment { var now: () -> Date = { Date() } }
 
 // Seeded, deterministic RNG passed in
 func pick<T>(_ xs: [T], using rng: inout some RandomNumberGenerator) -> T? {

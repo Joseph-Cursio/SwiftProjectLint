@@ -195,6 +195,9 @@ extension NonInjectedNondeterminismVisitor {
     }
 
     /// The `URL` members that build a child path from a parent.
+    ///
+    /// Read twice: here, to recognise a scratch path, and by `combines(_:)`, where a path append
+    /// composes a name from the read and so is never a hand-off.
     private static let pathAppendingMethods: Set<String> = [
         "appendingPathComponent", "appending", "appendingPathExtension"
     ]

@@ -138,6 +138,37 @@ excluded_filenames:
 # See "Nested Packages" below for the trade-offs.
 include_nested_packages: false
 
+# Architectural layers, read by Architectural Boundary and Layer Dependency.
+# Each layer maps path prefixes to what its files may not use. A layer with
+# no paths is ignored; files outside every layer are never judged. When a file
+# matches several layers, the longest matching path wins.
+# See Docs/rules/architectural-boundary.md and Docs/rules/layer-dependency.md.
+architectural_layers:
+  domain:
+    paths: ["Domain/", "UseCases/"]
+    forbidden_imports: ["CoreData", "UIKit", "SwiftUI"]   # these modules are reported
+    forbidden_types: ["URLSession", "UserDefaults"]       # these type names are reported
+    allowed_imports: ["Foundation"]   # optional allowlist: any other import is reported;
+                                      # [] allows none, omitting the key sets no allowlist
+    may_depend_on: []                 # optional: the other layers this one may reference;
+                                      # omitting the key leaves the layer unchecked by Layer Dependency
+  presentation:
+    paths: ["Presentation/"]
+    may_depend_on: ["domain"]
+
+# Which frameworks' call classifications the idempotency rules may use.
+# Absent (the default): every framework is active, each one only in files that
+# import its module. A list: only the listed frameworks are active. Names are
+# module names: Foundation, NIOCore, AWSLambdaEvents, AWSLambdaRuntime, Logging,
+# os, Metrics, FluentKit, Hummingbird, Vapor, ComposableArchitecture,
+# HttpPipeline, and SwiftConcurrency (active without an import, since no such
+# module exists). Leave one out to stop its names classifying, e.g. a project's
+# own `class Counter` read as Metrics' observational counter.
+enabled_framework_allowlists:
+  - "Foundation"
+  - "NIOCore"
+  - "Logging"
+
 # Per-rule overrides: change severity or exclude specific paths for a single rule.
 rules:
   "Fat View":

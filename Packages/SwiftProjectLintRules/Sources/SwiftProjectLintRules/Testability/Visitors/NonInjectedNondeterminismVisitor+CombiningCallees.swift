@@ -29,16 +29,35 @@ extension NonInjectedNondeterminismVisitor {
     /// `Calendar` and `TimeZone`. It is still a list: a project's own combiner with an unlabelled
     /// argument (`secondsSince(Date())`) leaks, and the cost is the message.
     ///
-    /// Three ways in, any one enough:
+    /// Four ways in, any one enough:
     /// - a label that names a second operand (`since:`, `relativeTo:`);
     /// - a pair of labels that bound a span (`from:`/`to:`, `start:`/`end:`, `start:`/`duration:`),
     ///   which is also what catches an initializer spelled `.init(start:end:)`, whose type is not
     ///   in the syntax at all;
-    /// - the callee's name, where `DateInterval.init(…)` is named by its type rather than `init`.
+    /// - the callee's name, where `DateInterval.init(…)` is named by its type rather than `init`;
+    /// - a path append, which composes a name; see below.
+    ///
+    /// ## Composing a path name is a use
+    ///
+    /// The same filename used to land in different arms depending on how it was spelled:
+    ///
+    /// ```swift
+    /// directory.appendingPathComponent(UUID().uuidString)          // "handed straight on"
+    /// parent.appendingPathComponent("x-\(UUID().uuidString)")      // the ordinary message
+    /// ```
+    ///
+    /// Both build a new value out of the read and a value this scope supplied, the receiver, and
+    /// the path is then created, stored or returned here. That is the receiver-side refusal
+    /// (`Date().addingTimeInterval(timeout)`) seen from the argument: nothing downstream takes the
+    /// name as a parameter that a test could pin, because this scope is where the name is made.
+    /// The ordinary message already lists "a name" among the decisions worth a seam, so the
+    /// interpolated spelling had it right and the bare one moves to match. A scratch path that
+    /// does not outlive the call is declined before this is asked; see `isScratchDirectoryName`.
     static func combines(_ call: FunctionCallExprSyntax) -> Bool {
         let labels = Set(call.arguments.compactMap { $0.label?.text })
         if !labels.isDisjoint(with: combiningLabels) { return true }
         if combiningLabelPairs.contains(where: labels.isSuperset(of:)) { return true }
+        if appendsToAPath(call) { return true }
         return calleeName(of: call).map(combiningCallees.contains) ?? false
     }
 
