@@ -154,7 +154,8 @@ final class NonInjectedNondeterminismVisitor: BasePatternVisitor {
     /// first would silence them.
     func report(_ source: NondeterminismSources.Source?, at node: Syntax) {
         guard let source, Self.reportedKinds.contains(source.kind) else { return }
-        guard !fileIsTestOrFixture, insidePreview == 0, !isParameterDefaultValue(node) else {
+        guard !fileIsTestOrFixture, insidePreview == 0, !isParameterDefaultValue(node),
+              !isReplaceableStoredClosure(node) else {
             return
         }
 
