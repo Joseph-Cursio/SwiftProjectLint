@@ -16,8 +16,13 @@ import SwiftSyntax
 /// Closure-traversal policy mirrors `IdempotencyViolationVisitor` — non-escaping only.
 final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
+    /// The run's declared and upward-inferred effects, read from `ProjectEffectTables` in
+    /// `finalizeAnalysis()`.
     private var symbolTable = EffectSymbolTable()
     private var analysisSites: [AnalysisSite] = []
+    /// Files walked, for the tables a directly driven visitor builds itself. A run's engine hands
+    /// over `sharedEffectTables` instead, and then nothing is kept here.
+    private var walkedSources: [SourceFileSyntax] = []
 
     /// The `@lint.context` of every call in the file being walked.
     private var callSiteContexts = CallSiteContextIndex()
@@ -37,7 +42,7 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
     }
 
     override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
-        symbolTable.merge(source: node)
+        if sharedEffectTables == nil { walkedSources.append(node) }
         callSiteContexts = CallSiteContextIndex(node)
         return .visitChildren
     }
@@ -122,10 +127,7 @@ final class NonIdempotentInRetryContextVisitor: CrossFileVisitorBase, CrossFileP
         // Runs before the body walk so every lookup in analyzeCall can consult
         // upward-inferred entries — chains of un-annotated helpers between the
         // `@context replayable` boundary and the non-idempotent leaf.
-        symbolTable.applyImportAwareBodyInference(
-            to: orderedSources,
-            enabledFrameworks: enabledFrameworkAllowlists
-        )
+        symbolTable = effectTables(walked: walkedSources).inferred
 
         for site in analysisSites {
             analyzeBody(site.body, site: site)

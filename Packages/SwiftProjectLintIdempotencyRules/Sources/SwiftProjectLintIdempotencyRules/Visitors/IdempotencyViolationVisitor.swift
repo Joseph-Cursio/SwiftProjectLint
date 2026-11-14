@@ -30,9 +30,13 @@ import SwiftSyntax
 /// checks that Phase 1 of the trial explicitly excludes.
 final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternVisitorProtocol {
 
-    /// Accumulated across every file walked in this analysis run. Populated in
-    /// `visit(_:)` and queried in `finalizeAnalysis()`.
+    /// The run's declared and upward-inferred effects, read from `ProjectEffectTables` in
+    /// `finalizeAnalysis()`.
     private var symbolTable = EffectSymbolTable()
+
+    /// Files walked, for the tables a directly driven visitor builds itself. A run's engine hands
+    /// over `sharedEffectTables` instead, and then nothing is kept here.
+    private var walkedSources: [SourceFileSyntax] = []
 
     /// Analysis sites cached during walk, keyed by their declaring file so that
     /// line-number reporting resolves correctly in `finalizeAnalysis()`.
@@ -58,7 +62,7 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
     // MARK: - Walk phase: accumulate only
 
     override func visit(_ node: SourceFileSyntax) -> SyntaxVisitorContinueKind {
-        symbolTable.merge(source: node)
+        if sharedEffectTables == nil { walkedSources.append(node) }
         return .visitChildren
     }
 
@@ -108,10 +112,7 @@ final class IdempotencyViolationVisitor: CrossFileVisitorBase, CrossFilePatternV
     // MARK: - Finalize phase: emit issues
 
     func finalizeAnalysis() {
-        symbolTable.applyImportAwareBodyInference(
-            to: orderedSources,
-            enabledFrameworks: enabledFrameworkAllowlists
-        )
+        symbolTable = effectTables(walked: walkedSources).inferred
 
         for site in analysisSites {
             analyzeBody(site.body, site: site)

@@ -49,6 +49,11 @@ open class CrossFileVisitorBase: BasePatternVisitor {
     /// first use. Both read the same trees, so the two routes give the same catalog.
     public lazy var compositionAliases: CompositionAliasCatalog = .build(from: orderedSources)
 
+    /// The run's effect tables (see `ProjectEffectTables`), handed to every visitor by the
+    /// cross-file engine before the walk, so the idempotency rules share one table and one upward
+    /// pass. `nil` when the visitor is driven directly; a reader then builds its own.
+    public var sharedEffectTables: ProjectEffectTables?
+
     public required init(fileCache: [String: SourceFileSyntax]) {
         self.fileCache = fileCache
         super.init(pattern: BasePatternVisitor.placeholderPattern, viewMode: .sourceAccurate)
