@@ -114,7 +114,11 @@ struct NonInjectedNondeterminismFreshReadTests {
             }
         }
         """)
+        #expect(issues.count == 1)
         #expect(issues.first?.message.contains("Fresh read per access") == false)
+        // It passed on a composition-root message until `relativeTo:` counted as combining: an
+        // elapsed time as text is the scope using the instant, not handing it on.
+        #expect(issues.first?.message.hasPrefix("Clock/RNG read at a composition root") == false)
     }
 
     @Test("a single expression that computes from the read is still the read")

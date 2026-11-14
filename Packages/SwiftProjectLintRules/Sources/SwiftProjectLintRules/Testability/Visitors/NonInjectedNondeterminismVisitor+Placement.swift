@@ -91,37 +91,6 @@ extension NonInjectedNondeterminismVisitor {
         }
     }
 
-    /// True when `node` sits in a function/initializer parameter's default
-    /// value — `init(id: UUID = UUID())` is the injection seam, not inline
-    /// nondeterminism.
-    ///
-    /// ## A closure default is a seam too
-    ///
-    /// This used to stop at any `ClosureExprSyntax`, so
-    /// `clock: () -> Date = { Date() }` was reported — the exact shape this
-    /// rule's own documentation offers as the fix, and the shape a reader who
-    /// takes its advice ends up writing. The corpus said so plainly: three
-    /// sites across two repositories carried a hand-written
-    /// `swiftprojectlint:disable:next` for this rule, each with a comment
-    /// saying the same thing — *"the seam itself... that is what a default is
-    /// for."* Nobody traced the suppressions back here.
-    ///
-    /// A default value is substitutable by construction, and it makes no
-    /// difference whether the value handed over is the instant (`= Date()`) or
-    /// the capability that reads it (`= { Date() }`). A test passes
-    /// `{ fixedDate }` to either. The closure is not invoked at the seam; it is
-    /// the production implementation of one.
-    ///
-    /// The distinction that is *not* generalised: a closure argument at a
-    /// call site. `items.map { Date() }` runs immediately and
-    /// `queue.async { stamp = Date() }` runs later with nothing able to replace
-    /// it, so the substitutability has to come from the parameter, which is why
-    /// this stays keyed on `defaultValue` rather than on being a closure.
-    ///
-    /// The walk requires the node to sit *inside* the parameter's default-value
-    /// clause rather than merely to have a parameter ancestor, and a function
-    /// or accessor body between the two ends it — a nested declaration's body
-    /// is code that runs, not a value being handed over.
     /// Whether the read is **handed straight on** — its value becomes a call argument and this
     /// scope never looks at it.
     ///
@@ -134,12 +103,16 @@ extension NonInjectedNondeterminismVisitor {
     /// is untestable when the untestable part is a single unexamined expression is how a rule talks
     /// someone out of a repair it asked for.
     ///
-    /// **Argument position only, and that restriction is the whole precision.** A receiver is not
-    /// handing the value on, it is *using* it: `Date().addingTimeInterval(timeout)` is a deadline,
-    /// `Date().timeIntervalSince(start)` is an elapsed time, `Date.now.timeIntervalSince1970` is a
-    /// number this scope computed. Every real defect this rule has produced across the corpus —
-    /// the subprocess timeout, the benchmark timings, the rate limiters, the snapshot collision
-    /// loop — reads the clock into a receiver or an operand, never into a bare argument.
+    /// **Argument position only, and never to a callee that combines.** A receiver is not handing
+    /// the value on, it is *using* it: `Date().addingTimeInterval(timeout)` is a deadline and
+    /// `Date().timeIntervalSince(start)` an elapsed time. Every real defect this rule has produced
+    /// across the corpus — the subprocess timeout, the benchmark timings, the rate limiters, the
+    /// snapshot collision loop — reads the clock into a receiver, an operand, or a callee that
+    /// relates it to something else. That last one is an argument by position and a use by
+    /// meaning: `start.timeIntervalSince(Date())` and `DateInterval(start: t0, end: t1)` are the
+    /// benchmark again, so `combines(_:)` refuses them. Members that only re-present the value
+    /// (`.timeIntervalSince1970`, `.uuidString`) are stepped past first; see
+    /// `representation(of:)`.
     ///
     /// **The bound spelling counts too, and it had to.** `let now = Date()` at the top of a `body`,
     /// then `header(asOf: now)` and `content(asOf: now)`, is the archetype — it is the shape the
@@ -162,16 +135,22 @@ extension NonInjectedNondeterminismVisitor {
         return isBoundAndOnlyPassedOn(effective)
     }
 
-    /// `node` with every re-presenting member applied — the outermost expression that is still only
-    /// the same fact in another type. Returns `node` itself when the first member does something.
+    /// `node` with every re-presenting member and conversion applied — the outermost expression
+    /// that is still only the same fact in another type. Returns `node` itself when the first step
+    /// does something.
     func outermostRepresentation(of node: Syntax) -> Syntax {
         var outer = node
-        while let member = outer.parent?.as(MemberAccessExprSyntax.self),
-              member.base.map({ Syntax($0).id == outer.id }) == true,
-              let next = representation(of: member) {
-            outer = next
+        while true {
+            if let member = outer.parent?.as(MemberAccessExprSyntax.self),
+               member.base.map({ Syntax($0).id == outer.id }) == true,
+               let next = representation(of: member) {
+                outer = next
+            } else if let conversion = enclosingConversion(of: outer) {
+                outer = Syntax(conversion)
+            } else {
+                return outer
+            }
         }
-        return outer
     }
 
     /// The `let name = <read>` case: a local binding whose every use is an argument.
@@ -238,8 +217,9 @@ extension NonInjectedNondeterminismVisitor {
             if let element = syntax.as(LabeledExprSyntax.self),
                let list = element.parent?.as(LabeledExprListSyntax.self),
                let call = list.parent?.as(FunctionCallExprSyntax.self) {
-                // The callee itself is not an argument.
-                return Syntax(call.calledExpression).id != child.id
+                // The callee itself is not an argument, and a callee that combines the value with
+                // another is the scope using it, whichever side of the call the read sits on.
+                return Syntax(call.calledExpression).id != child.id && !Self.combines(call)
             }
             if syntax.is(CodeBlockSyntax.self) || syntax.is(AccessorBlockSyntax.self) { return false }
             guard isTransparentPassthrough(syntax) else { return false }
@@ -253,8 +233,9 @@ extension NonInjectedNondeterminismVisitor {
     /// doing something with the value rather than restating it.
     ///
     /// A receiver is normally where this rule's precision comes from: every defect it has produced
-    /// across the corpus reads the clock into one. But four of the nine sites the composition-root
-    /// arm could not reach were receivers that merely change the value's *type* and then hand it on:
+    /// across the corpus reads the clock into one. But three of the sites the composition-root arm
+    /// could not reach when it shipped (SwiftProjectLint#193) were receivers that merely change the
+    /// value's *type* and then hand it on:
     ///
     /// ```swift
     /// let stamp = Date.now.formatted(date: .abbreviated, time: .shortened)  // …timestamp: stamp
@@ -366,6 +347,37 @@ extension NonInjectedNondeterminismVisitor {
         syntax.is(TryExprSyntax.self) || syntax.is(AwaitExprSyntax.self)
     }
 
+    /// True when `node` sits in a function/initializer parameter's default
+    /// value — `init(id: UUID = UUID())` is the injection seam, not inline
+    /// nondeterminism.
+    ///
+    /// ## A closure default is a seam too
+    ///
+    /// This used to stop at any `ClosureExprSyntax`, so
+    /// `clock: () -> Date = { Date() }` was reported — the exact shape this
+    /// rule's own documentation offers as the fix, and the shape a reader who
+    /// takes its advice ends up writing. The corpus said so plainly: three
+    /// sites across two repositories carried a hand-written
+    /// `swiftprojectlint:disable:next` for this rule, each with a comment
+    /// saying the same thing — *"the seam itself... that is what a default is
+    /// for."* Nobody traced the suppressions back here.
+    ///
+    /// A default value is substitutable by construction, and it makes no
+    /// difference whether the value handed over is the instant (`= Date()`) or
+    /// the capability that reads it (`= { Date() }`). A test passes
+    /// `{ fixedDate }` to either. The closure is not invoked at the seam; it is
+    /// the production implementation of one.
+    ///
+    /// The distinction that is *not* generalised: a closure argument at a
+    /// call site. `items.map { Date() }` runs immediately and
+    /// `queue.async { stamp = Date() }` runs later with nothing able to replace
+    /// it, so the substitutability has to come from the parameter, which is why
+    /// this stays keyed on `defaultValue` rather than on being a closure.
+    ///
+    /// The walk requires the node to sit *inside* the parameter's default-value
+    /// clause rather than merely to have a parameter ancestor, and a function
+    /// or accessor body between the two ends it — a nested declaration's body
+    /// is code that runs, not a value being handed over.
     func isParameterDefaultValue(_ node: Syntax) -> Bool {
         var child = node
         var current = node.parent
