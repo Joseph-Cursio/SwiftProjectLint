@@ -57,17 +57,43 @@ swiftprojectlint /path/to/MyApp --format json
 ```
 
 ```json
-[
-  {
-    "severity": "warning",
-    "message": "Force Try: Avoid force try expressions...",
-    "filePath": "ExampleView.swift",
-    "lineNumber": 14,
-    "suggestion": "Use do/catch to handle errors gracefully.",
-    "ruleName": "Force Try"
+{
+  "issues" : [
+    {
+      "category" : "codeQuality",
+      "kind" : "defect",
+      "locations" : [
+        {
+          "filePath" : "ExampleView.swift",
+          "lineNumber" : 14
+        }
+      ],
+      "message" : "Force Try: Avoid force try expressions...",
+      "ruleIdentifier" : "forceTry",
+      "ruleName" : "Force Try",
+      "severity" : "warning",
+      "suggestion" : "Use do/catch to handle errors gracefully."
+    }
+  ],
+  "schemaVersion" : 1,
+  "summary" : {
+    "errorCount" : 0,
+    "infoCount" : 0,
+    "totalIssues" : 1,
+    "warningCount" : 1
+  },
+  "tool" : {
+    "name" : "SwiftProjectLint",
+    "version" : "1.1.0"
   }
-]
+}
 ```
+
+- `schemaVersion` changes whenever a field is added, removed or changes meaning.
+- `tool.version` is the release that wrote the report, the same string `--version` prints.
+- `ruleIdentifier` is the rule's case name, stable when its display name (`ruleName`) is edited.
+- `kind` is `census` for rules whose findings state a fact about the code rather than claim something is wrong (the property-test candidates and `impureClosureInventory`); any suggestion they carry is optional. Every other rule is `defect`: each finding claims something is wrong at that place.
+- `symbol` appears when the rule names the declaration a finding is about.
 
 ---
 

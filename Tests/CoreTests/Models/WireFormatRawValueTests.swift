@@ -14,6 +14,10 @@ struct WireFormatRawValueTests {
         #expect(IssueSeverity.allCases.map(\.rawValue) == ["error", "warning", "info"])
     }
 
+    @Test func ruleKind() {
+        #expect(RuleKind.allCases.map(\.rawValue) == ["census", "defect"])
+    }
+
     @Test func seedRole() {
         #expect(PBTSeedRole.allCases.map(\.rawValue) == [
             "comparator", "predicate", "transform", "reducer", "partition", "normalizer"

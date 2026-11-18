@@ -52,3 +52,40 @@ struct JSONFormatterTests {
         #expect(decoded.issues[0].category.isEmpty == false)
     }
 }
+
+struct JSONReportSchemaTests {
+    private static func decode(_ issues: [LintIssue]) throws -> LintReport {
+        let data = try #require(JSONFormatter().format(issues: issues).data(using: .utf8))
+        return try JSONDecoder().decode(LintReport.self, from: data)
+    }
+
+    private static func issue(_ rule: RuleIdentifier) -> LintIssue {
+        LintIssue(severity: .info, message: "m", filePath: "A.swift", lineNumber: 1, suggestion: nil, ruleName: rule)
+    }
+
+    @Test
+    func reportCarriesSchemaVersionAndTool() throws {
+        let report = try Self.decode([])
+        #expect(report.schemaVersion == LintReport.currentSchemaVersion)
+        #expect(report.schemaVersion == 1)
+        #expect(report.tool.name == "SwiftProjectLint")
+        #expect(report.tool.version == SwiftProjectLintVersion.current)
+    }
+
+    @Test
+    func issuesCarryCaseNameAndKind() throws {
+        let report = try Self.decode([Self.issue(.forceUnwrap), Self.issue(.pureFunctionCandidate)])
+        #expect(report.issues.map(\.ruleName) == ["Force Unwrap", "Pure Function Property-Test Candidate"])
+        #expect(report.issues.map(\.ruleIdentifier) == ["forceUnwrap", "pureFunctionCandidate"])
+        #expect(report.issues.map(\.kind) == [.defect, .census])
+    }
+
+    @Test
+    func jsonSpellsTheNewKeys() throws {
+        let json = JSONFormatter().format(issues: [Self.issue(.impureClosureInventory)])
+        #expect(json.contains("\"schemaVersion\" : 1"))
+        #expect(json.contains("\"ruleIdentifier\" : \"impureClosureInventory\""))
+        #expect(json.contains("\"kind\" : \"census\""))
+        #expect(json.contains("\"version\" : \"\(SwiftProjectLintVersion.current)\""))
+    }
+}

@@ -15,7 +15,12 @@ public struct CodableLintIssue: Codable, Sendable {
     public let message: String
     public let locations: [IssueLocation]
     public let suggestion: String?
+    /// The rule's display name, such as `Force Unwrap`.
     public let ruleName: String
+    /// The rule's case name, such as `forceUnwrap`, which display-name edits don't change.
+    public let ruleIdentifier: String
+    /// Whether the rule takes a census or reports a defect.
+    public let kind: RuleKind
     public let category: String
     /// The source symbol (e.g. function name) this issue is about, when the rule
     /// identifies one. Synthesized `Codable` omits this key from JSON when `nil`.
@@ -29,6 +34,8 @@ public struct CodableLintIssue: Codable, Sendable {
         }
         self.suggestion = issue.suggestion
         self.ruleName = issue.ruleName.rawValue
+        self.ruleIdentifier = issue.ruleName.caseName
+        self.kind = issue.ruleName.kind
         self.category = String(describing: issue.ruleName.category)
         self.symbol = issue.symbol
     }
