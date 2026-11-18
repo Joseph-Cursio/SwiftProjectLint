@@ -32,8 +32,9 @@ import SwiftSyntax
 /// — the same argument `extractableTotalKernel` makes one case at a time, made as a census.
 ///
 /// **So this is deliberately not a seed.** It passes no `role`, and nothing downstream should point
-/// analysis at it. `CandidateInventory` and `PBTSeedsFormatter` list the rules that *are* seeds, and
-/// this is not among them.
+/// analysis at it: `PBTSeedsFormatter` lists the rules that *are* seeds, and this is not among them.
+/// It is a census (`RuleIdentifier.censusRules`, reported as `kind: census` in JSON), but not one
+/// `CandidateInventory` collapses from the text report.
 ///
 /// ## What each cause is worth, which is why the message leads with it
 ///
