@@ -7,7 +7,7 @@ struct SwiftProjectLintCLI: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "swiftprojectlint",
         abstract: "Analyze Swift projects for common issues and anti-patterns.",
-        version: "1.0.0"
+        version: SwiftProjectLintVersion.current
     )
 
     @Argument(help: "Path to the Swift project directory to analyze.")

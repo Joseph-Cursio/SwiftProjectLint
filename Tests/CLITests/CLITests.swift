@@ -1,3 +1,4 @@
+import Core
 import Foundation
 import Testing
 
@@ -150,7 +151,7 @@ struct CLITests {
     @Test func versionFlagPrintsVersion() throws {
         let result = try runCLI(arguments: ["--version"])
         #expect(result.exitCode == 0)
-        #expect(result.stdout.contains("1.0.0"))
+        #expect(result.stdout.contains(SwiftProjectLintVersion.current))
     }
 
     // MARK: - Analysis of real Swift code
